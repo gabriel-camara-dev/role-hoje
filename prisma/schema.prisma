@@ -1,0 +1,9 @@
+generator client {
+  provider = "prisma-client"
+  output   = "../src/@types/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+  schemas  = ["users", "authentication_audit"]
+}

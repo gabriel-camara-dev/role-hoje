@@ -1,0 +1,38 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "name": "Debug: Start Dev (Watch)",
+      "type": "node",
+      "request": "launch",
+      "skipFiles": ["<node_internals>/**", "**/node_modules/**"],
+      "program": "${workspaceFolder}/src/server.ts",
+      "runtimeExecutable": "npx",
+      "runtimeArgs": ["tsx", "watch", "--env-file=.env", "--no-deprecation"],
+      "restart": true,
+      "console": "integratedTerminal",
+      "sourceMaps": true,
+      "smartStep": true,
+      "outFiles": ["${workspaceFolder}/**/*.js", "!**/node_modules/**"],
+      "resolveSourceMapLocations": ["${workspaceFolder}/**", "!**/node_modules/**"],
+      "env": {
+        "NODE_ENV": "development",
+        "NODE_OPTIONS": "--enable-source-maps"
+      }
+    },
+    {
+      "name": "Debug: Start Dev (Estável/Sem Watch)",
+      "type": "node",
+      "request": "launch",
+      "skipFiles": ["<node_internals>/**"],
+      "program": "${workspaceFolder}/dist/server.mjs",
+      "runtimeExecutable": "node",
+      "runtimeArgs": ["--enable-source-maps", "--env-file=.env"],
+      "console": "integratedTerminal",
+      "preLaunchTask": "npm: build",
+      "env": {
+        "NODE_ENV": "development"
+      }
+    }
+  ]
+}

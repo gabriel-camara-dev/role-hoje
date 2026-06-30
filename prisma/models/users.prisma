@@ -1,0 +1,33 @@
+enum UserRole {
+  ADMIN
+  DEFAULT
+
+  @@schema("users")
+}
+
+model User {
+  id            Int       @id @default(autoincrement())
+  publicId      String    @unique @default(uuid(7)) @map("public_id")
+  name          String
+  username      String    @unique
+  email         String    @unique
+  cpf           String    @unique
+  passwordHash  String    @map("password_hash")
+  loginAttempts Int       @default(0) @map("login_attempts")
+  lastLogin     DateTime? @map("last_login")
+  role          UserRole  @default(DEFAULT)
+
+  token          String?   @unique
+  tokenExpiresAt DateTime? @map("token_expires_at")
+
+  createdAt         DateTime  @default(now()) @map("created_at")
+  updatedAt         DateTime  @updatedAt @map("updated_at")
+  passwordChangedAt DateTime? @map("password_changed_at")
+
+  authenticationAudits AuthenticationAudit[]
+
+  @@index([name], name: "idx_user_name")
+  @@index([token], name: "idx_user_token")
+  @@map("users")
+  @@schema("users")
+}

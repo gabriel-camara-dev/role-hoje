@@ -1,0 +1,44 @@
+{
+  "compilerOptions": {
+    "module": "nodenext",
+    "target": "esnext",
+    "strict": true,
+    "forceConsistentCasingInFileNames": true,
+    "ignoreDeprecations": "6.0",
+    "experimentalDecorators": true,
+    "emitDecoratorMetadata": true,
+    "esModuleInterop": true,
+    "isolatedModules": true,
+    "rootDir": "./src",
+    "outDir": "./dist",
+    "baseUrl": ".",
+    "paths": {
+      "@/*": [
+        "./src/*",
+        "./src/core/*",
+        "./src/domain/main/application/*",
+        "./src/infra/*"
+      ],
+      "@env/*": ["./src/infra/env/*"],
+      "@lib/logger/*": ["./src/infra/logger/*"],
+      "@lib/prisma/*": ["./src/infra/database/prisma/*"],
+      "@controllers/*": ["./src/infra/http/controllers/*"],
+      "@middlewares/*": ["./src/infra/http/middlewares/*"],
+      "@constants/*": ["./src/core/constants/*"],
+      "@main/use-cases/*": ["./src/domain/main/application/use-cases/*"],
+      "@repositories/prisma/*": ["./src/infra/database/prisma/repositories/*"],
+      "@repositories/*": ["./src/domain/main/application/repositories/*"],
+      "@services/*": ["./src/services/*"],
+      "@http/*": ["./src/infra/http/*"],
+      "@tps/*": ["./src/@types/*"],
+      "@prisma-types/*": ["./src/@types/prisma/*"],
+      "@utils/*": ["./src/infra/messaging/*"],
+      "@templates/*": ["./src/infra/messaging/templates/*"],
+      "@schemas/*": ["./src/infra/http/schemas/*"]
+    },
+    "typeRoots": ["./node_modules/@types", "./src/types"],
+    "types": ["node"]
+  },
+  "include": ["src/**/*.ts"],
+  "exclude": ["node_modules", "dist", "prisma"]
+}
