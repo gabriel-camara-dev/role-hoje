@@ -25,6 +25,13 @@ model User {
   passwordChangedAt DateTime? @map("password_changed_at")
 
   authenticationAudits AuthenticationAudit[]
+  createdPlaces        Place[]
+  placeVotes           PlaceVote[]
+  createdGroups        Group[]
+  groupMembers         GroupMember[]
+  requestedFriendships Friendship[] @relation("FriendshipRequester")
+  receivedFriendships  Friendship[] @relation("FriendshipAddressee")
+  moderationReports    ModerationReport[]
 
   @@index([name], name: "idx_user_name")
   @@index([token], name: "idx_user_token")

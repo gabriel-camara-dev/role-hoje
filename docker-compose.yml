@@ -1,12 +1,12 @@
 services:
   postgres:
     image: postgres:18-alpine3.23
-    container_name: ${POSTGRES_CONTAINER_NAME:-template-backend-postgres}
+    container_name: ${POSTGRES_CONTAINER_NAME:-template-backend-postgres-nest}
     restart: unless-stopped
     environment:
       POSTGRES_USER: ${POSTGRES_USER:-postgres}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-postgres}
-      POSTGRES_DB: ${POSTGRES_DB:-template_backend}
+      POSTGRES_DB: ${POSTGRES_DB:-template_backend_nest}
     ports:
       - "${POSTGRES_HOST_PORT:-5432}:5432"
     volumes:
@@ -18,7 +18,7 @@ services:
       test:
         [
           "CMD-SHELL",
-          "pg_isready -U ${POSTGRES_USER:-postgres} -d ${POSTGRES_DB:-template_backend}",
+          "pg_isready -U ${POSTGRES_USER:-postgres} -d ${POSTGRES_DB:-template_backend_nest}",
         ]
       interval: 10s
       timeout: 5s

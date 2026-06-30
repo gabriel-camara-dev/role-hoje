@@ -52,6 +52,12 @@ export const AnyNull = runtime.AnyNull
 
 export const ModelName = {
   AuthenticationAudit: 'AuthenticationAudit',
+  Place: 'Place',
+  PlaceVote: 'PlaceVote',
+  Group: 'Group',
+  GroupMember: 'GroupMember',
+  Friendship: 'Friendship',
+  ModerationReport: 'ModerationReport',
   User: 'User'
 } as const
 
@@ -83,6 +89,102 @@ export const AuthenticationAuditScalarFieldEnum = {
 } as const
 
 export type AuthenticationAuditScalarFieldEnum = (typeof AuthenticationAuditScalarFieldEnum)[keyof typeof AuthenticationAuditScalarFieldEnum]
+
+
+export const PlaceScalarFieldEnum = {
+  id: 'id',
+  publicId: 'publicId',
+  googlePlaceId: 'googlePlaceId',
+  name: 'name',
+  formattedAddress: 'formattedAddress',
+  latitude: 'latitude',
+  longitude: 'longitude',
+  city: 'city',
+  state: 'state',
+  country: 'country',
+  photoUrl: 'photoUrl',
+  websiteUrl: 'websiteUrl',
+  mapsUrl: 'mapsUrl',
+  isActive: 'isActive',
+  createdById: 'createdById',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type PlaceScalarFieldEnum = (typeof PlaceScalarFieldEnum)[keyof typeof PlaceScalarFieldEnum]
+
+
+export const PlaceVoteScalarFieldEnum = {
+  id: 'id',
+  publicId: 'publicId',
+  day: 'day',
+  note: 'note',
+  status: 'status',
+  scopeKey: 'scopeKey',
+  userId: 'userId',
+  placeId: 'placeId',
+  groupId: 'groupId',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type PlaceVoteScalarFieldEnum = (typeof PlaceVoteScalarFieldEnum)[keyof typeof PlaceVoteScalarFieldEnum]
+
+
+export const GroupScalarFieldEnum = {
+  id: 'id',
+  publicId: 'publicId',
+  name: 'name',
+  slug: 'slug',
+  description: 'description',
+  privacy: 'privacy',
+  city: 'city',
+  state: 'state',
+  createdById: 'createdById',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type GroupScalarFieldEnum = (typeof GroupScalarFieldEnum)[keyof typeof GroupScalarFieldEnum]
+
+
+export const GroupMemberScalarFieldEnum = {
+  id: 'id',
+  groupId: 'groupId',
+  userId: 'userId',
+  role: 'role',
+  status: 'status',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type GroupMemberScalarFieldEnum = (typeof GroupMemberScalarFieldEnum)[keyof typeof GroupMemberScalarFieldEnum]
+
+
+export const FriendshipScalarFieldEnum = {
+  id: 'id',
+  requesterId: 'requesterId',
+  addresseeId: 'addresseeId',
+  status: 'status',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type FriendshipScalarFieldEnum = (typeof FriendshipScalarFieldEnum)[keyof typeof FriendshipScalarFieldEnum]
+
+
+export const ModerationReportScalarFieldEnum = {
+  id: 'id',
+  publicId: 'publicId',
+  reason: 'reason',
+  status: 'status',
+  reporterId: 'reporterId',
+  placeId: 'placeId',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type ModerationReportScalarFieldEnum = (typeof ModerationReportScalarFieldEnum)[keyof typeof ModerationReportScalarFieldEnum]
 
 
 export const UserScalarFieldEnum = {

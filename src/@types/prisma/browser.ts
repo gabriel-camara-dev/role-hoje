@@ -23,6 +23,36 @@ export * from './enums.js';
  */
 export type AuthenticationAudit = Prisma.AuthenticationAuditModel
 /**
+ * Model Place
+ * 
+ */
+export type Place = Prisma.PlaceModel
+/**
+ * Model PlaceVote
+ * 
+ */
+export type PlaceVote = Prisma.PlaceVoteModel
+/**
+ * Model Group
+ * 
+ */
+export type Group = Prisma.GroupModel
+/**
+ * Model GroupMember
+ * 
+ */
+export type GroupMember = Prisma.GroupMemberModel
+/**
+ * Model Friendship
+ * 
+ */
+export type Friendship = Prisma.FriendshipModel
+/**
+ * Model ModerationReport
+ * 
+ */
+export type ModerationReport = Prisma.ModerationReportModel
+/**
  * Model User
  * 
  */

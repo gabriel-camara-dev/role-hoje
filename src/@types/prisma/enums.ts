@@ -21,6 +21,58 @@ export const AuthenticationStatus = {
 export type AuthenticationStatus = (typeof AuthenticationStatus)[keyof typeof AuthenticationStatus]
 
 
+export const GroupPrivacy = {
+  PUBLIC: 'PUBLIC',
+  PRIVATE: 'PRIVATE'
+} as const
+
+export type GroupPrivacy = (typeof GroupPrivacy)[keyof typeof GroupPrivacy]
+
+
+export const GroupMemberRole = {
+  OWNER: 'OWNER',
+  MODERATOR: 'MODERATOR',
+  MEMBER: 'MEMBER'
+} as const
+
+export type GroupMemberRole = (typeof GroupMemberRole)[keyof typeof GroupMemberRole]
+
+
+export const GroupMemberStatus = {
+  ACTIVE: 'ACTIVE',
+  PENDING: 'PENDING',
+  BLOCKED: 'BLOCKED'
+} as const
+
+export type GroupMemberStatus = (typeof GroupMemberStatus)[keyof typeof GroupMemberStatus]
+
+
+export const VoteStatus = {
+  ACTIVE: 'ACTIVE',
+  CANCELLED: 'CANCELLED'
+} as const
+
+export type VoteStatus = (typeof VoteStatus)[keyof typeof VoteStatus]
+
+
+export const FriendshipStatus = {
+  PENDING: 'PENDING',
+  ACCEPTED: 'ACCEPTED',
+  BLOCKED: 'BLOCKED'
+} as const
+
+export type FriendshipStatus = (typeof FriendshipStatus)[keyof typeof FriendshipStatus]
+
+
+export const ModerationReportStatus = {
+  OPEN: 'OPEN',
+  RESOLVED: 'RESOLVED',
+  DISMISSED: 'DISMISSED'
+} as const
+
+export type ModerationReportStatus = (typeof ModerationReportStatus)[keyof typeof ModerationReportStatus]
+
+
 export const UserRole = {
   ADMIN: 'ADMIN',
   DEFAULT: 'DEFAULT'
