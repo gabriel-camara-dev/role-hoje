@@ -4,7 +4,6 @@ import { GetUserProfileController } from './get-user-profile.controller';
 import { GoogleOAuthController } from './google-oauth.controller';
 import { ListUsersController } from './list-users.controller';
 import { RegisterUserController } from './register-user.controller';
-import { UserAvatarController } from './user-avatar.controller';
 import { UpdateUserController } from './update-user.controller';
 
 export const usersControllers = [
@@ -13,7 +12,6 @@ export const usersControllers = [
   RegisterUserController,
   ListUsersController,
   GetUserProfileController,
-  UserAvatarController,
   UpdateUserController,
   DeleteUserController,
 ];

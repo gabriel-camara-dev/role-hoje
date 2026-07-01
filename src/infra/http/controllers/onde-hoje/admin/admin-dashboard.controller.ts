@@ -9,13 +9,13 @@ import { AdminDashboardResponseDto } from '@/infra/http/swagger/presenter-schema
 @ApiTags('Onde Hoje - Admin')
 @ApiBearerAuth()
 @Controller('/admin/onde-hoje')
-export class OndeHojeAdminController {
+export class AdminDashboardController {
   constructor(@Inject(GetAdminDashboardUseCase) private getAdminDashboardUseCase: GetAdminDashboardUseCase) {}
 
   @Get('/dashboard')
   @ApiOperation({ summary: 'Admin dashboard metrics for Onde Hoje Map' })
   @ApiOkResponse({ description: 'Admin dashboard retrieved successfully.', type: AdminDashboardResponseDto })
-  async dashboard(@CurrentUser() currentUser: UserPayload) {
+  async handle(@CurrentUser() currentUser: UserPayload) {
     const result = await this.getAdminDashboardUseCase.execute({
       currentUserPublicId: currentUser.sub,
     });

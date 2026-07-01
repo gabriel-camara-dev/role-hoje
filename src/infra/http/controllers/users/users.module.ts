@@ -12,11 +12,12 @@ import { DatabaseModule } from '@/infra/database/database.module';
 import { EventsModule } from '@/infra/events/events.module';
 import { BcryptPasswordHasher } from '@/infra/auth/bcrypt-password-hasher';
 import { EncryptedAvatarStorageService } from '@/infra/storage/encrypted-avatar-storage.service';
+import { UserAvatarModule } from './avatar/avatar.module';
 import { GoogleOAuthConfiguredGuard } from './google-oauth.controller';
 import { usersControllers } from './user.routes';
 
 @Module({
-  imports: [DatabaseModule, EventsModule],
+  imports: [DatabaseModule, EventsModule, UserAvatarModule],
   controllers: usersControllers,
   providers: [
     AuthenticateUserUseCase,
