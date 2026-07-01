@@ -6,7 +6,11 @@ import { OndeHojeUsersRepository } from '@/domain/main/application/repositories/
 import { PlacesRepository } from '@/domain/main/application/repositories/onde-hoje/places-repository';
 import { UsersRepository } from '@/domain/main/application/repositories/users-repository';
 import { PrismaService } from './prisma/prisma.service';
-import { PrismaOndeHojeRepository } from './prisma/repositories/prisma-onde-hoje-repository';
+import { PrismaAdminDashboardRepository } from './prisma/repositories/onde-hoje/prisma-admin-dashboard-repository';
+import { PrismaFriendshipsRepository } from './prisma/repositories/onde-hoje/prisma-friendships-repository';
+import { PrismaGroupsRepository } from './prisma/repositories/onde-hoje/prisma-groups-repository';
+import { PrismaOndeHojeUsersRepository } from './prisma/repositories/onde-hoje/prisma-onde-hoje-users-repository';
+import { PrismaPlacesRepository } from './prisma/repositories/onde-hoje/prisma-places-repository';
 import { PrismaUsersRepository } from './prisma/repositories/prisma-users-repository';
 
 @Module({
@@ -18,23 +22,23 @@ import { PrismaUsersRepository } from './prisma/repositories/prisma-users-reposi
     },
     {
       provide: PlacesRepository,
-      useClass: PrismaOndeHojeRepository,
+      useClass: PrismaPlacesRepository,
     },
     {
       provide: GroupsRepository,
-      useClass: PrismaOndeHojeRepository,
+      useClass: PrismaGroupsRepository,
     },
     {
       provide: FriendshipsRepository,
-      useClass: PrismaOndeHojeRepository,
+      useClass: PrismaFriendshipsRepository,
     },
     {
       provide: AdminDashboardRepository,
-      useClass: PrismaOndeHojeRepository,
+      useClass: PrismaAdminDashboardRepository,
     },
     {
       provide: OndeHojeUsersRepository,
-      useClass: PrismaOndeHojeRepository,
+      useClass: PrismaOndeHojeUsersRepository,
     },
   ],
   exports: [

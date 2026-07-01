@@ -10,4 +10,3 @@ export abstract class GroupsRepository {
   abstract create(data: CreateGroupData): Promise<Group>;
   abstract join(data: { userId: number; groupPublicId: string }): Promise<GroupMembership | null>;
 }
-

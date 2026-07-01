@@ -1,4 +1,6 @@
 import { Inject, Injectable } from '@nestjs/common';
+import { createDomainEvent } from '@/core/events/domain-event';
+import { EventBus } from '@/core/events/event-bus';
 import type { Result } from '@/core/result';
 import { fail, success } from '@/core/result';
 import { GroupsRepository } from '../../../repositories/onde-hoje/groups-repository';
@@ -22,6 +24,7 @@ export class CreateGroupUseCase {
   constructor(
     @Inject(GroupsRepository) private groupsRepository: GroupsRepository,
     @Inject(OndeHojeUsersRepository) private usersRepository: OndeHojeUsersRepository,
+    @Inject(EventBus) private eventBus: EventBus,
   ) {}
 
   async execute(request: CreateGroupUseCaseRequest): Promise<CreateGroupUseCaseResponse> {
@@ -40,7 +43,20 @@ export class CreateGroupUseCase {
       createdById: user.id,
     });
 
+    await this.eventBus.publish(
+      createDomainEvent({
+        eventName: 'onde-hoje.group.created',
+        aggregateId: group.publicId,
+        actorId: request.currentUserPublicId,
+        payload: {
+          id: group.publicId,
+          name: group.name,
+          privacy: group.privacy,
+        },
+        recipientIds: [request.currentUserPublicId],
+      }),
+    );
+
     return success({ group });
   }
 }
-

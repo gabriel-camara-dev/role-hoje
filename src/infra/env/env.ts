@@ -18,6 +18,11 @@ export const envSchema = z
     JWT_PUBLIC_KEY: z.string().optional(),
     FRONTEND_URL: z.url().default('http://localhost:5173'),
     HASH_SALT_ROUNDS: z.coerce.number().default(12),
+    GOOGLE_CLIENT_ID: z.string().optional(),
+    GOOGLE_CLIENT_SECRET: z.string().optional(),
+    GOOGLE_CALLBACK_URL: z.url().default('http://localhost:3000/sessions/google/callback'),
+    AVATAR_ENCRYPTION_SECRET: z.string().min(32).optional(),
+    AVATAR_STORAGE_DIR: z.string().default('storage/avatars'),
 
     SENTRY_DSN: z.string().optional(),
 

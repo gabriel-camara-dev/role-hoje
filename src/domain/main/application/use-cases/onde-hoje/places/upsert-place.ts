@@ -1,4 +1,6 @@
 import { Inject, Injectable } from '@nestjs/common';
+import { createDomainEvent } from '@/core/events/domain-event';
+import { EventBus } from '@/core/events/event-bus';
 import type { Result } from '@/core/result';
 import { fail, success } from '@/core/result';
 import { OndeHojeUsersRepository } from '../../../repositories/onde-hoje/onde-hoje-users-repository';
@@ -28,6 +30,7 @@ export class UpsertPlaceUseCase {
   constructor(
     @Inject(PlacesRepository) private placesRepository: PlacesRepository,
     @Inject(OndeHojeUsersRepository) private usersRepository: OndeHojeUsersRepository,
+    @Inject(EventBus) private eventBus: EventBus,
   ) {}
 
   async execute(request: UpsertPlaceUseCaseRequest): Promise<UpsertPlaceUseCaseResponse> {
@@ -42,7 +45,20 @@ export class UpsertPlaceUseCase {
       createdById: user.id,
     });
 
+    await this.eventBus.publish(
+      createDomainEvent({
+        eventName: 'onde-hoje.place.upserted',
+        aggregateId: place.publicId,
+        actorId: request.currentUserPublicId,
+        payload: {
+          id: place.publicId,
+          name: place.name,
+          latitude: place.latitude,
+          longitude: place.longitude,
+        },
+      }),
+    );
+
     return success({ place });
   }
 }
-

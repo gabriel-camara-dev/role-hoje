@@ -1,5 +1,7 @@
 import { Inject, Injectable } from '@nestjs/common';
 import { hash } from 'bcryptjs';
+import { createDomainEvent } from '@/core/events/domain-event';
+import { EventBus } from '@/core/events/event-bus';
 import type { Result } from '@/core/result';
 import { fail, success } from '@/core/result';
 import { ResourceNotFoundError } from '../errors/resource-not-found-error';
@@ -25,7 +27,10 @@ type UpdateUserUseCaseResponse = Result<
 
 @Injectable()
 export class UpdateUserUseCase {
-  constructor(@Inject(UsersRepository) private usersRepository: UsersRepository) {}
+  constructor(
+    @Inject(UsersRepository) private usersRepository: UsersRepository,
+    @Inject(EventBus) private eventBus: EventBus,
+  ) {}
 
   async execute({ publicId, password, ...data }: UpdateUserUseCaseRequest): Promise<UpdateUserUseCaseResponse> {
     const userExists = await this.usersRepository.findBy({ publicId });
@@ -54,6 +59,18 @@ export class UpdateUserUseCase {
           }
         : {}),
     });
+
+    await this.eventBus.publish(
+      createDomainEvent({
+        eventName: 'user.updated',
+        aggregateId: user.publicId,
+        payload: {
+          id: user.publicId,
+          changedFields: Object.keys({ ...data, ...(password ? { password: true } : {}) }),
+        },
+        recipientIds: [user.publicId],
+      }),
+    );
 
     return success({ user });
   }

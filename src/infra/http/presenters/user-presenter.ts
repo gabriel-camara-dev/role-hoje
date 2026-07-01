@@ -5,8 +5,9 @@ type PublicUser = {
   name: string;
   username: string;
   email: string;
-  cpf: string;
+  cpf: string | null;
   role: UserRole;
+  avatarUpdatedAt: Date | null;
   createdAt: Date;
   updatedAt: Date;
 };
@@ -16,8 +17,9 @@ type HTTPUser = {
   name: string;
   username: string;
   email: string;
-  cpf: string;
+  cpf: string | null;
   role: UserRole;
+  avatarUrl: string | null;
   createdAt: Date;
   updatedAt: Date;
 };
@@ -37,6 +39,7 @@ export class UserPresenter {
       email: input.email,
       cpf: input.cpf,
       role: input.role,
+      avatarUrl: input.avatarUpdatedAt ? `/users/${input.publicId}/avatar` : null,
       createdAt: input.createdAt,
       updatedAt: input.updatedAt,
     };

@@ -1,5 +1,14 @@
 import { Body, Controller, Get, Inject, Param, Post, Query } from '@nestjs/common';
-import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
+import {
+  ApiBearerAuth,
+  ApiBody,
+  ApiCreatedResponse,
+  ApiOkResponse,
+  ApiOperation,
+  ApiParam,
+  ApiQuery,
+  ApiTags,
+} from '@nestjs/swagger';
 import { z } from 'zod';
 import { CreateGroupUseCase } from '@/domain/main/application/use-cases/onde-hoje/groups/create-group';
 import { JoinGroupUseCase } from '@/domain/main/application/use-cases/onde-hoje/groups/join-group';
@@ -8,7 +17,12 @@ import { CurrentUser } from '@/infra/auth/current-user-generator';
 import type { UserPayload } from '@/infra/auth/jwt-strategy';
 import { Public } from '@/infra/auth/public';
 import { throwHttpError } from '@/infra/http/errors/http-error-handler';
-import { OndeHojePresenter } from '@/infra/http/presenters/onde-hoje-presenter';
+import { GroupPresenter } from '@/infra/http/presenters/onde-hoje/group-presenter';
+import {
+  CreateGroupBodyDto,
+  GroupMembershipResponseDto,
+  GroupResponseDto,
+} from '@/infra/http/swagger/presenter-schemas/onde-hoje/group-presenter-schema';
 import { ZodValidationPipe } from '../../pipes/zod-validation-pipe';
 
 const createGroupSchema = z.object({
@@ -34,14 +48,18 @@ export class GroupsController {
   @Get('/public')
   @Public()
   @ApiOperation({ summary: 'List public groups' })
+  @ApiQuery({ name: 'city', required: false, type: String })
+  @ApiOkResponse({ description: 'Public groups retrieved successfully.', type: [GroupResponseDto] })
   async publicGroups(@Query('city') city?: string) {
     const result = await this.listPublicGroupsUseCase.execute({ city });
 
-    return result.value.groups.map((group) => OndeHojePresenter.groupToHTTP(group));
+    return result.value.groups.map((group) => GroupPresenter.toHTTP(group));
   }
 
   @Post()
   @ApiOperation({ summary: 'Create a public or private group' })
+  @ApiBody({ type: CreateGroupBodyDto })
+  @ApiCreatedResponse({ description: 'Group created successfully.', type: GroupResponseDto })
   async create(
     @CurrentUser() currentUser: UserPayload,
     @Body(new ZodValidationPipe<CreateGroupBody>(createGroupSchema)) body: CreateGroupBody,
@@ -55,11 +73,13 @@ export class GroupsController {
       throwHttpError(result.value);
     }
 
-    return OndeHojePresenter.groupToHTTP(result.value.group);
+    return GroupPresenter.toHTTP(result.value.group);
   }
 
   @Post('/:groupPublicId/join')
   @ApiOperation({ summary: 'Join a public group or request access to a private one' })
+  @ApiParam({ name: 'groupPublicId', type: String })
+  @ApiCreatedResponse({ description: 'Membership created or updated successfully.', type: GroupMembershipResponseDto })
   async join(@CurrentUser() currentUser: UserPayload, @Param('groupPublicId') groupPublicId: string) {
     const result = await this.joinGroupUseCase.execute({
       currentUserPublicId: currentUser.sub,

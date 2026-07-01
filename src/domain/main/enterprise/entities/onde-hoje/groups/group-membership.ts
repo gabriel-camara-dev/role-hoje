@@ -4,4 +4,3 @@ export interface GroupMembership {
   groupPublicId: string;
   status: GroupMemberStatus;
 }
-

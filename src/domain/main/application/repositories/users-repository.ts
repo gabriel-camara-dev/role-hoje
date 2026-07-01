@@ -7,6 +7,7 @@ export interface FindUserBy {
   email?: string;
   username?: string;
   cpf?: string;
+  googleId?: string;
   token?: string;
 }
 

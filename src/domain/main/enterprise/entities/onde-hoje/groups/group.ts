@@ -21,4 +21,3 @@ export interface CreateGroupData {
   state?: string;
   createdById: number;
 }
-

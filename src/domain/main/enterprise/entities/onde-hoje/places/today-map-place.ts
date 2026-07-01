@@ -9,4 +9,3 @@ export interface TodayMapPlace extends Place {
     note: string | null;
   }>;
 }
-

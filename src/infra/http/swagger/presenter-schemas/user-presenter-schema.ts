@@ -11,8 +11,8 @@ export class CreateUserBodyDto {
   @ApiProperty({ type: String, example: 'gabriel@example.com' })
   email!: string;
 
-  @ApiProperty({ type: String, example: '12345678901' })
-  cpf!: string;
+  @ApiPropertyOptional({ type: String, example: '12345678901' })
+  cpf?: string | null;
 
   @ApiProperty({ type: String, example: 'strong-password' })
   password!: string;
@@ -61,6 +61,9 @@ export class UserResponseDto {
 
   @ApiProperty({ enum: UserRole, example: UserRole.DEFAULT })
   role!: UserRole;
+
+  @ApiPropertyOptional({ type: String, example: '/users/018f4a2c-87b7-7cc4-9f93-0faaf26cfbed/avatar' })
+  avatarUrl?: string | null;
 
   @ApiProperty({ type: Date, example: '2026-06-30T14:00:00.000Z' })
   createdAt!: Date;

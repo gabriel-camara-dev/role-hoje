@@ -1,10 +1,15 @@
 import type { CreatePlaceData, Place } from '../../../enterprise/entities/onde-hoje/places/place';
+import type { PlaceAttendanceEstimate } from '../../../enterprise/entities/onde-hoje/places/place-attendance-estimate';
+import type { PlaceHistoryDay, UserVoteHistoryItem } from '../../../enterprise/entities/onde-hoje/places/place-history';
 import type { PlaceVote } from '../../../enterprise/entities/onde-hoje/places/place-vote';
 import type { TodayMapPlace } from '../../../enterprise/entities/onde-hoje/places/today-map-place';
 
 export interface ListPlacesQuery {
   q?: string;
   city?: string;
+  latitude?: number;
+  longitude?: number;
+  radiusKm?: number;
 }
 
 export interface TodayMapQuery {
@@ -12,10 +17,42 @@ export interface TodayMapQuery {
   groupPublicId?: string;
 }
 
+export interface TopPlacesTodayQuery {
+  city?: string;
+  groupPublicId?: string;
+  limit?: number;
+}
+
+export interface PlaceHistoryQuery {
+  from: Date;
+  to: Date;
+  city?: string;
+  groupPublicId?: string;
+  latitude?: number;
+  longitude?: number;
+  radiusKm?: number;
+}
+
+export interface PlaceAttendanceEstimateQuery {
+  placePublicId: string;
+  scheduledAt: Date;
+  radiusKm: number;
+  groupPublicId?: string;
+}
+
 export abstract class PlacesRepository {
   abstract list(query: ListPlacesQuery): Promise<Place[]>;
   abstract upsert(data: CreatePlaceData): Promise<Place>;
   abstract todayMap(query: TodayMapQuery): Promise<TodayMapPlace[]>;
+  abstract topPlacesToday(query: TopPlacesTodayQuery): Promise<TodayMapPlace[] | null>;
+  abstract history(query: PlaceHistoryQuery): Promise<PlaceHistoryDay[]>;
+  abstract userVoteHistory(userId: number, limit: number): Promise<UserVoteHistoryItem[]>;
+  abstract attendanceEstimate(query: PlaceAttendanceEstimateQuery): Promise<PlaceAttendanceEstimate | null>;
+  abstract countActiveVotesTodayExcludingTarget(data: {
+    userId: number;
+    placePublicId: string;
+    groupPublicId?: string;
+  }): Promise<number | null>;
   abstract voteToday(data: {
     userId: number;
     placePublicId: string;
@@ -23,4 +60,3 @@ export abstract class PlacesRepository {
     note?: string;
   }): Promise<PlaceVote | null>;
 }
-

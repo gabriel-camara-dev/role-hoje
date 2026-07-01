@@ -1,5 +1,7 @@
 import { Inject, Injectable } from '@nestjs/common';
 import { hash } from 'bcryptjs';
+import { createDomainEvent } from '@/core/events/domain-event';
+import { EventBus } from '@/core/events/event-bus';
 import type { Result } from '@/core/result';
 import { fail, success } from '@/core/result';
 import { UsersRepository } from '../../repositories/users-repository';
@@ -23,7 +25,10 @@ type RegisterUserUseCaseResponse = Result<
 
 @Injectable()
 export class RegisterUserUseCase {
-  constructor(@Inject(UsersRepository) private usersRepository: UsersRepository) {}
+  constructor(
+    @Inject(UsersRepository) private usersRepository: UsersRepository,
+    @Inject(EventBus) private eventBus: EventBus,
+  ) {}
 
   async execute({
     name,
@@ -47,6 +52,21 @@ export class RegisterUserUseCase {
       cpf,
       passwordHash,
     });
+
+    await this.eventBus.publish(
+      createDomainEvent({
+        eventName: 'user.created',
+        aggregateId: user.publicId,
+        payload: {
+          id: user.publicId,
+          name: user.name,
+          username: user.username,
+          email: user.email,
+          role: user.role,
+        },
+        recipientIds: [user.publicId],
+      }),
+    );
 
     return success({ user });
   }

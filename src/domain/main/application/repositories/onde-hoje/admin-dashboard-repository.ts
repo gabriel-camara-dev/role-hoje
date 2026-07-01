@@ -3,4 +3,3 @@ import type { AdminDashboard } from '../../../enterprise/entities/onde-hoje/admi
 export abstract class AdminDashboardRepository {
   abstract getDashboard(): Promise<AdminDashboard>;
 }
-

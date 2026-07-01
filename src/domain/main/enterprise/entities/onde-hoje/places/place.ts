@@ -14,6 +14,7 @@ export interface Place {
   mapsUrl: string | null;
   createdAt: Date;
   updatedAt: Date;
+  distanceKm?: number;
 }
 
 export interface CreatePlaceData {
@@ -30,4 +31,3 @@ export interface CreatePlaceData {
   mapsUrl?: string;
   createdById: number;
 }
-

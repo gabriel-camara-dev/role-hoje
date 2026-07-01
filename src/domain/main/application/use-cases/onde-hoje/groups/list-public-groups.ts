@@ -1,10 +1,7 @@
 import { Inject, Injectable } from '@nestjs/common';
 import type { Result } from '@/core/result';
 import { success } from '@/core/result';
-import {
-  type ListPublicGroupsQuery,
-  GroupsRepository,
-} from '../../../repositories/onde-hoje/groups-repository';
+import { type ListPublicGroupsQuery, GroupsRepository } from '../../../repositories/onde-hoje/groups-repository';
 import type { Group } from '../../../../enterprise/entities/onde-hoje/groups/group';
 
 type ListPublicGroupsUseCaseResponse = Result<never, { groups: Group[] }>;
@@ -19,4 +16,3 @@ export class ListPublicGroupsUseCase {
     return success({ groups });
   }
 }
-

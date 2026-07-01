@@ -1,4 +1,6 @@
 import { Inject, Injectable } from '@nestjs/common';
+import { createDomainEvent } from '@/core/events/domain-event';
+import { EventBus } from '@/core/events/event-bus';
 import type { Result } from '@/core/result';
 import { fail, success } from '@/core/result';
 import { FriendshipsRepository } from '../../../repositories/onde-hoje/friendships-repository';
@@ -18,6 +20,7 @@ export class RequestFriendshipUseCase {
   constructor(
     @Inject(FriendshipsRepository) private friendshipsRepository: FriendshipsRepository,
     @Inject(OndeHojeUsersRepository) private usersRepository: OndeHojeUsersRepository,
+    @Inject(EventBus) private eventBus: EventBus,
   ) {}
 
   async execute(request: RequestFriendshipUseCaseRequest): Promise<RequestFriendshipUseCaseResponse> {
@@ -35,6 +38,20 @@ export class RequestFriendshipUseCase {
     if (!status) {
       return fail(new ResourceNotFoundError('User not found'));
     }
+
+    await this.eventBus.publish(
+      createDomainEvent({
+        eventName: 'onde-hoje.friendship.requested',
+        actorId: request.currentUserPublicId,
+        aggregateId: `${request.currentUserPublicId}:${request.addresseePublicId}`,
+        payload: {
+          requesterId: request.currentUserPublicId,
+          addresseeId: request.addresseePublicId,
+          status,
+        },
+        recipientIds: [request.addresseePublicId],
+      }),
+    );
 
     return success({ status });
   }

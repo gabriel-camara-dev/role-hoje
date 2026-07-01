@@ -8,8 +8,15 @@ export interface User {
   name: string;
   username: string;
   email: string;
-  cpf: string;
-  passwordHash: string;
+  cpf: string | null;
+  passwordHash: string | null;
+  googleId: string | null;
+  avatarEncryptedPath: string | null;
+  avatarIv: string | null;
+  avatarAuthTag: string | null;
+  avatarMimeType: string | null;
+  avatarOriginalName: string | null;
+  avatarUpdatedAt: Date | null;
   loginAttempts: number;
   lastLogin: Date | null;
   role: UserRole;
@@ -24,8 +31,9 @@ export interface CreateUserData {
   name: string;
   username: string;
   email: string;
-  cpf: string;
-  passwordHash: string;
+  cpf?: string | null;
+  passwordHash?: string | null;
+  googleId?: string | null;
   role?: UserRole;
 }
 
@@ -33,8 +41,15 @@ export interface UpdateUserData {
   name?: string;
   username?: string;
   email?: string;
-  cpf?: string;
-  passwordHash?: string;
+  cpf?: string | null;
+  passwordHash?: string | null;
+  googleId?: string | null;
+  avatarEncryptedPath?: string | null;
+  avatarIv?: string | null;
+  avatarAuthTag?: string | null;
+  avatarMimeType?: string | null;
+  avatarOriginalName?: string | null;
+  avatarUpdatedAt?: Date | null;
   passwordChangedAt?: Date;
   token?: string | null;
   tokenExpiresAt?: Date | null;

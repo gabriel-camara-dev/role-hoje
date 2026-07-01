@@ -141,6 +141,10 @@ export class PrismaUsersRepository implements UsersRepository {
       return { cpf: findUserBy.cpf };
     }
 
+    if (findUserBy.googleId) {
+      return { googleId: findUserBy.googleId };
+    }
+
     if (findUserBy.token) {
       return { token: findUserBy.token };
     }

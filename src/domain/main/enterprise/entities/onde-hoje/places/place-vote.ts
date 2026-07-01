@@ -3,4 +3,3 @@ export interface PlaceVote {
   day: Date;
   status: string;
 }
-

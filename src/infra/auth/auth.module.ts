@@ -6,6 +6,9 @@ import { EnvModule } from '../env/env.module';
 import { EnvService } from '../env/env.service';
 import { JwtAuthGuard } from './jwt-auth.guard';
 import { JwtStrategy } from './jwt-strategy';
+import { GoogleStrategy } from './google-strategy';
+
+const googleAuthProviders = process.env.GOOGLE_CLIENT_ID && process.env.GOOGLE_CLIENT_SECRET ? [GoogleStrategy] : [];
 
 @Module({
   imports: [
@@ -36,6 +39,7 @@ import { JwtStrategy } from './jwt-strategy';
   ],
   providers: [
     JwtStrategy,
+    ...googleAuthProviders,
     {
       provide: APP_GUARD,
       useClass: JwtAuthGuard,

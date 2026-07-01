@@ -1,7 +1,4 @@
-import type {
-  FriendListItem,
-  FriendshipStatus,
-} from '../../../enterprise/entities/onde-hoje/friendships/friendship';
+import type { FriendListItem, FriendshipStatus } from '../../../enterprise/entities/onde-hoje/friendships/friendship';
 
 export abstract class FriendshipsRepository {
   abstract listFriends(userId: number): Promise<FriendListItem[]>;
@@ -9,8 +6,5 @@ export abstract class FriendshipsRepository {
     requesterId: number;
     addresseePublicId: string;
   }): Promise<FriendshipStatus | null>;
-  abstract acceptFriendship(data: {
-    addresseeId: number;
-    requesterPublicId: string;
-  }): Promise<FriendshipStatus | null>;
+  abstract acceptFriendship(data: { addresseeId: number; requesterPublicId: string }): Promise<FriendshipStatus | null>;
 }

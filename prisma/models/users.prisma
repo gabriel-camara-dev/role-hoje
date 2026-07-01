@@ -11,8 +11,15 @@ model User {
   name          String
   username      String    @unique
   email         String    @unique
-  cpf           String    @unique
-  passwordHash  String    @map("password_hash")
+  cpf           String?   @unique
+  passwordHash  String?   @map("password_hash")
+  googleId      String?   @unique @map("google_id")
+  avatarEncryptedPath String?   @map("avatar_encrypted_path")
+  avatarIv            String?   @map("avatar_iv")
+  avatarAuthTag       String?   @map("avatar_auth_tag")
+  avatarMimeType      String?   @map("avatar_mime_type")
+  avatarOriginalName  String?   @map("avatar_original_name")
+  avatarUpdatedAt     DateTime? @map("avatar_updated_at")
   loginAttempts Int       @default(0) @map("login_attempts")
   lastLogin     DateTime? @map("last_login")
   role          UserRole  @default(DEFAULT)
