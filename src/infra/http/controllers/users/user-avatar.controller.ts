@@ -69,6 +69,8 @@ export class UserAvatarController {
   })
   @ApiOkResponse({ description: 'Avatar uploaded successfully.', type: UserResponseDto })
   async upload(@CurrentUser() currentUser: UserPayload, @UploadedFile() file: Express.Multer.File) {
+    const previousProfile = await this.getUserProfileUseCase.execute({ publicId: currentUser.sub });
+    const previousAvatarPath = previousProfile.isSuccess() ? previousProfile.value.user.avatarEncryptedPath : null;
     const storedAvatar = await this.encryptedAvatarStorage.store(file);
     const result = await this.updateUserAvatarUseCase.execute({
       currentUserPublicId: currentUser.sub,
@@ -80,7 +82,12 @@ export class UserAvatarController {
     });
 
     if (result.isFail()) {
+      await this.encryptedAvatarStorage.delete(storedAvatar.encryptedPath);
       throwHttpError(result.value);
+    }
+
+    if (previousAvatarPath) {
+      await this.encryptedAvatarStorage.delete(previousAvatarPath);
     }
 
     return UserPresenter.toHTTP(result.value.user);

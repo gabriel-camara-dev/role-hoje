@@ -1,9 +1,9 @@
 import { Inject, Injectable } from '@nestjs/common';
 import type { CreateGroupData, Group } from '@/domain/main/enterprise/entities/onde-hoje/groups/group';
-import type { GroupMembership } from '@/domain/main/enterprise/entities/onde-hoje/groups/group-membership';
 import type {
   AcceptGroupMemberResult,
   GroupsRepository,
+  JoinGroupResult,
   ListPublicGroupsQuery,
 } from '@/domain/main/application/repositories/onde-hoje/groups-repository';
 import { PrismaOndeHojeMapper } from '../../mappers/prisma-onde-hoje-mapper';
@@ -15,21 +15,30 @@ export class PrismaGroupsRepository implements GroupsRepository {
   constructor(@Inject(PrismaService) private prisma: PrismaService) {}
 
   async listPublic(query: ListPublicGroupsQuery): Promise<Group[]> {
+    const today = new Date();
+    const todayDate = new Date(today.getFullYear(), today.getMonth(), today.getDate());
     const groups = await this.prisma.group.findMany({
       where: {
         privacy: 'PUBLIC',
         ...(query.city ? { city: { equals: query.city, mode: 'insensitive' } } : {}),
       },
-      include: {
-        _count: {
-          select: { members: true, votes: true },
-        },
-      },
       orderBy: { createdAt: 'desc' },
       take: 50,
     });
 
-    return groups.map((group) => PrismaOndeHojeMapper.groupToDomain(group));
+    return Promise.all(
+      groups.map(async (group) => {
+        const [membersCount, todayVotesCount] = await Promise.all([
+          this.prisma.groupMember.count({ where: { groupId: group.id, status: 'ACTIVE' } }),
+          this.prisma.placeVote.count({ where: { groupId: group.id, day: todayDate, status: 'ACTIVE' } }),
+        ]);
+
+        return PrismaOndeHojeMapper.groupToDomain({
+          ...group,
+          _count: { members: membersCount, votes: todayVotesCount },
+        });
+      }),
+    );
   }
 
   async create(data: CreateGroupData): Promise<Group> {
@@ -50,11 +59,24 @@ export class PrismaGroupsRepository implements GroupsRepository {
     return PrismaOndeHojeMapper.groupToDomain(group);
   }
 
-  async join(data: { userId: number; groupPublicId: string }): Promise<GroupMembership | null> {
+  async join(data: { userId: number; groupPublicId: string }): Promise<JoinGroupResult> {
     const group = await this.prisma.group.findUnique({ where: { publicId: data.groupPublicId } });
 
     if (!group) {
-      return null;
+      return { type: 'not_found' };
+    }
+
+    const existingMember = await this.prisma.groupMember.findUnique({
+      where: {
+        uq_group_member: {
+          groupId: group.id,
+          userId: data.userId,
+        },
+      },
+    });
+
+    if (existingMember?.status === 'BLOCKED') {
+      return { type: 'blocked' };
     }
 
     const member = await this.prisma.groupMember.upsert({
@@ -74,10 +96,7 @@ export class PrismaGroupsRepository implements GroupsRepository {
       },
     });
 
-    return {
-      groupPublicId: group.publicId,
-      status: member.status,
-    };
+    return { type: 'joined', membership: { groupPublicId: group.publicId, status: member.status } };
   }
 
   async acceptMember(data: {

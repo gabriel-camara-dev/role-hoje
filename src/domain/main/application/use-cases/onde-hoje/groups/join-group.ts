@@ -6,6 +6,7 @@ import { fail, success } from '@/core/result';
 import { GroupsRepository } from '../../../repositories/onde-hoje/groups-repository';
 import { OndeHojeUsersRepository } from '../../../repositories/onde-hoje/onde-hoje-users-repository';
 import type { GroupMembership } from '../../../../enterprise/entities/onde-hoje/groups/group-membership';
+import { ConflictError } from '../../errors/conflict-error';
 import { ResourceNotFoundError } from '../../errors/resource-not-found-error';
 
 interface JoinGroupUseCaseRequest {
@@ -13,7 +14,7 @@ interface JoinGroupUseCaseRequest {
   groupPublicId: string;
 }
 
-type JoinGroupUseCaseResponse = Result<ResourceNotFoundError, { membership: GroupMembership }>;
+type JoinGroupUseCaseResponse = Result<ResourceNotFoundError | ConflictError, { membership: GroupMembership }>;
 
 @Injectable()
 export class JoinGroupUseCase {
@@ -30,14 +31,20 @@ export class JoinGroupUseCase {
       return fail(new ResourceNotFoundError('Authenticated user not found'));
     }
 
-    const membership = await this.groupsRepository.join({
+    const joinResult = await this.groupsRepository.join({
       userId: user.id,
       groupPublicId: request.groupPublicId,
     });
 
-    if (!membership) {
+    if (joinResult.type === 'not_found') {
       return fail(new ResourceNotFoundError('Group not found'));
     }
+
+    if (joinResult.type === 'blocked') {
+      return fail(new ConflictError('Blocked members cannot rejoin without moderator action'));
+    }
+
+    const { membership } = joinResult;
 
     await this.eventBus.publish(
       createDomainEvent({

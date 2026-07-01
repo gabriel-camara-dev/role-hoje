@@ -38,17 +38,21 @@ export class AuthenticateUserUseCase {
       return fail(new InvalidCredentialsError());
     }
 
+    const authenticatedUser = await this.usersRepository.updateById(user.id, {
+      lastLogin: new Date(),
+    });
+
     await this.eventBus.publish(
       createDomainEvent({
         eventName: 'user.authenticated',
-        aggregateId: user.publicId,
+        aggregateId: authenticatedUser.publicId,
         payload: {
-          id: user.publicId,
+          id: authenticatedUser.publicId,
         },
-        recipientIds: [user.publicId],
+        recipientIds: [authenticatedUser.publicId],
       }),
     );
 
-    return success({ user });
+    return success({ user: authenticatedUser });
   }
 }

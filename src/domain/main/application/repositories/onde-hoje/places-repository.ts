@@ -15,11 +15,15 @@ export interface ListPlacesQuery {
 export interface TodayMapQuery {
   city?: string;
   groupPublicId?: string;
+  day?: Date;
+  viewerPublicId?: string;
 }
 
 export interface TopPlacesTodayQuery {
   city?: string;
   groupPublicId?: string;
+  day?: Date;
+  viewerPublicId?: string;
   limit?: number;
 }
 
@@ -28,6 +32,7 @@ export interface PlaceHistoryQuery {
   to: Date;
   city?: string;
   groupPublicId?: string;
+  viewerPublicId?: string;
   latitude?: number;
   longitude?: number;
   radiusKm?: number;
@@ -43,9 +48,9 @@ export interface PlaceAttendanceEstimateQuery {
 export abstract class PlacesRepository {
   abstract list(query: ListPlacesQuery): Promise<Place[]>;
   abstract upsert(data: CreatePlaceData): Promise<Place>;
-  abstract todayMap(query: TodayMapQuery): Promise<TodayMapPlace[]>;
+  abstract todayMap(query: TodayMapQuery): Promise<TodayMapPlace[] | null>;
   abstract topPlacesToday(query: TopPlacesTodayQuery): Promise<TodayMapPlace[] | null>;
-  abstract history(query: PlaceHistoryQuery): Promise<PlaceHistoryDay[]>;
+  abstract history(query: PlaceHistoryQuery): Promise<PlaceHistoryDay[] | null>;
   abstract userVoteHistory(userId: number, limit: number): Promise<UserVoteHistoryItem[]>;
   abstract attendanceEstimate(query: PlaceAttendanceEstimateQuery): Promise<PlaceAttendanceEstimate | null>;
   abstract countActiveVotesForDayExcludingTarget(data: {

@@ -140,6 +140,7 @@ model Friendship {
   id          Int              @id @default(autoincrement())
   requesterId Int              @map("requester_id")
   addresseeId Int              @map("addressee_id")
+  pairKey     String           @unique @map("pair_key")
   status      FriendshipStatus @default(PENDING)
   requester   User             @relation("FriendshipRequester", fields: [requesterId], references: [id], onDelete: Cascade, onUpdate: Cascade)
   addressee   User             @relation("FriendshipAddressee", fields: [addresseeId], references: [id], onDelete: Cascade, onUpdate: Cascade)

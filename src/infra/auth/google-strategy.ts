@@ -8,6 +8,7 @@ export interface GoogleOAuthUser {
   email: string;
   name: string;
   pictureUrl?: string;
+  emailVerified?: boolean;
 }
 
 @Injectable()
@@ -28,11 +29,18 @@ export class GoogleStrategy extends PassportStrategy(Strategy, 'google') {
       throw new Error('Google account did not return an email');
     }
 
+    const emailVerified = (profile.emails?.[0] as { verified?: boolean } | undefined)?.verified;
+
+    if (emailVerified === false) {
+      throw new Error('Google account email is not verified');
+    }
+
     return {
       googleId: profile.id,
       email,
       name: profile.displayName || email.split('@')[0],
       pictureUrl: profile.photos?.[0]?.value,
+      emailVerified,
     };
   }
 }

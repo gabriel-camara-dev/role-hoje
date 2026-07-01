@@ -1,4 +1,13 @@
-import { Controller, Get, Inject, Req, UseGuards } from '@nestjs/common';
+import {
+  type CanActivate,
+  Controller,
+  Get,
+  Inject,
+  Injectable,
+  Req,
+  ServiceUnavailableException,
+  UseGuards,
+} from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { AuthGuard } from '@nestjs/passport';
 import { ApiOkResponse, ApiOperation, ApiTags } from '@nestjs/swagger';
@@ -8,6 +17,7 @@ import { UpdateUserAvatarUseCase } from '@/domain/main/application/use-cases/use
 import type { User } from '@/domain/main/enterprise/entities/user';
 import type { GoogleOAuthUser } from '@/infra/auth/google-strategy';
 import { Public } from '@/infra/auth/public';
+import { EnvService } from '@/infra/env/env.service';
 import { AuthenticateUserResponseDto } from '@/infra/http/swagger/presenter-schemas/user-presenter-schema';
 import { EncryptedAvatarStorageService } from '@/infra/storage/encrypted-avatar-storage.service';
 import { UserPresenter } from '../../presenters/user-presenter';
@@ -15,6 +25,19 @@ import { UserPresenter } from '../../presenters/user-presenter';
 type GoogleOAuthRequest = Request & {
   user: GoogleOAuthUser;
 };
+
+@Injectable()
+export class GoogleOAuthConfiguredGuard implements CanActivate {
+  constructor(@Inject(EnvService) private env: EnvService) {}
+
+  canActivate() {
+    if (!this.env.get('GOOGLE_CLIENT_ID') || !this.env.get('GOOGLE_CLIENT_SECRET')) {
+      throw new ServiceUnavailableException('Google OAuth is not configured');
+    }
+
+    return true;
+  }
+}
 
 @ApiTags('Auth')
 @Controller('/sessions/google')
@@ -29,13 +52,13 @@ export class GoogleOAuthController {
 
   @Get()
   @Public()
-  @UseGuards(AuthGuard('google'))
+  @UseGuards(GoogleOAuthConfiguredGuard, AuthGuard('google'))
   @ApiOperation({ summary: 'Start Google OAuth login' })
   async redirectToGoogle() {}
 
   @Get('/callback')
   @Public()
-  @UseGuards(AuthGuard('google'))
+  @UseGuards(GoogleOAuthConfiguredGuard, AuthGuard('google'))
   @ApiOperation({ summary: 'Handle Google OAuth callback' })
   @ApiOkResponse({ description: 'User authenticated with Google successfully.', type: AuthenticateUserResponseDto })
   async callback(@Req() request: GoogleOAuthRequest) {

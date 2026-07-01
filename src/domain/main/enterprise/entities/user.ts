@@ -34,6 +34,7 @@ export interface CreateUserData {
   cpf?: string | null;
   passwordHash?: string | null;
   googleId?: string | null;
+  lastLogin?: Date | null;
   role?: UserRole;
 }
 

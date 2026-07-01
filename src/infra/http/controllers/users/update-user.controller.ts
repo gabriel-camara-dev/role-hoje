@@ -10,6 +10,8 @@ import {
   ApiTags,
 } from '@nestjs/swagger';
 import { UpdateUserUseCase } from '@/domain/main/application/use-cases/users/update-user';
+import { CurrentUser } from '@/infra/auth/current-user-generator';
+import type { UserPayload } from '@/infra/auth/jwt-strategy';
 import { throwHttpError } from '@/infra/http/errors/http-error-handler';
 import { publicIdSchema, type PublicIdSchemaType } from '@/infra/http/schemas/utils/public-id-schema';
 import { updateSchema, type UpdateSchemaType } from '@/infra/http/schemas/users/update-schema';
@@ -31,10 +33,16 @@ export class UpdateUserController {
   @ApiNotFoundResponse({ description: 'User not found.' })
   @ApiConflictResponse({ description: 'User with same email, username or cpf already exists.' })
   async handle(
+    @CurrentUser() currentUser: UserPayload,
     @Param(new ZodValidationPipe<PublicIdSchemaType>(publicIdSchema)) params: PublicIdSchemaType,
     @Body(new ZodValidationPipe<UpdateSchemaType>(updateSchema)) body: UpdateSchemaType,
   ) {
-    const result = await this.updateUserUseCase.execute({ publicId: params.publicId, ...body });
+    const result = await this.updateUserUseCase.execute({
+      currentUserPublicId: currentUser.sub,
+      currentUserRole: currentUser.role,
+      publicId: params.publicId,
+      ...body,
+    });
 
     if (result.isFail()) {
       throwHttpError(result.value);

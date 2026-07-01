@@ -1,4 +1,5 @@
-import { Body, Controller, Get, Inject, Param, Post, Query } from '@nestjs/common';
+import { Body, Controller, Get, Inject, Param, Post, Query, Req } from '@nestjs/common';
+import { JwtService } from '@nestjs/jwt';
 import {
   ApiBearerAuth,
   ApiBody,
@@ -29,6 +30,7 @@ import {
   VoteTodayResponseDto,
 } from '@/infra/http/swagger/presenter-schemas/onde-hoje/map-presenter-schema';
 import { UserVoteHistoryItemResponseDto } from '@/infra/http/swagger/presenter-schemas/onde-hoje/place-presenter-schema';
+import type { Request } from 'express';
 import { ZodValidationPipe } from '../../pipes/zod-validation-pipe';
 
 const dateOnlySchema = z.string().regex(/^\d{4}-\d{2}-\d{2}$/);
@@ -37,6 +39,16 @@ const voteSchema = z.object({
   day: dateOnlySchema.optional(),
   groupPublicId: z.string().uuid().optional(),
   note: z.string().max(240).optional(),
+});
+
+const legacyTodayVoteSchema = voteSchema.extend({
+  day: z.undefined().optional(),
+});
+
+const todayMapQuerySchema = z.object({
+  city: z.string().min(1).optional(),
+  groupPublicId: z.string().uuid().optional(),
+  day: dateOnlySchema.optional(),
 });
 
 const historyQuerySchema = z
@@ -73,10 +85,13 @@ const myVotesQuerySchema = z.object({
 const topPlacesQuerySchema = z.object({
   city: z.string().min(1).optional(),
   groupPublicId: z.string().uuid().optional(),
+  day: dateOnlySchema.optional(),
   limit: z.coerce.number().int().positive().max(50).optional(),
 });
 
 type VoteBody = z.infer<typeof voteSchema>;
+type LegacyTodayVoteBody = z.infer<typeof legacyTodayVoteSchema>;
+type TodayMapQuery = z.infer<typeof todayMapQuerySchema>;
 type HistoryQuery = z.infer<typeof historyQuerySchema>;
 type MyVotesQuery = z.infer<typeof myVotesQuerySchema>;
 type TopPlacesQuery = z.infer<typeof topPlacesQuerySchema>;
@@ -91,6 +106,7 @@ export class TodayMapController {
     @Inject(ListMyVoteHistoryUseCase) private listMyVoteHistoryUseCase: ListMyVoteHistoryUseCase,
     @Inject(ListTopPlacesTodayUseCase) private listTopPlacesTodayUseCase: ListTopPlacesTodayUseCase,
     @Inject(VoteTodayUseCase) private voteTodayUseCase: VoteTodayUseCase,
+    @Inject(JwtService) private jwtService: JwtService,
   ) {}
 
   @Get('/map/today')
@@ -98,9 +114,22 @@ export class TodayMapController {
   @ApiOperation({ summary: 'Show today votes grouped by map place' })
   @ApiQuery({ name: 'city', required: false, type: String })
   @ApiQuery({ name: 'groupPublicId', required: false, type: String })
+  @ApiQuery({ name: 'day', required: false, type: String, example: '2026-06-30' })
   @ApiOkResponse({ description: 'Today map retrieved successfully.', type: [TodayMapPlaceResponseDto] })
-  async today(@Query('city') city?: string, @Query('groupPublicId') groupPublicId?: string) {
-    const result = await this.getTodayMapUseCase.execute({ city, groupPublicId });
+  async today(
+    @Req() request: Request,
+    @Query(new ZodValidationPipe<TodayMapQuery>(todayMapQuerySchema)) query: TodayMapQuery,
+  ) {
+    const result = await this.getTodayMapUseCase.execute({
+      city: query.city,
+      groupPublicId: query.groupPublicId,
+      day: parseDateOnly(query.day) ?? todayDate(),
+      viewerPublicId: await this.getOptionalViewerPublicId(request),
+    });
+
+    if (result.isFail()) {
+      throwHttpError(result.value);
+    }
 
     return result.value.places.map((place) => MapPresenter.todayPlaceToHTTP(place));
   }
@@ -110,10 +139,18 @@ export class TodayMapController {
   @ApiOperation({ summary: 'List today top voted places by city and public or group scope' })
   @ApiQuery({ name: 'city', required: false, type: String })
   @ApiQuery({ name: 'groupPublicId', required: false, type: String })
+  @ApiQuery({ name: 'day', required: false, type: String, example: '2026-06-30' })
   @ApiQuery({ name: 'limit', required: false, type: Number, example: 10 })
   @ApiOkResponse({ description: 'Top places retrieved successfully.', type: [TodayMapPlaceResponseDto] })
-  async topPlaces(@Query(new ZodValidationPipe<TopPlacesQuery>(topPlacesQuerySchema)) query: TopPlacesQuery) {
-    const result = await this.listTopPlacesTodayUseCase.execute(query);
+  async topPlaces(
+    @Req() request: Request,
+    @Query(new ZodValidationPipe<TopPlacesQuery>(topPlacesQuerySchema)) query: TopPlacesQuery,
+  ) {
+    const result = await this.listTopPlacesTodayUseCase.execute({
+      ...query,
+      day: parseDateOnly(query.day) ?? todayDate(),
+      viewerPublicId: await this.getOptionalViewerPublicId(request),
+    });
 
     if (result.isFail()) {
       throwHttpError(result.value);
@@ -133,12 +170,20 @@ export class TodayMapController {
   @ApiQuery({ name: 'longitude', required: false, type: Number })
   @ApiQuery({ name: 'radiusKm', required: false, type: Number })
   @ApiOkResponse({ description: 'Map history retrieved successfully.', type: [MapHistoryDayResponseDto] })
-  async history(@Query(new ZodValidationPipe<HistoryQuery>(historyQuerySchema)) query: HistoryQuery) {
+  async history(
+    @Req() request: Request,
+    @Query(new ZodValidationPipe<HistoryQuery>(historyQuerySchema)) query: HistoryQuery,
+  ) {
     const result = await this.getMapHistoryUseCase.execute({
       ...query,
       from: parseDateOnly(query.from) ?? addDays(todayDate(), -6),
       to: parseDateOnly(query.to) ?? todayDate(),
+      viewerPublicId: await this.getOptionalViewerPublicId(request),
     });
+
+    if (result.isFail()) {
+      throwHttpError(result.value);
+    }
 
     return result.value.history.map((historyDay) => MapPresenter.historyDayToHTTP(historyDay));
   }
@@ -172,9 +217,9 @@ export class TodayMapController {
   async voteToday(
     @CurrentUser() currentUser: UserPayload,
     @Param('placePublicId') placePublicId: string,
-    @Body(new ZodValidationPipe<VoteBody>(voteSchema)) body: VoteBody,
+    @Body(new ZodValidationPipe<LegacyTodayVoteBody>(legacyTodayVoteSchema)) body: LegacyTodayVoteBody,
   ) {
-    return this.createVote(currentUser, placePublicId, body);
+    return this.createVote(currentUser, placePublicId, { ...body, day: undefined });
   }
 
   @Post('/places/:placePublicId/votes')
@@ -205,6 +250,22 @@ export class TodayMapController {
     }
 
     return result.value.vote;
+  }
+
+  private async getOptionalViewerPublicId(request: Request) {
+    const authorization = request.headers.authorization;
+
+    if (!authorization?.startsWith('Bearer ')) {
+      return undefined;
+    }
+
+    try {
+      const payload = await this.jwtService.verifyAsync<{ sub?: string }>(authorization.slice('Bearer '.length));
+
+      return payload.sub;
+    } catch {
+      return undefined;
+    }
   }
 }
 

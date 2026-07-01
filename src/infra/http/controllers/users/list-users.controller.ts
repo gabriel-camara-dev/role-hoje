@@ -1,6 +1,9 @@
 import { Controller, Get, Inject, Query } from '@nestjs/common';
 import { ApiBearerAuth, ApiOkResponse, ApiOperation, ApiQuery, ApiTags } from '@nestjs/swagger';
 import { ListUsersUseCase } from '@/domain/main/application/use-cases/users/list-users';
+import { CurrentUser } from '@/infra/auth/current-user-generator';
+import type { UserPayload } from '@/infra/auth/jwt-strategy';
+import { throwHttpError } from '@/infra/http/errors/http-error-handler';
 import {
   listUsersQuerySchema,
   type ListUsersQuerySchemaType,
@@ -25,9 +28,15 @@ export class ListUsersController {
   @ApiQuery({ name: 'cpf', required: false })
   @ApiOkResponse({ description: 'Users retrieved successfully.', type: ListUsersResponseDto })
   async handle(
+    @CurrentUser() currentUser: UserPayload,
     @Query(new ZodValidationPipe<ListUsersQuerySchemaType>(listUsersQuerySchema)) query: ListUsersQuerySchemaType,
   ) {
-    const result = await this.listUsersUseCase.execute(query);
+    const result = await this.listUsersUseCase.execute({ ...query, currentUserRole: currentUser.role });
+
+    if (result.isFail()) {
+      throwHttpError(result.value);
+    }
+
     const { users } = result.value;
 
     return {

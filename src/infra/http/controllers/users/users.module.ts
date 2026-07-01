@@ -7,9 +7,12 @@ import { ListUsersUseCase } from '@/domain/main/application/use-cases/users/list
 import { RegisterUserUseCase } from '@/domain/main/application/use-cases/users/register-user';
 import { UpdateUserAvatarUseCase } from '@/domain/main/application/use-cases/users/update-user-avatar';
 import { UpdateUserUseCase } from '@/domain/main/application/use-cases/users/update-user';
+import { PasswordHasher } from '@/domain/main/application/use-cases/users/password-hasher';
 import { DatabaseModule } from '@/infra/database/database.module';
 import { EventsModule } from '@/infra/events/events.module';
+import { BcryptPasswordHasher } from '@/infra/auth/bcrypt-password-hasher';
 import { EncryptedAvatarStorageService } from '@/infra/storage/encrypted-avatar-storage.service';
+import { GoogleOAuthConfiguredGuard } from './google-oauth.controller';
 import { usersControllers } from './user.routes';
 
 @Module({
@@ -24,6 +27,8 @@ import { usersControllers } from './user.routes';
     UpdateUserAvatarUseCase,
     UpdateUserUseCase,
     DeleteUserUseCase,
+    { provide: PasswordHasher, useClass: BcryptPasswordHasher },
+    GoogleOAuthConfiguredGuard,
     EncryptedAvatarStorageService,
   ],
 })

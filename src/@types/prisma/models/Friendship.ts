@@ -42,6 +42,7 @@ export type FriendshipMinAggregateOutputType = {
   id: number | null
   requesterId: number | null
   addresseeId: number | null
+  pairKey: string | null
   status: $Enums.FriendshipStatus | null
   createdAt: Date | null
   updatedAt: Date | null
@@ -51,6 +52,7 @@ export type FriendshipMaxAggregateOutputType = {
   id: number | null
   requesterId: number | null
   addresseeId: number | null
+  pairKey: string | null
   status: $Enums.FriendshipStatus | null
   createdAt: Date | null
   updatedAt: Date | null
@@ -60,6 +62,7 @@ export type FriendshipCountAggregateOutputType = {
   id: number
   requesterId: number
   addresseeId: number
+  pairKey: number
   status: number
   createdAt: number
   updatedAt: number
@@ -83,6 +86,7 @@ export type FriendshipMinAggregateInputType = {
   id?: true
   requesterId?: true
   addresseeId?: true
+  pairKey?: true
   status?: true
   createdAt?: true
   updatedAt?: true
@@ -92,6 +96,7 @@ export type FriendshipMaxAggregateInputType = {
   id?: true
   requesterId?: true
   addresseeId?: true
+  pairKey?: true
   status?: true
   createdAt?: true
   updatedAt?: true
@@ -101,6 +106,7 @@ export type FriendshipCountAggregateInputType = {
   id?: true
   requesterId?: true
   addresseeId?: true
+  pairKey?: true
   status?: true
   createdAt?: true
   updatedAt?: true
@@ -197,6 +203,7 @@ export type FriendshipGroupByOutputType = {
   id: number
   requesterId: number
   addresseeId: number
+  pairKey: string
   status: $Enums.FriendshipStatus
   createdAt: Date
   updatedAt: Date
@@ -229,6 +236,7 @@ export type FriendshipWhereInput = {
   id?: Prisma.IntFilter<"Friendship"> | number
   requesterId?: Prisma.IntFilter<"Friendship"> | number
   addresseeId?: Prisma.IntFilter<"Friendship"> | number
+  pairKey?: Prisma.StringFilter<"Friendship"> | string
   status?: Prisma.EnumFriendshipStatusFilter<"Friendship"> | $Enums.FriendshipStatus
   createdAt?: Prisma.DateTimeFilter<"Friendship"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"Friendship"> | Date | string
@@ -240,6 +248,7 @@ export type FriendshipOrderByWithRelationInput = {
   id?: Prisma.SortOrder
   requesterId?: Prisma.SortOrder
   addresseeId?: Prisma.SortOrder
+  pairKey?: Prisma.SortOrder
   status?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
@@ -249,6 +258,7 @@ export type FriendshipOrderByWithRelationInput = {
 
 export type FriendshipWhereUniqueInput = Prisma.AtLeast<{
   id?: number
+  pairKey?: string
   uq_friendship_pair?: Prisma.FriendshipUq_friendship_pairCompoundUniqueInput
   AND?: Prisma.FriendshipWhereInput | Prisma.FriendshipWhereInput[]
   OR?: Prisma.FriendshipWhereInput[]
@@ -260,12 +270,13 @@ export type FriendshipWhereUniqueInput = Prisma.AtLeast<{
   updatedAt?: Prisma.DateTimeFilter<"Friendship"> | Date | string
   requester?: Prisma.XOR<Prisma.UserScalarRelationFilter, Prisma.UserWhereInput>
   addressee?: Prisma.XOR<Prisma.UserScalarRelationFilter, Prisma.UserWhereInput>
-}, "id" | "uq_friendship_pair">
+}, "id" | "pairKey" | "uq_friendship_pair">
 
 export type FriendshipOrderByWithAggregationInput = {
   id?: Prisma.SortOrder
   requesterId?: Prisma.SortOrder
   addresseeId?: Prisma.SortOrder
+  pairKey?: Prisma.SortOrder
   status?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
@@ -283,12 +294,14 @@ export type FriendshipScalarWhereWithAggregatesInput = {
   id?: Prisma.IntWithAggregatesFilter<"Friendship"> | number
   requesterId?: Prisma.IntWithAggregatesFilter<"Friendship"> | number
   addresseeId?: Prisma.IntWithAggregatesFilter<"Friendship"> | number
+  pairKey?: Prisma.StringWithAggregatesFilter<"Friendship"> | string
   status?: Prisma.EnumFriendshipStatusWithAggregatesFilter<"Friendship"> | $Enums.FriendshipStatus
   createdAt?: Prisma.DateTimeWithAggregatesFilter<"Friendship"> | Date | string
   updatedAt?: Prisma.DateTimeWithAggregatesFilter<"Friendship"> | Date | string
 }
 
 export type FriendshipCreateInput = {
+  pairKey: string
   status?: $Enums.FriendshipStatus
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -300,12 +313,14 @@ export type FriendshipUncheckedCreateInput = {
   id?: number
   requesterId: number
   addresseeId: number
+  pairKey: string
   status?: $Enums.FriendshipStatus
   createdAt?: Date | string
   updatedAt?: Date | string
 }
 
 export type FriendshipUpdateInput = {
+  pairKey?: Prisma.StringFieldUpdateOperationsInput | string
   status?: Prisma.EnumFriendshipStatusFieldUpdateOperationsInput | $Enums.FriendshipStatus
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -317,6 +332,7 @@ export type FriendshipUncheckedUpdateInput = {
   id?: Prisma.IntFieldUpdateOperationsInput | number
   requesterId?: Prisma.IntFieldUpdateOperationsInput | number
   addresseeId?: Prisma.IntFieldUpdateOperationsInput | number
+  pairKey?: Prisma.StringFieldUpdateOperationsInput | string
   status?: Prisma.EnumFriendshipStatusFieldUpdateOperationsInput | $Enums.FriendshipStatus
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -326,12 +342,14 @@ export type FriendshipCreateManyInput = {
   id?: number
   requesterId: number
   addresseeId: number
+  pairKey: string
   status?: $Enums.FriendshipStatus
   createdAt?: Date | string
   updatedAt?: Date | string
 }
 
 export type FriendshipUpdateManyMutationInput = {
+  pairKey?: Prisma.StringFieldUpdateOperationsInput | string
   status?: Prisma.EnumFriendshipStatusFieldUpdateOperationsInput | $Enums.FriendshipStatus
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -341,6 +359,7 @@ export type FriendshipUncheckedUpdateManyInput = {
   id?: Prisma.IntFieldUpdateOperationsInput | number
   requesterId?: Prisma.IntFieldUpdateOperationsInput | number
   addresseeId?: Prisma.IntFieldUpdateOperationsInput | number
+  pairKey?: Prisma.StringFieldUpdateOperationsInput | string
   status?: Prisma.EnumFriendshipStatusFieldUpdateOperationsInput | $Enums.FriendshipStatus
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -355,6 +374,7 @@ export type FriendshipCountOrderByAggregateInput = {
   id?: Prisma.SortOrder
   requesterId?: Prisma.SortOrder
   addresseeId?: Prisma.SortOrder
+  pairKey?: Prisma.SortOrder
   status?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
@@ -370,6 +390,7 @@ export type FriendshipMaxOrderByAggregateInput = {
   id?: Prisma.SortOrder
   requesterId?: Prisma.SortOrder
   addresseeId?: Prisma.SortOrder
+  pairKey?: Prisma.SortOrder
   status?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
@@ -379,6 +400,7 @@ export type FriendshipMinOrderByAggregateInput = {
   id?: Prisma.SortOrder
   requesterId?: Prisma.SortOrder
   addresseeId?: Prisma.SortOrder
+  pairKey?: Prisma.SortOrder
   status?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
@@ -489,6 +511,7 @@ export type FriendshipUncheckedUpdateManyWithoutAddresseeNestedInput = {
 }
 
 export type FriendshipCreateWithoutRequesterInput = {
+  pairKey: string
   status?: $Enums.FriendshipStatus
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -498,6 +521,7 @@ export type FriendshipCreateWithoutRequesterInput = {
 export type FriendshipUncheckedCreateWithoutRequesterInput = {
   id?: number
   addresseeId: number
+  pairKey: string
   status?: $Enums.FriendshipStatus
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -514,6 +538,7 @@ export type FriendshipCreateManyRequesterInputEnvelope = {
 }
 
 export type FriendshipCreateWithoutAddresseeInput = {
+  pairKey: string
   status?: $Enums.FriendshipStatus
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -523,6 +548,7 @@ export type FriendshipCreateWithoutAddresseeInput = {
 export type FriendshipUncheckedCreateWithoutAddresseeInput = {
   id?: number
   requesterId: number
+  pairKey: string
   status?: $Enums.FriendshipStatus
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -561,6 +587,7 @@ export type FriendshipScalarWhereInput = {
   id?: Prisma.IntFilter<"Friendship"> | number
   requesterId?: Prisma.IntFilter<"Friendship"> | number
   addresseeId?: Prisma.IntFilter<"Friendship"> | number
+  pairKey?: Prisma.StringFilter<"Friendship"> | string
   status?: Prisma.EnumFriendshipStatusFilter<"Friendship"> | $Enums.FriendshipStatus
   createdAt?: Prisma.DateTimeFilter<"Friendship"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"Friendship"> | Date | string
@@ -585,6 +612,7 @@ export type FriendshipUpdateManyWithWhereWithoutAddresseeInput = {
 export type FriendshipCreateManyRequesterInput = {
   id?: number
   addresseeId: number
+  pairKey: string
   status?: $Enums.FriendshipStatus
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -593,12 +621,14 @@ export type FriendshipCreateManyRequesterInput = {
 export type FriendshipCreateManyAddresseeInput = {
   id?: number
   requesterId: number
+  pairKey: string
   status?: $Enums.FriendshipStatus
   createdAt?: Date | string
   updatedAt?: Date | string
 }
 
 export type FriendshipUpdateWithoutRequesterInput = {
+  pairKey?: Prisma.StringFieldUpdateOperationsInput | string
   status?: Prisma.EnumFriendshipStatusFieldUpdateOperationsInput | $Enums.FriendshipStatus
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -608,6 +638,7 @@ export type FriendshipUpdateWithoutRequesterInput = {
 export type FriendshipUncheckedUpdateWithoutRequesterInput = {
   id?: Prisma.IntFieldUpdateOperationsInput | number
   addresseeId?: Prisma.IntFieldUpdateOperationsInput | number
+  pairKey?: Prisma.StringFieldUpdateOperationsInput | string
   status?: Prisma.EnumFriendshipStatusFieldUpdateOperationsInput | $Enums.FriendshipStatus
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -616,12 +647,14 @@ export type FriendshipUncheckedUpdateWithoutRequesterInput = {
 export type FriendshipUncheckedUpdateManyWithoutRequesterInput = {
   id?: Prisma.IntFieldUpdateOperationsInput | number
   addresseeId?: Prisma.IntFieldUpdateOperationsInput | number
+  pairKey?: Prisma.StringFieldUpdateOperationsInput | string
   status?: Prisma.EnumFriendshipStatusFieldUpdateOperationsInput | $Enums.FriendshipStatus
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
 
 export type FriendshipUpdateWithoutAddresseeInput = {
+  pairKey?: Prisma.StringFieldUpdateOperationsInput | string
   status?: Prisma.EnumFriendshipStatusFieldUpdateOperationsInput | $Enums.FriendshipStatus
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -631,6 +664,7 @@ export type FriendshipUpdateWithoutAddresseeInput = {
 export type FriendshipUncheckedUpdateWithoutAddresseeInput = {
   id?: Prisma.IntFieldUpdateOperationsInput | number
   requesterId?: Prisma.IntFieldUpdateOperationsInput | number
+  pairKey?: Prisma.StringFieldUpdateOperationsInput | string
   status?: Prisma.EnumFriendshipStatusFieldUpdateOperationsInput | $Enums.FriendshipStatus
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -639,6 +673,7 @@ export type FriendshipUncheckedUpdateWithoutAddresseeInput = {
 export type FriendshipUncheckedUpdateManyWithoutAddresseeInput = {
   id?: Prisma.IntFieldUpdateOperationsInput | number
   requesterId?: Prisma.IntFieldUpdateOperationsInput | number
+  pairKey?: Prisma.StringFieldUpdateOperationsInput | string
   status?: Prisma.EnumFriendshipStatusFieldUpdateOperationsInput | $Enums.FriendshipStatus
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -650,6 +685,7 @@ export type FriendshipSelect<ExtArgs extends runtime.Types.Extensions.InternalAr
   id?: boolean
   requesterId?: boolean
   addresseeId?: boolean
+  pairKey?: boolean
   status?: boolean
   createdAt?: boolean
   updatedAt?: boolean
@@ -661,6 +697,7 @@ export type FriendshipSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Ex
   id?: boolean
   requesterId?: boolean
   addresseeId?: boolean
+  pairKey?: boolean
   status?: boolean
   createdAt?: boolean
   updatedAt?: boolean
@@ -672,6 +709,7 @@ export type FriendshipSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Ex
   id?: boolean
   requesterId?: boolean
   addresseeId?: boolean
+  pairKey?: boolean
   status?: boolean
   createdAt?: boolean
   updatedAt?: boolean
@@ -683,12 +721,13 @@ export type FriendshipSelectScalar = {
   id?: boolean
   requesterId?: boolean
   addresseeId?: boolean
+  pairKey?: boolean
   status?: boolean
   createdAt?: boolean
   updatedAt?: boolean
 }
 
-export type FriendshipOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "requesterId" | "addresseeId" | "status" | "createdAt" | "updatedAt", ExtArgs["result"]["friendship"]>
+export type FriendshipOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "requesterId" | "addresseeId" | "pairKey" | "status" | "createdAt" | "updatedAt", ExtArgs["result"]["friendship"]>
 export type FriendshipInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   requester?: boolean | Prisma.UserDefaultArgs<ExtArgs>
   addressee?: boolean | Prisma.UserDefaultArgs<ExtArgs>
@@ -712,6 +751,7 @@ export type $FriendshipPayload<ExtArgs extends runtime.Types.Extensions.Internal
     id: number
     requesterId: number
     addresseeId: number
+    pairKey: string
     status: $Enums.FriendshipStatus
     createdAt: Date
     updatedAt: Date
@@ -1143,6 +1183,7 @@ export interface FriendshipFieldRefs {
   readonly id: Prisma.FieldRef<"Friendship", 'Int'>
   readonly requesterId: Prisma.FieldRef<"Friendship", 'Int'>
   readonly addresseeId: Prisma.FieldRef<"Friendship", 'Int'>
+  readonly pairKey: Prisma.FieldRef<"Friendship", 'String'>
   readonly status: Prisma.FieldRef<"Friendship", 'FriendshipStatus'>
   readonly createdAt: Prisma.FieldRef<"Friendship", 'DateTime'>
   readonly updatedAt: Prisma.FieldRef<"Friendship", 'DateTime'>

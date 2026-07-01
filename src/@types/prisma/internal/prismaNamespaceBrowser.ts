@@ -165,6 +165,7 @@ export const FriendshipScalarFieldEnum = {
   id: 'id',
   requesterId: 'requesterId',
   addresseeId: 'addresseeId',
+  pairKey: 'pairKey',
   status: 'status',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt'

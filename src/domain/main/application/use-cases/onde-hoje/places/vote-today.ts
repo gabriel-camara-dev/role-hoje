@@ -64,17 +64,28 @@ export class VoteTodayUseCase {
       return fail(new ResourceNotFoundError('Place or group not found'));
     }
 
+    const payload = {
+      voteId: vote.publicId,
+      placeId: request.placePublicId,
+      day: day.toISOString().slice(0, 10),
+      groupId: request.groupPublicId,
+    };
+
+    await this.eventBus.publish(
+      createDomainEvent({
+        eventName: 'onde-hoje.place.voted',
+        aggregateId: request.placePublicId,
+        actorId: request.currentUserPublicId,
+        payload,
+      }),
+    );
+
     await this.eventBus.publish(
       createDomainEvent({
         eventName: 'onde-hoje.place.voted-today',
         aggregateId: request.placePublicId,
         actorId: request.currentUserPublicId,
-        payload: {
-          voteId: vote.publicId,
-          placeId: request.placePublicId,
-          day: day.toISOString().slice(0, 10),
-          groupId: request.groupPublicId,
-        },
+        payload,
       }),
     );
 

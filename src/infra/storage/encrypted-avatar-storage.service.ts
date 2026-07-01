@@ -1,5 +1,5 @@
 import { randomUUID, createCipheriv, createDecipheriv, createHash, randomBytes } from 'node:crypto';
-import { mkdir, readFile, writeFile } from 'node:fs/promises';
+import { mkdir, readFile, unlink, writeFile } from 'node:fs/promises';
 import { extname, isAbsolute, join, relative, resolve } from 'node:path';
 import { BadRequestException, Inject, Injectable } from '@nestjs/common';
 import { EnvService } from '../env/env.service';
@@ -124,6 +124,22 @@ export class EncryptedAvatarStorageService {
       mimeType: params.mimeType,
       originalName: params.originalName,
     };
+  }
+
+  async delete(encryptedPath: string): Promise<void> {
+    const resolvedEncryptedPath = resolve(encryptedPath);
+    const storageDir = this.getStorageDir();
+    const relativePath = relative(storageDir, resolvedEncryptedPath);
+
+    if (relativePath.startsWith('..') || isAbsolute(relativePath)) {
+      throw new BadRequestException('Invalid avatar path');
+    }
+
+    try {
+      await unlink(resolvedEncryptedPath);
+    } catch {
+      return;
+    }
   }
 
   private getEncryptionKey() {

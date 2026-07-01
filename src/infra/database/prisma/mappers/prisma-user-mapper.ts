@@ -38,6 +38,7 @@ export class PrismaUserMapper {
       ...(user.cpf !== undefined && { cpf: user.cpf }),
       ...(user.passwordHash !== undefined && { passwordHash: user.passwordHash }),
       ...(user.googleId !== undefined && { googleId: user.googleId }),
+      ...(user.lastLogin !== undefined && { lastLogin: user.lastLogin }),
       ...(user.role ? { role: user.role } : {}),
     };
   }

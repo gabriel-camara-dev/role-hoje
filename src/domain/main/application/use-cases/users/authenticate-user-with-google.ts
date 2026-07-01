@@ -26,7 +26,11 @@ export class AuthenticateUserWithGoogleUseCase {
     const userByGoogleId = await this.usersRepository.findBy({ googleId: request.googleId });
 
     if (userByGoogleId) {
-      return success({ user: userByGoogleId });
+      const authenticatedUser = await this.usersRepository.updateById(userByGoogleId.id, {
+        lastLogin: new Date(),
+      });
+
+      return success({ user: authenticatedUser });
     }
 
     const userByEmail = await this.usersRepository.findBy({ email: request.email });
@@ -48,6 +52,7 @@ export class AuthenticateUserWithGoogleUseCase {
       cpf: null,
       passwordHash: null,
       googleId: request.googleId,
+      lastLogin: new Date(),
     });
 
     await this.eventBus.publish(

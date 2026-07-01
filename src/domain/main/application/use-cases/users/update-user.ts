@@ -1,15 +1,19 @@
 import { Inject, Injectable } from '@nestjs/common';
-import { hash } from 'bcryptjs';
 import { createDomainEvent } from '@/core/events/domain-event';
 import { EventBus } from '@/core/events/event-bus';
 import type { Result } from '@/core/result';
 import { fail, success } from '@/core/result';
+import { ForbiddenError } from '../errors/forbidden-error';
 import { ResourceNotFoundError } from '../errors/resource-not-found-error';
 import { UsersRepository } from '../../repositories/users-repository';
 import type { User } from '../../../enterprise/entities/user';
+import type { UserRole } from '../../../enterprise/entities/user-role';
 import { UserAlreadyExistsError } from './errors/user-already-exists-error';
+import { PasswordHasher } from './password-hasher';
 
 interface UpdateUserUseCaseRequest {
+  currentUserPublicId: string;
+  currentUserRole: UserRole;
   publicId: string;
   name?: string;
   username?: string;
@@ -19,7 +23,7 @@ interface UpdateUserUseCaseRequest {
 }
 
 type UpdateUserUseCaseResponse = Result<
-  ResourceNotFoundError | UserAlreadyExistsError,
+  ResourceNotFoundError | UserAlreadyExistsError | ForbiddenError,
   {
     user: User;
   }
@@ -29,10 +33,21 @@ type UpdateUserUseCaseResponse = Result<
 export class UpdateUserUseCase {
   constructor(
     @Inject(UsersRepository) private usersRepository: UsersRepository,
+    @Inject(PasswordHasher) private passwordHasher: PasswordHasher,
     @Inject(EventBus) private eventBus: EventBus,
   ) {}
 
-  async execute({ publicId, password, ...data }: UpdateUserUseCaseRequest): Promise<UpdateUserUseCaseResponse> {
+  async execute({
+    currentUserPublicId,
+    currentUserRole,
+    publicId,
+    password,
+    ...data
+  }: UpdateUserUseCaseRequest): Promise<UpdateUserUseCaseResponse> {
+    if (currentUserPublicId !== publicId && currentUserRole !== 'ADMIN') {
+      return fail(new ForbiddenError('Only the account owner or an admin can update this user'));
+    }
+
     const userExists = await this.usersRepository.findBy({ publicId });
 
     if (!userExists) {
@@ -54,7 +69,7 @@ export class UpdateUserUseCase {
       ...data,
       ...(password
         ? {
-            passwordHash: await hash(password, 8),
+            passwordHash: await this.passwordHasher.hash(password),
             passwordChangedAt: new Date(),
           }
         : {}),

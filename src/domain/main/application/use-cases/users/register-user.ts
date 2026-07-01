@@ -1,5 +1,4 @@
 import { Inject, Injectable } from '@nestjs/common';
-import { hash } from 'bcryptjs';
 import { createDomainEvent } from '@/core/events/domain-event';
 import { EventBus } from '@/core/events/event-bus';
 import type { Result } from '@/core/result';
@@ -7,6 +6,7 @@ import { fail, success } from '@/core/result';
 import { UsersRepository } from '../../repositories/users-repository';
 import type { User } from '../../../enterprise/entities/user';
 import { UserAlreadyExistsError } from './errors/user-already-exists-error';
+import { PasswordHasher } from './password-hasher';
 
 interface RegisterUserUseCaseRequest {
   name: string;
@@ -27,6 +27,7 @@ type RegisterUserUseCaseResponse = Result<
 export class RegisterUserUseCase {
   constructor(
     @Inject(UsersRepository) private usersRepository: UsersRepository,
+    @Inject(PasswordHasher) private passwordHasher: PasswordHasher,
     @Inject(EventBus) private eventBus: EventBus,
   ) {}
 
@@ -43,7 +44,7 @@ export class RegisterUserUseCase {
       return fail(new UserAlreadyExistsError());
     }
 
-    const passwordHash = await hash(password, 8);
+    const passwordHash = await this.passwordHasher.hash(password);
 
     const user = await this.usersRepository.create({
       name,

@@ -86,11 +86,23 @@ export class PrismaPlacesRepository implements PlacesRepository {
     return PrismaOndeHojeMapper.placeToDomain(place);
   }
 
-  async todayMap(query: TodayMapQuery): Promise<TodayMapPlace[]> {
-    const day = todayDate();
+  async todayMap(query: TodayMapQuery): Promise<TodayMapPlace[] | null> {
+    const day = query.day ?? todayDate();
     const group = query.groupPublicId
       ? await this.prisma.group.findUnique({ where: { publicId: query.groupPublicId } })
       : null;
+
+    if (query.groupPublicId && !group) {
+      return null;
+    }
+
+    if (group?.privacy === 'PRIVATE') {
+      const hasAccess = await this.isActiveGroupMember(group.id, query.viewerPublicId);
+
+      if (!hasAccess) {
+        return null;
+      }
+    }
 
     const places = await this.prisma.place.findMany({
       where: {
@@ -140,13 +152,21 @@ export class PrismaPlacesRepository implements PlacesRepository {
   }
 
   async topPlacesToday(query: TopPlacesTodayQuery): Promise<TodayMapPlace[] | null> {
-    const day = todayDate();
+    const day = query.day ?? todayDate();
     const group = query.groupPublicId
       ? await this.prisma.group.findUnique({ where: { publicId: query.groupPublicId } })
       : null;
 
     if (query.groupPublicId && !group) {
       return null;
+    }
+
+    if (group?.privacy === 'PRIVATE') {
+      const hasAccess = await this.isActiveGroupMember(group.id, query.viewerPublicId);
+
+      if (!hasAccess) {
+        return null;
+      }
     }
 
     const places = await this.prisma.place.findMany({
@@ -197,10 +217,23 @@ export class PrismaPlacesRepository implements PlacesRepository {
       .slice(0, query.limit ?? 10);
   }
 
-  async history(query: PlaceHistoryQuery): Promise<PlaceHistoryDay[]> {
+  async history(query: PlaceHistoryQuery): Promise<PlaceHistoryDay[] | null> {
     const group = query.groupPublicId
       ? await this.prisma.group.findUnique({ where: { publicId: query.groupPublicId } })
       : null;
+
+    if (query.groupPublicId && !group) {
+      return null;
+    }
+
+    if (group?.privacy === 'PRIVATE') {
+      const hasAccess = await this.isActiveGroupMember(group.id, query.viewerPublicId);
+
+      if (!hasAccess) {
+        return null;
+      }
+    }
+
     const bounds =
       query.latitude !== undefined && query.longitude !== undefined && query.radiusKm !== undefined
         ? getCoordinateBounds(query.latitude, query.longitude, query.radiusKm)
@@ -213,7 +246,7 @@ export class PrismaPlacesRepository implements PlacesRepository {
           lte: query.to,
         },
         status: 'ACTIVE',
-        ...(group ? { groupId: group.id } : query.groupPublicId ? { groupId: -1 } : {}),
+        ...(group ? { groupId: group.id } : { groupId: null }),
         place: {
           isActive: true,
           ...(query.city ? { city: { equals: query.city, mode: 'insensitive' } } : {}),
@@ -334,7 +367,7 @@ export class PrismaPlacesRepository implements PlacesRepository {
       where: {
         day,
         status: 'ACTIVE',
-        ...(group ? { groupId: group.id } : {}),
+        ...(group ? { groupId: group.id } : { groupId: null }),
         place: {
           isActive: true,
           latitude: { gte: bounds.minLatitude, lte: bounds.maxLatitude },
@@ -404,6 +437,21 @@ export class PrismaPlacesRepository implements PlacesRepository {
       return null;
     }
 
+    if (group?.privacy === 'PRIVATE') {
+      const membership = await this.prisma.groupMember.findUnique({
+        where: {
+          uq_group_member: {
+            groupId: group.id,
+            userId: data.userId,
+          },
+        },
+      });
+
+      if (membership?.status !== 'ACTIVE') {
+        return null;
+      }
+    }
+
     return this.prisma.placeVote.count({
       where: {
         userId: data.userId,
@@ -431,6 +479,21 @@ export class PrismaPlacesRepository implements PlacesRepository {
 
     if (!place || (data.groupPublicId && !group)) {
       return null;
+    }
+
+    if (group?.privacy === 'PRIVATE') {
+      const membership = await this.prisma.groupMember.findUnique({
+        where: {
+          uq_group_member: {
+            groupId: group.id,
+            userId: data.userId,
+          },
+        },
+      });
+
+      if (membership?.status !== 'ACTIVE') {
+        return null;
+      }
     }
 
     const vote = await this.prisma.placeVote.upsert({
@@ -472,5 +535,21 @@ export class PrismaPlacesRepository implements PlacesRepository {
       ...place,
       distanceKm: getDistanceKm(latitude, longitude, place.latitude, place.longitude),
     };
+  }
+
+  private async isActiveGroupMember(groupId: number, viewerPublicId?: string) {
+    if (!viewerPublicId) {
+      return false;
+    }
+
+    const membership = await this.prisma.groupMember.findFirst({
+      where: {
+        groupId,
+        status: 'ACTIVE',
+        user: { publicId: viewerPublicId },
+      },
+    });
+
+    return !!membership;
   }
 }
