@@ -389,9 +389,10 @@ export class PrismaPlacesRepository implements PlacesRepository {
     };
   }
 
-  async countActiveVotesTodayExcludingTarget(data: {
+  async countActiveVotesForDayExcludingTarget(data: {
     userId: number;
     placePublicId: string;
+    day: Date;
     groupPublicId?: string;
   }): Promise<number | null> {
     const [place, group] = await Promise.all([
@@ -407,7 +408,7 @@ export class PrismaPlacesRepository implements PlacesRepository {
       where: {
         userId: data.userId,
         status: 'ACTIVE',
-        day: todayDate(),
+        day: data.day,
         NOT: {
           placeId: place.id,
           scopeKey: group?.publicId ?? 'global',
@@ -416,9 +417,10 @@ export class PrismaPlacesRepository implements PlacesRepository {
     });
   }
 
-  async voteToday(data: {
+  async vote(data: {
     userId: number;
     placePublicId: string;
+    day: Date;
     groupPublicId?: string;
     note?: string;
   }): Promise<PlaceVote | null> {
@@ -437,7 +439,7 @@ export class PrismaPlacesRepository implements PlacesRepository {
           userId: data.userId,
           placeId: place.id,
           scopeKey: group?.publicId ?? 'global',
-          day: todayDate(),
+          day: data.day,
         },
       },
       update: {
@@ -449,7 +451,7 @@ export class PrismaPlacesRepository implements PlacesRepository {
         placeId: place.id,
         groupId: group?.id,
         scopeKey: group?.publicId ?? 'global',
-        day: todayDate(),
+        day: data.day,
         note: data.note,
       },
     });

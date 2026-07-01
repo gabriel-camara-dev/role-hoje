@@ -31,12 +31,13 @@ import {
 import { UserVoteHistoryItemResponseDto } from '@/infra/http/swagger/presenter-schemas/onde-hoje/place-presenter-schema';
 import { ZodValidationPipe } from '../../pipes/zod-validation-pipe';
 
+const dateOnlySchema = z.string().regex(/^\d{4}-\d{2}-\d{2}$/);
+
 const voteSchema = z.object({
+  day: dateOnlySchema.optional(),
   groupPublicId: z.string().uuid().optional(),
   note: z.string().max(240).optional(),
 });
-
-const dateOnlySchema = z.string().regex(/^\d{4}-\d{2}-\d{2}$/);
 
 const historyQuerySchema = z
   .object({
@@ -163,7 +164,7 @@ export class TodayMapController {
   }
 
   @Post('/places/:placePublicId/votes/today')
-  @ApiOperation({ summary: 'Vote that today should happen at this place' })
+  @ApiOperation({ summary: 'Vote that a day should happen at this place' })
   @ApiParam({ name: 'placePublicId', type: String })
   @ApiBody({ type: VoteTodayBodyDto })
   @ApiCreatedResponse({ description: 'Vote registered successfully.', type: VoteTodayResponseDto })
@@ -173,10 +174,30 @@ export class TodayMapController {
     @Param('placePublicId') placePublicId: string,
     @Body(new ZodValidationPipe<VoteBody>(voteSchema)) body: VoteBody,
   ) {
+    return this.createVote(currentUser, placePublicId, body);
+  }
+
+  @Post('/places/:placePublicId/votes')
+  @ApiOperation({ summary: 'Vote for this place on a specific day' })
+  @ApiParam({ name: 'placePublicId', type: String })
+  @ApiBody({ type: VoteTodayBodyDto })
+  @ApiCreatedResponse({ description: 'Vote registered successfully.', type: VoteTodayResponseDto })
+  @ApiConflictResponse({ description: 'User reached the daily vote limit for the selected day.' })
+  async voteForDay(
+    @CurrentUser() currentUser: UserPayload,
+    @Param('placePublicId') placePublicId: string,
+    @Body(new ZodValidationPipe<VoteBody>(voteSchema)) body: VoteBody,
+  ) {
+    return this.createVote(currentUser, placePublicId, body);
+  }
+
+  private async createVote(currentUser: UserPayload, placePublicId: string, body: VoteBody) {
     const result = await this.voteTodayUseCase.execute({
       currentUserPublicId: currentUser.sub,
       placePublicId,
-      ...body,
+      day: parseDateOnly(body.day) ?? todayDate(),
+      groupPublicId: body.groupPublicId,
+      note: body.note,
     });
 
     if (result.isFail()) {

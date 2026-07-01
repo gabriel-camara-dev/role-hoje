@@ -53,7 +53,7 @@ export class UserAvatarController {
       limits: { fileSize: 2 * 1024 * 1024 },
     }),
   )
-  @ApiOperation({ summary: 'Upload encrypted profile avatar' })
+  @ApiOperation({ summary: 'Change profile avatar' })
   @ApiConsumes('multipart/form-data')
   @ApiBody({
     schema: {

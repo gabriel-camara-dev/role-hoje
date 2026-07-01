@@ -12,6 +12,7 @@ import { ResourceNotFoundError } from '../../errors/resource-not-found-error';
 interface VoteTodayUseCaseRequest {
   currentUserPublicId: string;
   placePublicId: string;
+  day?: Date;
   groupPublicId?: string;
   note?: string;
 }
@@ -30,14 +31,16 @@ export class VoteTodayUseCase {
 
   async execute(request: VoteTodayUseCaseRequest): Promise<VoteTodayUseCaseResponse> {
     const user = await this.usersRepository.findByPublicId(request.currentUserPublicId);
+    const day = request.day ?? todayDate();
 
     if (!user) {
       return fail(new ResourceNotFoundError('Authenticated user not found'));
     }
 
-    const activeVotesBeforeThisTarget = await this.placesRepository.countActiveVotesTodayExcludingTarget({
+    const activeVotesBeforeThisTarget = await this.placesRepository.countActiveVotesForDayExcludingTarget({
       userId: user.id,
       placePublicId: request.placePublicId,
+      day,
       groupPublicId: request.groupPublicId,
     });
 
@@ -49,9 +52,10 @@ export class VoteTodayUseCase {
       return fail(new VoteLimitExceededError(MAX_ACTIVE_VOTES_PER_DAY));
     }
 
-    const vote = await this.placesRepository.voteToday({
+    const vote = await this.placesRepository.vote({
       userId: user.id,
       placePublicId: request.placePublicId,
+      day,
       groupPublicId: request.groupPublicId,
       note: request.note,
     });
@@ -68,6 +72,7 @@ export class VoteTodayUseCase {
         payload: {
           voteId: vote.publicId,
           placeId: request.placePublicId,
+          day: day.toISOString().slice(0, 10),
           groupId: request.groupPublicId,
         },
       }),
@@ -75,4 +80,10 @@ export class VoteTodayUseCase {
 
     return success({ vote });
   }
+}
+
+function todayDate() {
+  const now = new Date();
+
+  return new Date(now.getFullYear(), now.getMonth(), now.getDate());
 }

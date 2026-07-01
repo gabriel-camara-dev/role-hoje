@@ -32,6 +32,9 @@ export class MapHistoryDayResponseDto {
 }
 
 export class VoteTodayBodyDto {
+  @ApiPropertyOptional({ type: String, example: '2026-07-04', description: 'Date to vote for. Defaults to today.' })
+  day?: string;
+
   @ApiPropertyOptional({ type: String, example: '018f4a2c-87b7-7cc4-9f93-0faaf26cfbed' })
   groupPublicId?: string;
 

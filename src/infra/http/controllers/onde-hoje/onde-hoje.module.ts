@@ -3,6 +3,7 @@ import { GetAdminDashboardUseCase } from '@/domain/main/application/use-cases/on
 import { AcceptFriendshipUseCase } from '@/domain/main/application/use-cases/onde-hoje/friendships/accept-friendship';
 import { ListFriendsUseCase } from '@/domain/main/application/use-cases/onde-hoje/friendships/list-friends';
 import { RequestFriendshipUseCase } from '@/domain/main/application/use-cases/onde-hoje/friendships/request-friendship';
+import { AcceptGroupMemberUseCase } from '@/domain/main/application/use-cases/onde-hoje/groups/accept-group-member';
 import { CreateGroupUseCase } from '@/domain/main/application/use-cases/onde-hoje/groups/create-group';
 import { JoinGroupUseCase } from '@/domain/main/application/use-cases/onde-hoje/groups/join-group';
 import { ListPublicGroupsUseCase } from '@/domain/main/application/use-cases/onde-hoje/groups/list-public-groups';
@@ -34,6 +35,7 @@ import { TodayMapController } from './today-map.controller';
     ListMyVoteHistoryUseCase,
     ListTopPlacesTodayUseCase,
     VoteTodayUseCase,
+    AcceptGroupMemberUseCase,
     ListPublicGroupsUseCase,
     CreateGroupUseCase,
     JoinGroupUseCase,

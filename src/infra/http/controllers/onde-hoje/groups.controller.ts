@@ -2,7 +2,10 @@ import { Body, Controller, Get, Inject, Param, Post, Query } from '@nestjs/commo
 import {
   ApiBearerAuth,
   ApiBody,
+  ApiConflictResponse,
   ApiCreatedResponse,
+  ApiForbiddenResponse,
+  ApiNotFoundResponse,
   ApiOkResponse,
   ApiOperation,
   ApiParam,
@@ -10,6 +13,7 @@ import {
   ApiTags,
 } from '@nestjs/swagger';
 import { z } from 'zod';
+import { AcceptGroupMemberUseCase } from '@/domain/main/application/use-cases/onde-hoje/groups/accept-group-member';
 import { CreateGroupUseCase } from '@/domain/main/application/use-cases/onde-hoje/groups/create-group';
 import { JoinGroupUseCase } from '@/domain/main/application/use-cases/onde-hoje/groups/join-group';
 import { ListPublicGroupsUseCase } from '@/domain/main/application/use-cases/onde-hoje/groups/list-public-groups';
@@ -43,6 +47,7 @@ export class GroupsController {
     @Inject(ListPublicGroupsUseCase) private listPublicGroupsUseCase: ListPublicGroupsUseCase,
     @Inject(CreateGroupUseCase) private createGroupUseCase: CreateGroupUseCase,
     @Inject(JoinGroupUseCase) private joinGroupUseCase: JoinGroupUseCase,
+    @Inject(AcceptGroupMemberUseCase) private acceptGroupMemberUseCase: AcceptGroupMemberUseCase,
   ) {}
 
   @Get('/public')
@@ -84,6 +89,32 @@ export class GroupsController {
     const result = await this.joinGroupUseCase.execute({
       currentUserPublicId: currentUser.sub,
       groupPublicId,
+    });
+
+    if (result.isFail()) {
+      throwHttpError(result.value);
+    }
+
+    return result.value.membership;
+  }
+
+  @Post('/:groupPublicId/members/:userPublicId/accept')
+  @ApiOperation({ summary: 'Accept a pending member request. Only the group leader can accept.' })
+  @ApiParam({ name: 'groupPublicId', type: String })
+  @ApiParam({ name: 'userPublicId', type: String })
+  @ApiCreatedResponse({ description: 'Member request accepted successfully.', type: GroupMembershipResponseDto })
+  @ApiForbiddenResponse({ description: 'Only the group leader can accept members.' })
+  @ApiNotFoundResponse({ description: 'Group or member request not found.' })
+  @ApiConflictResponse({ description: 'Member request is not pending.' })
+  async acceptMember(
+    @CurrentUser() currentUser: UserPayload,
+    @Param('groupPublicId') groupPublicId: string,
+    @Param('userPublicId') userPublicId: string,
+  ) {
+    const result = await this.acceptGroupMemberUseCase.execute({
+      currentUserPublicId: currentUser.sub,
+      groupPublicId,
+      memberPublicId: userPublicId,
     });
 
     if (result.isFail()) {

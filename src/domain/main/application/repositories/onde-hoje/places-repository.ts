@@ -48,14 +48,16 @@ export abstract class PlacesRepository {
   abstract history(query: PlaceHistoryQuery): Promise<PlaceHistoryDay[]>;
   abstract userVoteHistory(userId: number, limit: number): Promise<UserVoteHistoryItem[]>;
   abstract attendanceEstimate(query: PlaceAttendanceEstimateQuery): Promise<PlaceAttendanceEstimate | null>;
-  abstract countActiveVotesTodayExcludingTarget(data: {
+  abstract countActiveVotesForDayExcludingTarget(data: {
     userId: number;
     placePublicId: string;
+    day: Date;
     groupPublicId?: string;
   }): Promise<number | null>;
-  abstract voteToday(data: {
+  abstract vote(data: {
     userId: number;
     placePublicId: string;
+    day: Date;
     groupPublicId?: string;
     note?: string;
   }): Promise<PlaceVote | null>;

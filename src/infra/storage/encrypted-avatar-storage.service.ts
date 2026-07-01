@@ -5,6 +5,7 @@ import { BadRequestException, Inject, Injectable } from '@nestjs/common';
 import { EnvService } from '../env/env.service';
 
 const allowedImageMimeTypes = new Set(['image/jpeg', 'image/png', 'image/webp']);
+const maxAvatarSizeInBytes = 2 * 1024 * 1024;
 
 export interface StoredEncryptedAvatar {
   encryptedPath: string;
@@ -29,28 +30,72 @@ export class EncryptedAvatarStorageService {
       throw new BadRequestException('Avatar file is required');
     }
 
-    if (!allowedImageMimeTypes.has(file.mimetype)) {
+    return this.storeBuffer({
+      buffer: file.buffer,
+      mimeType: file.mimetype,
+      originalName: file.originalname,
+    });
+  }
+
+  async storeFromUrl(url: string, originalName = 'google-avatar'): Promise<StoredEncryptedAvatar> {
+    const parsedUrl = new URL(url);
+
+    if (parsedUrl.protocol !== 'https:') {
+      throw new BadRequestException('Avatar URL must use HTTPS');
+    }
+
+    const response = await fetch(parsedUrl);
+
+    if (!response.ok) {
+      throw new BadRequestException('Could not fetch avatar image');
+    }
+
+    const mimeType = response.headers.get('content-type')?.split(';')[0]?.trim() ?? 'application/octet-stream';
+    const contentLength = Number(response.headers.get('content-length') ?? 0);
+
+    if (contentLength > maxAvatarSizeInBytes) {
+      throw new BadRequestException('Avatar image is too large');
+    }
+
+    const buffer = Buffer.from(await response.arrayBuffer());
+
+    return this.storeBuffer({
+      buffer,
+      mimeType,
+      originalName: `${originalName}${extensionFromMimeType(mimeType)}`,
+    });
+  }
+
+  private async storeBuffer(params: {
+    buffer: Buffer;
+    mimeType: string;
+    originalName: string;
+  }): Promise<StoredEncryptedAvatar> {
+    if (!allowedImageMimeTypes.has(params.mimeType)) {
       throw new BadRequestException('Avatar must be a JPEG, PNG or WEBP image');
     }
 
-    const storageDir = this.getStorageDir();
-    await mkdir(storageDir, { recursive: true });
+    if (params.buffer.byteLength > maxAvatarSizeInBytes) {
+      throw new BadRequestException('Avatar image is too large');
+    }
 
     const iv = randomBytes(12);
     const cipher = createCipheriv('aes-256-gcm', this.getEncryptionKey(), iv);
-    const encrypted = Buffer.concat([cipher.update(file.buffer), cipher.final()]);
+    const encrypted = Buffer.concat([cipher.update(params.buffer), cipher.final()]);
     const authTag = cipher.getAuthTag();
-    const filename = `${randomUUID()}${extname(file.originalname) || '.img'}.enc`;
+    const storageDir = this.getStorageDir();
+    const filename = `${randomUUID()}${extname(params.originalName) || '.img'}.enc`;
     const encryptedPath = join(storageDir, filename);
 
+    await mkdir(storageDir, { recursive: true });
     await writeFile(encryptedPath, encrypted);
 
     return {
       encryptedPath,
       iv: iv.toString('base64'),
       authTag: authTag.toString('base64'),
-      mimeType: file.mimetype,
-      originalName: file.originalname,
+      mimeType: params.mimeType,
+      originalName: params.originalName,
     };
   }
 
@@ -96,4 +141,20 @@ export class EncryptedAvatarStorageService {
 
     return resolve(isAbsolute(storageDir) ? storageDir : join(process.cwd(), storageDir));
   }
+}
+
+function extensionFromMimeType(mimeType: string) {
+  if (mimeType === 'image/jpeg') {
+    return '.jpg';
+  }
+
+  if (mimeType === 'image/png') {
+    return '.png';
+  }
+
+  if (mimeType === 'image/webp') {
+    return '.webp';
+  }
+
+  return '.img';
 }
