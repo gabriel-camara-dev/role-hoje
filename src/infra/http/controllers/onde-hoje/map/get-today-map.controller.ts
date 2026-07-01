@@ -5,10 +5,15 @@ import { GetTodayMapUseCase } from '@/domain/main/application/use-cases/onde-hoj
 import { Public } from '@/infra/auth/public';
 import { throwHttpError } from '@/infra/http/errors/http-error-handler';
 import { MapPresenter } from '@/infra/http/presenters/onde-hoje/map-presenter';
+import {
+  parseDateOnly,
+  todayDate,
+  todayMapQuerySchema,
+  type TodayMapQuery,
+} from '@/infra/http/schemas/onde-hoje/map/map-query-schemas';
 import { TodayMapPlaceResponseDto } from '@/infra/http/swagger/presenter-schemas/onde-hoje/map-presenter-schema';
 import { ZodValidationPipe } from '../../../pipes/zod-validation-pipe';
 import { OptionalViewerResolver } from './optional-viewer';
-import { parseDateOnly, todayDate, todayMapQuerySchema, type TodayMapQuery } from './map-query-schemas';
 
 @ApiTags('Onde Hoje - Map')
 @ApiBearerAuth()

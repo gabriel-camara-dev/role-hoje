@@ -5,9 +5,15 @@ import { GetMapHistoryUseCase } from '@/domain/main/application/use-cases/onde-h
 import { Public } from '@/infra/auth/public';
 import { throwHttpError } from '@/infra/http/errors/http-error-handler';
 import { MapPresenter } from '@/infra/http/presenters/onde-hoje/map-presenter';
+import {
+  addDays,
+  historyQuerySchema,
+  parseDateOnly,
+  todayDate,
+  type HistoryQuery,
+} from '@/infra/http/schemas/onde-hoje/map/map-query-schemas';
 import { MapHistoryDayResponseDto } from '@/infra/http/swagger/presenter-schemas/onde-hoje/map-presenter-schema';
 import { ZodValidationPipe } from '../../../pipes/zod-validation-pipe';
-import { addDays, historyQuerySchema, parseDateOnly, todayDate, type HistoryQuery } from './map-query-schemas';
 import { OptionalViewerResolver } from './optional-viewer';
 
 @ApiTags('Onde Hoje - Map')

@@ -9,8 +9,8 @@ import {
   CreatePlaceBodyDto,
   PlaceResponseDto,
 } from '@/infra/http/swagger/presenter-schemas/onde-hoje/place-presenter-schema';
+import { createPlaceSchema, type CreatePlaceBody } from '@/infra/http/schemas/onde-hoje/places/place-schemas';
 import { ZodValidationPipe } from '../../../pipes/zod-validation-pipe';
-import { createPlaceSchema, type CreatePlaceBody } from './place-schemas';
 
 @ApiTags('Onde Hoje - Places')
 @ApiBearerAuth()

@@ -5,9 +5,9 @@ import { CurrentUser } from '@/infra/auth/current-user-generator';
 import type { UserPayload } from '@/infra/auth/jwt-strategy';
 import { throwHttpError } from '@/infra/http/errors/http-error-handler';
 import { PlacePresenter } from '@/infra/http/presenters/onde-hoje/place-presenter';
+import { myVotesQuerySchema, type MyVotesQuery } from '@/infra/http/schemas/onde-hoje/votes/vote-schemas';
 import { UserVoteHistoryItemResponseDto } from '@/infra/http/swagger/presenter-schemas/onde-hoje/place-presenter-schema';
 import { ZodValidationPipe } from '../../../pipes/zod-validation-pipe';
-import { myVotesQuerySchema, type MyVotesQuery } from './vote-schemas';
 
 @ApiTags('Onde Hoje - Votes')
 @ApiBearerAuth()

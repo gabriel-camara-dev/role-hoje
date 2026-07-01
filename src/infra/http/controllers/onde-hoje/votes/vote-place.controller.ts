@@ -16,9 +16,14 @@ import {
   VoteTodayBodyDto,
   VoteTodayResponseDto,
 } from '@/infra/http/swagger/presenter-schemas/onde-hoje/map-presenter-schema';
+import { parseDateOnly, todayDate } from '@/infra/http/schemas/onde-hoje/map/map-query-schemas';
+import {
+  legacyTodayVoteSchema,
+  type LegacyTodayVoteBody,
+  type VoteBody,
+  voteSchema,
+} from '@/infra/http/schemas/onde-hoje/votes/vote-schemas';
 import { ZodValidationPipe } from '../../../pipes/zod-validation-pipe';
-import { parseDateOnly, todayDate } from '../map/map-query-schemas';
-import { legacyTodayVoteSchema, type LegacyTodayVoteBody, type VoteBody, voteSchema } from './vote-schemas';
 
 @ApiTags('Onde Hoje - Votes')
 @ApiBearerAuth()

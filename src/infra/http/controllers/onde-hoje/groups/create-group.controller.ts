@@ -9,8 +9,8 @@ import {
   CreateGroupBodyDto,
   GroupResponseDto,
 } from '@/infra/http/swagger/presenter-schemas/onde-hoje/group-presenter-schema';
+import { createGroupSchema, type CreateGroupBody } from '@/infra/http/schemas/onde-hoje/groups/group-schemas';
 import { ZodValidationPipe } from '../../../pipes/zod-validation-pipe';
-import { createGroupSchema, type CreateGroupBody } from './group-schemas';
 
 @ApiTags('Onde Hoje - Groups')
 @ApiBearerAuth()

@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { dateOnlySchema } from '../map/map-query-schemas';
+import { dateOnlySchema } from '@/infra/http/schemas/onde-hoje/map/map-query-schemas';
 
 export const voteSchema = z.object({
   day: dateOnlySchema.optional(),

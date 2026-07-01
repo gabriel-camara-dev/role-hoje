@@ -3,9 +3,9 @@ import { ApiBearerAuth, ApiOkResponse, ApiOperation, ApiQuery, ApiTags } from '@
 import { ListPlacesUseCase } from '@/domain/main/application/use-cases/onde-hoje/places/list-places';
 import { Public } from '@/infra/auth/public';
 import { PlacePresenter } from '@/infra/http/presenters/onde-hoje/place-presenter';
+import { listPlacesQuerySchema, type ListPlacesQuery } from '@/infra/http/schemas/onde-hoje/places/place-schemas';
 import { PlaceResponseDto } from '@/infra/http/swagger/presenter-schemas/onde-hoje/place-presenter-schema';
 import { ZodValidationPipe } from '../../../pipes/zod-validation-pipe';
-import { listPlacesQuerySchema, type ListPlacesQuery } from './place-schemas';
 
 @ApiTags('Onde Hoje - Places')
 @ApiBearerAuth()

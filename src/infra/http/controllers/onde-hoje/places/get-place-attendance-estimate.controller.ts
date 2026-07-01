@@ -12,9 +12,12 @@ import { GetPlaceAttendanceEstimateUseCase } from '@/domain/main/application/use
 import { Public } from '@/infra/auth/public';
 import { throwHttpError } from '@/infra/http/errors/http-error-handler';
 import { PlacePresenter } from '@/infra/http/presenters/onde-hoje/place-presenter';
+import {
+  attendanceEstimateQuerySchema,
+  type AttendanceEstimateQuery,
+} from '@/infra/http/schemas/onde-hoje/places/place-schemas';
 import { PlaceAttendanceEstimateResponseDto } from '@/infra/http/swagger/presenter-schemas/onde-hoje/place-presenter-schema';
 import { ZodValidationPipe } from '../../../pipes/zod-validation-pipe';
-import { attendanceEstimateQuerySchema, type AttendanceEstimateQuery } from './place-schemas';
 
 @ApiTags('Onde Hoje - Places')
 @ApiBearerAuth()
