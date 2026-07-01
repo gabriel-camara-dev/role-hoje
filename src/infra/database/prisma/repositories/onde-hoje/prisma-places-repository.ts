@@ -65,22 +65,37 @@ export class PrismaPlacesRepository implements PlacesRepository {
   }
 
   async upsert(data: CreatePlaceData): Promise<Place> {
+    const placeData = {
+      googlePlaceId: data.googlePlaceId,
+      name: data.name,
+      formattedAddress: data.formattedAddress,
+      latitude: data.latitude,
+      longitude: data.longitude,
+      city: data.city,
+      state: data.state,
+      country: data.country,
+      photoUrl: data.photoUrl,
+      websiteUrl: data.websiteUrl,
+      mapsUrl: data.mapsUrl,
+      createdById: data.createdById,
+    };
+
     const place = await this.prisma.place.upsert({
       where: { googlePlaceId: data.googlePlaceId },
       update: {
-        name: data.name,
-        formattedAddress: data.formattedAddress,
-        latitude: data.latitude,
-        longitude: data.longitude,
-        city: data.city,
-        state: data.state,
-        country: data.country,
-        photoUrl: data.photoUrl,
-        websiteUrl: data.websiteUrl,
-        mapsUrl: data.mapsUrl,
+        name: placeData.name,
+        formattedAddress: placeData.formattedAddress,
+        latitude: placeData.latitude,
+        longitude: placeData.longitude,
+        city: placeData.city,
+        state: placeData.state,
+        country: placeData.country,
+        photoUrl: placeData.photoUrl,
+        websiteUrl: placeData.websiteUrl,
+        mapsUrl: placeData.mapsUrl,
         isActive: true,
       },
-      create: data,
+      create: placeData,
     });
 
     return PrismaOndeHojeMapper.placeToDomain(place);

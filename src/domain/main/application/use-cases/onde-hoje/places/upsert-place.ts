@@ -34,14 +34,15 @@ export class UpsertPlaceUseCase {
   ) {}
 
   async execute(request: UpsertPlaceUseCaseRequest): Promise<UpsertPlaceUseCaseResponse> {
-    const user = await this.usersRepository.findByPublicId(request.currentUserPublicId);
+    const { currentUserPublicId, ...placeData } = request;
+    const user = await this.usersRepository.findByPublicId(currentUserPublicId);
 
     if (!user) {
       return fail(new ResourceNotFoundError('Authenticated user not found'));
     }
 
     const place = await this.placesRepository.upsert({
-      ...request,
+      ...placeData,
       createdById: user.id,
     });
 
@@ -49,7 +50,7 @@ export class UpsertPlaceUseCase {
       createDomainEvent({
         eventName: 'onde-hoje.place.upserted',
         aggregateId: place.publicId,
-        actorId: request.currentUserPublicId,
+        actorId: currentUserPublicId,
         payload: {
           id: place.publicId,
           name: place.name,

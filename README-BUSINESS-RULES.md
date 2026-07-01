@@ -1,6 +1,6 @@
 # Regras de Negocio
 
-Este documento consolida as regras de negocio observadas no codigo atual e registra inconsistencias ou melhorias recomendadas. Ele descreve o comportamento real implementado na API, nao apenas a intencao de produto.
+Este documento consolida as regras de negocio implementadas na API. Ele descreve o comportamento real esperado do projeto, nao apenas a intencao de produto.
 
 ## Escopo
 
@@ -16,6 +16,13 @@ Modulos cobertos:
 - Estimativas de presenca.
 - Admin dashboard.
 
+## Diretrizes de Arquitetura
+
+- Novas implementacoes devem seguir Clean Architecture, SOLID e os fluxos ja existentes do projeto.
+- Regras de negocio ficam nos use-cases e contratos de aplicacao; controllers devem orquestrar HTTP, autenticacao e apresentacao.
+- Infraestrutura, Prisma, storage, OAuth e detalhes externos devem depender dos contratos da aplicacao, nao o contrario.
+- Antes de criar um fluxo novo, preferir estender os padroes atuais de modulo, repository, use-case, presenter, schema e evento.
+
 ## Usuarios
 
 ### Cadastro local
@@ -24,13 +31,13 @@ Modulos cobertos:
 - `name` deve ter entre 4 e 255 caracteres.
 - `username` deve ter entre 3 e 60 caracteres.
 - `email`, `username` e `cpf` nao podem conflitar com outro usuario existente.
-- A senha e armazenada como hash.
+- A senha e armazenada como hash usando `HASH_SALT_ROUNDS`.
 - O cadastro local publica o evento `user.created`.
 - Foto de perfil nao faz parte do cadastro local. Ela e enviada depois por uma rota propria.
 
 ### Atualizacao de usuario
 
-- Um usuario pode ser atualizado por `publicId`.
+- Um usuario pode ser atualizado por `publicId` somente pelo dono da conta ou por usuario `ADMIN`.
 - Campos atualizaveis: `name`, `username`, `email`, `cpf` e `password`.
 - Ao alterar email, username ou CPF, o sistema verifica conflito contra outros usuarios.
 - Ao alterar senha, o sistema gera novo hash e preenche `passwordChangedAt`.
@@ -38,14 +45,15 @@ Modulos cobertos:
 
 ### Remocao de usuario
 
-- Um usuario pode ser removido por `publicId`.
+- Um usuario pode ser removido por `publicId` somente pelo dono da conta ou por usuario `ADMIN`.
 - Se o usuario nao existe, a API retorna erro de recurso nao encontrado.
 - Ao remover, o sistema publica o evento `user.deleted`.
 - As regras de cascata ficam a cargo das relacoes Prisma/Banco.
+- Ao remover, o arquivo criptografado de avatar e apagado quando existir.
 
 ### Listagem e perfil
 
-- A listagem de usuarios e paginada.
+- A listagem de usuarios e paginada e restrita a usuarios `ADMIN`.
 - Filtros disponiveis: `name`, `username`, `email` e `cpf`.
 - O perfil de usuario e buscado por `publicId`.
 - A resposta publica do usuario inclui `avatarUrl` quando existe avatar salvo.
@@ -58,6 +66,7 @@ Modulos cobertos:
 - Usuario sem `passwordHash` nao consegue autenticar pelo login local.
 - Credenciais invalidas retornam erro de autenticacao invalida.
 - O login local publica o evento `user.authenticated`.
+- Todo login local bem-sucedido atualiza `lastLogin`.
 - O JWT emitido inclui `sub` com o `publicId` do usuario e `role`.
 - O token expira em 1 dia.
 
@@ -68,6 +77,9 @@ Modulos cobertos:
 - Se ja existe usuario com o mesmo `googleId`, esse usuario e autenticado.
 - Se nao existe `googleId`, mas existe usuario com o mesmo email, a conta existente e vinculada ao `googleId`.
 - Se nao existe usuario com o mesmo email, o sistema cria uma conta sem CPF e sem senha local.
+- Todo login Google bem-sucedido atualiza `lastLogin`.
+- Quando o provedor informa `email_verified=false`, o login Google e recusado.
+- Quando OAuth Google nao esta configurado, as rotas retornam erro claro de servico indisponivel.
 - Para contas criadas pelo Google, o `username` e derivado do email e recebe sufixo aleatorio se houver conflito.
 - Se o Google retornar foto de perfil e o usuario ainda nao tiver avatar, a imagem e importada, validada e armazenada criptografada.
 - Falha ao importar a foto do Google nao bloqueia o login.
@@ -85,6 +97,7 @@ Modulos cobertos:
 - A leitura da foto acontece por `GET /users/:publicId/avatar`.
 - A rota de leitura e publica e descriptografa a imagem no momento da resposta.
 - A criptografia protege o arquivo em repouso; a imagem ainda e publica via endpoint.
+- Ao enviar uma nova foto, o arquivo criptografado anterior e removido apos update bem-sucedido.
 
 ## Lugares
 
@@ -120,7 +133,7 @@ Modulos cobertos:
 - Votar exige usuario autenticado.
 - Rotas de voto:
   - `POST /places/:placePublicId/votes`.
-  - `POST /places/:placePublicId/votes/today` mantida por compatibilidade.
+  - `POST /places/:placePublicId/votes/today` mantida por compatibilidade e sem aceitar `day` no body.
 - O body pode conter:
   - `day` no formato `YYYY-MM-DD`.
   - `groupPublicId` opcional.
@@ -129,7 +142,8 @@ Modulos cobertos:
 - Um voto e unico por usuario, lugar, escopo e dia.
 - Se o usuario votar novamente no mesmo lugar, escopo e dia, o voto e atualizado.
 - O status do voto atualizado volta para `ACTIVE`.
-- O sistema publica o evento `onde-hoje.place.voted-today`, mesmo quando o voto e para outro dia.
+- O sistema publica o evento `onde-hoje.place.voted`.
+- O sistema tambem publica `onde-hoje.place.voted-today` por compatibilidade.
 
 ### Limite de votos
 
@@ -145,26 +159,31 @@ Modulos cobertos:
 - Voto sem `groupPublicId` usa escopo publico/global.
 - Voto com `groupPublicId` usa escopo do grupo.
 - O `scopeKey` do voto e `global` para publico ou o `publicId` do grupo.
+- Votos em grupo privado exigem que o usuario autenticado seja membro `ACTIVE`.
 
 ## Mapa, Historico e Ranking
 
 ### Mapa de hoje
 
 - `GET /map/today` e publico.
-- Retorna lugares com votos ativos no dia atual.
+- Retorna lugares com votos ativos no dia atual ou no `day` informado por query.
 - Pode filtrar por cidade.
 - Pode filtrar por grupo.
 - Quando sem grupo, retorna apenas votos publicos/globais.
+- Quando `groupPublicId` informado nao existe, retorna recurso nao encontrado.
+- Grupos privados exigem Bearer token de membro `ACTIVE` para visualizar mapa.
 - Lugares sao ordenados por quantidade de votos decrescente.
 - Cada lugar retorna ate 8 votantes recentes.
 
 ### Ranking de lugares
 
 - `GET /map/top-places` e publico.
-- Retorna os lugares mais votados de hoje.
+- Retorna os lugares mais votados de hoje ou do `day` informado por query.
 - Pode filtrar por cidade.
 - Pode filtrar por grupo.
 - Quando sem grupo, retorna o ranking publico/global.
+- Quando `groupPublicId` informado nao existe, retorna recurso nao encontrado.
+- Grupos privados exigem Bearer token de membro `ACTIVE` para visualizar ranking.
 - `limit` e opcional e limitado a 50 na camada HTTP.
 - Padrao de limite no repositorio: 10.
 
@@ -175,6 +194,8 @@ Modulos cobertos:
 - Padrao: ultimos 7 dias.
 - Range maximo aceito: 31 dias.
 - Pode filtrar por cidade, grupo e proximidade.
+- Quando `groupPublicId` informado nao existe, retorna recurso nao encontrado.
+- Grupos privados exigem Bearer token de membro `ACTIVE` para visualizar historico.
 - Quando coordenadas e raio sao enviados, filtra por distancia.
 - Cada lugar no historico retorna ate 8 votantes.
 
@@ -193,6 +214,7 @@ Modulos cobertos:
 - `radiusKm` e opcional; padrao: 1 km.
 - Raio maximo aceito: 100 km.
 - A estimativa usa votos ativos no dia de `scheduledAt` dentro do raio do lugar alvo.
+- Quando `groupPublicId` nao e informado, considera apenas votos publicos/globais.
 - A resposta inclui:
   - Lugar base.
   - Data/hora marcada.
@@ -222,6 +244,8 @@ Modulos cobertos:
 - `GET /groups/public` e publico.
 - Retorna apenas grupos com privacidade `PUBLIC`.
 - Pode filtrar por cidade.
+- `membersCount` conta apenas membros `ACTIVE`.
+- `todayVotesCount` conta apenas votos `ACTIVE` do dia atual.
 
 ### Entrada em grupo
 
@@ -231,6 +255,7 @@ Modulos cobertos:
 - Em grupo privado, o usuario pendente so vira `ACTIVE` apos aprovacao do lider.
 - O mesmo par grupo/usuario e unico.
 - Reentrar em um grupo atualiza o status conforme a privacidade atual do grupo.
+- Membro `BLOCKED` nao pode reentrar nem ser transformado em `ACTIVE` ou `PENDING` sem acao de moderador/admin.
 - O sistema publica o evento `onde-hoje.group.member-joined`.
 
 ### Aprovacao de membro em grupo privado
@@ -249,10 +274,13 @@ Modulos cobertos:
 - A lista inclui amizades aceitas e solicitacoes pendentes, enviadas ou recebidas.
 - Solicitar amizade exige autenticacao.
 - Nao e permitido solicitar amizade para si mesmo.
-- Uma solicitacao cria ou atualiza amizade com status `PENDING`.
+- O par de amizade e canonico; A->B e B->A nao podem existir como registros separados.
+- Uma solicitacao cria ou atualiza amizade com status `PENDING` apenas quando ainda nao existe amizade `ACCEPTED` ou `BLOCKED`.
+- Solicitar amizade ja `ACCEPTED` ou `BLOCKED` retorna conflito e nao reseta o status.
 - Aceitar amizade exige autenticacao.
 - A aceitacao busca uma solicitacao onde o outro usuario e o requester e o usuario autenticado e o addressee.
 - Ao aceitar, o status muda para `ACCEPTED`.
+- Se a solicitacao nao existe ou nao esta `PENDING`, a API retorna recurso nao encontrado.
 - Eventos publicados:
   - `onde-hoje.friendship.requested`.
   - `onde-hoje.friendship.accepted`.
@@ -276,43 +304,10 @@ Modulos cobertos:
 - Eventos existentes cobrem criacao, atualizacao, delecao, autenticacao, votos, grupos e amizades.
 - Existe modulo realtime/SSE para emitir eventos.
 
-## Inconsistencias e Melhorias Recomendadas
+## Decisoes Atuais
 
-### Alta prioridade
-
-- Autorizacao de usuarios: endpoints de atualizar e deletar usuario recebem `publicId` e nao verificam se o usuario autenticado e dono da conta ou admin. Recomendacao: exigir `currentUser.sub === publicId` ou role `ADMIN`.
-- Listagem de usuarios: qualquer usuario autenticado consegue listar usuarios e ver email/CPF. Recomendacao: restringir a admin ou reduzir campos publicos.
-- Amizades direcionais: a constraint unica atual permite A->B e B->A como registros separados. Recomendacao: normalizar pares ou criar chave canonica para impedir duplicidade reversa.
-- Solicitacao de amizade pode resetar uma amizade existente para `PENDING` na mesma direcao. Recomendacao: bloquear quando status for `ACCEPTED` ou `BLOCKED`.
-- Aceitar amizade usa `update` direto no Prisma; se a solicitacao nao existe, pode estourar excecao em vez de retornar `null`. Recomendacao: usar `updateMany` com contagem ou capturar erro conhecido.
-- Votos em grupos privados nao verificam membership ativa. Recomendacao: validar que o usuario e membro `ACTIVE` do grupo antes de votar, ver mapa privado, ranking privado ou historico privado.
-- Join em grupo pode transformar membro `BLOCKED` em `ACTIVE` ou `PENDING`. Recomendacao: preservar bloqueio e exigir acao de lider/moderador/admin.
-
-### Media prioridade
-
-- `GET /map/today` com `groupPublicId` invalido cai no mapa publico/global, enquanto `top-places` retorna erro e `history` retorna vazio. Recomendacao: padronizar para erro 404 quando grupo informado nao existe.
-- O evento de voto chama `onde-hoje.place.voted-today`, mas agora votos podem ser feitos para qualquer dia. Recomendacao: renomear para `onde-hoje.place.voted` mantendo compatibilidade se necessario.
-- A rota antiga `/places/:placePublicId/votes/today` aceita `day` no body. Recomendacao: documentar como compatibilidade ou bloquear `day` nessa rota.
-- Ranking `top-places` e mapa de hoje so olham para hoje, mas o sistema agora permite votos futuros. Recomendacao: permitir query `day` tambem no ranking e no mapa.
-- Estimativa de presenca sem `groupPublicId` considera votos de todos os escopos, nao apenas publico/global. Recomendacao: decidir se sem grupo deve significar "todos" ou "publico"; se for publico, filtrar `groupId: null`.
-- Listagem de grupos usa `_count.members` sem filtrar status e `_count.votes` sem filtrar dia/status, mas presenter chama `todayVotesCount`. Recomendacao: contar apenas membros `ACTIVE` e votos ativos de hoje.
-- `HASH_SALT_ROUNDS` existe no env, mas cadastro/atualizacao usam `hash(password, 8)`. Recomendacao: usar `EnvService` ou uma politica central de hashing.
-- Login local publica evento de autenticacao, mas nao atualiza `lastLogin`; login Google so atualiza `lastLogin` quando vincula uma conta existente por email. Recomendacao: atualizar `lastLogin` em todo login bem-sucedido.
-
-### Baixa prioridade
-
-- Avatar antigo nao e removido do disco quando uma nova foto e enviada. Recomendacao: agendar limpeza ou remover apos update bem-sucedido.
-- A foto e criptografada em repouso, mas a rota publica descriptografa a imagem para qualquer pessoa. Recomendacao: confirmar se avatar publico e desejado; se nao, exigir autenticacao ou signed URLs.
-- Google OAuth vincula por email sem checar explicitamente se o email foi verificado pelo provedor. Recomendacao: usar `email_verified` quando disponivel.
-- GoogleStrategy so e registrada quando `GOOGLE_CLIENT_ID` e `GOOGLE_CLIENT_SECRET` existem, mas as rotas sempre existem. Recomendacao: retornar erro claro quando OAuth nao estiver configurado ou registrar controller condicionalmente.
-- Upsert de lugar permite que qualquer usuario autenticado sobrescreva dados de um lugar existente por `googlePlaceId`. Recomendacao: separar criacao de sugestao/curadoria ou registrar auditoria de alteracoes.
-- Delete de usuario pode deixar arquivos de avatar criptografados no disco. Recomendacao: remover avatar fisico durante delecao ou job de limpeza.
-
-## Decisoes a Confirmar com Produto
-
-- Um usuario pode votar em ate 3 lugares por dia no total, ou deveria ser 3 por escopo/grupo?
-- Voto futuro deve aparecer em ranking/mapa quando `day` for informado?
-- Grupo privado deve esconder mapa, ranking e historico de nao membros?
-- Avatar deve ser publico ou visivel apenas para usuarios autenticados/amigos?
-- Admin pode gerenciar grupos privados, amizades, reports e bloqueios?
-- Solicitacao de amizade recusada/cancelada deve existir como status separado?
+- Um usuario pode votar em ate 3 lugares por dia no total.
+- Votos futuros aparecem em mapa/ranking quando `day` e informado.
+- Grupo privado exige membership `ACTIVE` para mapa, ranking e historico.
+- Avatar permanece publico pelo endpoint de leitura.
+- Upsert de lugar permanece autenticado e auditado por evento de dominio.
