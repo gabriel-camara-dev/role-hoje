@@ -3,6 +3,7 @@ import type { UserRole } from '@/@types/prisma/enums';
 type PublicUser = {
   publicId: string;
   name: string;
+  username: string;
   email: string;
   role: UserRole;
   avatarUpdatedAt: Date | null;
@@ -13,6 +14,7 @@ type PublicUser = {
 type HTTPUser = {
   id: string;
   name: string;
+  username: string;
   email: string;
   role: UserRole;
   avatarUrl: string | null;
@@ -31,6 +33,7 @@ export class UserPresenter {
     return {
       id: input.publicId,
       name: input.name,
+      username: input.username,
       email: input.email,
       role: input.role,
       avatarUrl: input.avatarUpdatedAt ? `/users/${input.publicId}/avatar` : null,

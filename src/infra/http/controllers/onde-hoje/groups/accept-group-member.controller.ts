@@ -21,10 +21,10 @@ import { GroupMembershipResponseDto } from '@/infra/http/swagger/presenter-schem
 export class AcceptGroupMemberController {
   constructor(@Inject(AcceptGroupMemberUseCase) private acceptGroupMemberUseCase: AcceptGroupMemberUseCase) {}
 
-  @Post('/:groupPublicId/members/:userPublicId/accept')
+  @Post('/:groupPublicId/members/:username/accept')
   @ApiOperation({ summary: 'Accept a pending member request. Only the group leader can accept.' })
   @ApiParam({ name: 'groupPublicId', type: String })
-  @ApiParam({ name: 'userPublicId', type: String })
+  @ApiParam({ name: 'username', type: String })
   @ApiCreatedResponse({ description: 'Member request accepted successfully.', type: GroupMembershipResponseDto })
   @ApiForbiddenResponse({ description: 'Only the group leader can accept members.' })
   @ApiNotFoundResponse({ description: 'Group or member request not found.' })
@@ -32,12 +32,12 @@ export class AcceptGroupMemberController {
   async handle(
     @CurrentUser() currentUser: UserPayload,
     @Param('groupPublicId') groupPublicId: string,
-    @Param('userPublicId') userPublicId: string,
+    @Param('username') username: string,
   ) {
     const result = await this.acceptGroupMemberUseCase.execute({
       currentUserPublicId: currentUser.sub,
       groupPublicId,
-      memberPublicId: userPublicId,
+      memberUsername: username,
     });
 
     if (result.isFail()) {

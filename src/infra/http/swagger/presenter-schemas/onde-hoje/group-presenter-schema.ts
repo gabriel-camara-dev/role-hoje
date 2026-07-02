@@ -39,11 +39,8 @@ export class CreateGroupBodyDto {
   @ApiProperty({ enum: ['PUBLIC', 'PRIVATE'], example: 'PUBLIC' })
   privacy!: 'PUBLIC' | 'PRIVATE';
 
-  @ApiPropertyOptional({ type: String, example: 'Sao Paulo' })
-  city?: string;
-
-  @ApiPropertyOptional({ type: String, example: 'SP' })
-  state?: string;
+  @ApiPropertyOptional({ type: String, example: 'senha-do-grupo' })
+  password?: string;
 }
 
 export class GroupMembershipResponseDto {

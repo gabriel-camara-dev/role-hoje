@@ -7,6 +7,7 @@ export interface Group {
   slug: string;
   description: string | null;
   privacy: GroupPrivacy;
+  passwordHash?: string | null;
   city: string | null;
   state: string | null;
   membersCount?: number;
@@ -17,6 +18,7 @@ export interface CreateGroupData {
   name: string;
   description?: string;
   privacy: GroupPrivacy;
+  passwordHash?: string | null;
   city?: string;
   state?: string;
   createdById: number;

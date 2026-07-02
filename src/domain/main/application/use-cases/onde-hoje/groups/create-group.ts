@@ -1,4 +1,5 @@
 import { Inject, Injectable } from '@nestjs/common';
+import { PasswordHasher } from '@/domain/main/application/use-cases/users/password-hasher';
 import { createDomainEvent } from '@/core/events/domain-event';
 import { EventBus } from '@/core/events/event-bus';
 import type { Result } from '@/core/result';
@@ -13,8 +14,7 @@ interface CreateGroupUseCaseRequest {
   name: string;
   description?: string;
   privacy: GroupPrivacy;
-  city?: string;
-  state?: string;
+  password?: string;
 }
 
 type CreateGroupUseCaseResponse = Result<ResourceNotFoundError, { group: Group }>;
@@ -24,6 +24,7 @@ export class CreateGroupUseCase {
   constructor(
     @Inject(GroupsRepository) private groupsRepository: GroupsRepository,
     @Inject(OndeHojeUsersRepository) private usersRepository: OndeHojeUsersRepository,
+    @Inject(PasswordHasher) private passwordHasher: PasswordHasher,
     @Inject(EventBus) private eventBus: EventBus,
   ) {}
 
@@ -38,8 +39,7 @@ export class CreateGroupUseCase {
       name: request.name,
       description: request.description,
       privacy: request.privacy,
-      city: request.city,
-      state: request.state,
+      passwordHash: request.privacy === 'PRIVATE' && request.password ? await this.passwordHasher.hash(request.password) : null,
       createdById: user.id,
     });
 

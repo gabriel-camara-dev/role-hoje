@@ -5,6 +5,9 @@ export class CreateUserBodyDto {
   @ApiProperty({ type: String, example: 'Gabriel Silva' })
   name!: string;
 
+  @ApiProperty({ type: String, example: 'gabriel' })
+  username!: string;
+
   @ApiProperty({ type: String, example: 'gabriel@example.com' })
   email!: string;
 
@@ -24,6 +27,9 @@ export class UpdateUserBodyDto {
   @ApiPropertyOptional({ type: String, example: 'Gabriel Silva' })
   name?: string;
 
+  @ApiPropertyOptional({ type: String, example: 'gabriel' })
+  username?: string;
+
   @ApiPropertyOptional({ type: String, example: 'gabriel@example.com' })
   email?: string;
 
@@ -37,6 +43,9 @@ export class UserResponseDto {
 
   @ApiProperty({ type: String, example: 'Gabriel Silva' })
   name!: string;
+
+  @ApiPropertyOptional({ type: String, example: 'gabriel' })
+  username?: string | null;
 
   @ApiProperty({ type: String, example: 'gabriel@example.com' })
   email!: string;

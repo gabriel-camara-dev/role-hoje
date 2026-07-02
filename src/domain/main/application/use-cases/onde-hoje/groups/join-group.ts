@@ -11,7 +11,9 @@ import { ResourceNotFoundError } from '../../errors/resource-not-found-error';
 
 interface JoinGroupUseCaseRequest {
   currentUserPublicId: string;
-  groupPublicId: string;
+  groupPublicId?: string;
+  name?: string;
+  password?: string;
 }
 
 type JoinGroupUseCaseResponse = Result<ResourceNotFoundError | ConflictError, { membership: GroupMembership }>;
@@ -34,6 +36,8 @@ export class JoinGroupUseCase {
     const joinResult = await this.groupsRepository.join({
       userId: user.id,
       groupPublicId: request.groupPublicId,
+      name: request.name,
+      password: request.password,
     });
 
     if (joinResult.type === 'not_found') {
@@ -49,10 +53,10 @@ export class JoinGroupUseCase {
     await this.eventBus.publish(
       createDomainEvent({
         eventName: 'onde-hoje.group.member-joined',
-        aggregateId: request.groupPublicId,
+        aggregateId: request.groupPublicId ?? request.name ?? 'unknown-group',
         actorId: request.currentUserPublicId,
         payload: {
-          groupId: request.groupPublicId,
+          groupId: membership.groupPublicId,
           userId: request.currentUserPublicId,
           membershipStatus: membership.status,
         },

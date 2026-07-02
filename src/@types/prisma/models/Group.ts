@@ -43,6 +43,7 @@ export type GroupMinAggregateOutputType = {
   slug: string | null
   description: string | null
   privacy: $Enums.GroupPrivacy | null
+  passwordHash: string | null
   city: string | null
   state: string | null
   createdById: number | null
@@ -57,6 +58,7 @@ export type GroupMaxAggregateOutputType = {
   slug: string | null
   description: string | null
   privacy: $Enums.GroupPrivacy | null
+  passwordHash: string | null
   city: string | null
   state: string | null
   createdById: number | null
@@ -71,6 +73,7 @@ export type GroupCountAggregateOutputType = {
   slug: number
   description: number
   privacy: number
+  passwordHash: number
   city: number
   state: number
   createdById: number
@@ -97,6 +100,7 @@ export type GroupMinAggregateInputType = {
   slug?: true
   description?: true
   privacy?: true
+  passwordHash?: true
   city?: true
   state?: true
   createdById?: true
@@ -111,6 +115,7 @@ export type GroupMaxAggregateInputType = {
   slug?: true
   description?: true
   privacy?: true
+  passwordHash?: true
   city?: true
   state?: true
   createdById?: true
@@ -125,6 +130,7 @@ export type GroupCountAggregateInputType = {
   slug?: true
   description?: true
   privacy?: true
+  passwordHash?: true
   city?: true
   state?: true
   createdById?: true
@@ -226,6 +232,7 @@ export type GroupGroupByOutputType = {
   slug: string
   description: string | null
   privacy: $Enums.GroupPrivacy
+  passwordHash: string | null
   city: string | null
   state: string | null
   createdById: number
@@ -263,6 +270,7 @@ export type GroupWhereInput = {
   slug?: Prisma.StringFilter<"Group"> | string
   description?: Prisma.StringNullableFilter<"Group"> | string | null
   privacy?: Prisma.EnumGroupPrivacyFilter<"Group"> | $Enums.GroupPrivacy
+  passwordHash?: Prisma.StringNullableFilter<"Group"> | string | null
   city?: Prisma.StringNullableFilter<"Group"> | string | null
   state?: Prisma.StringNullableFilter<"Group"> | string | null
   createdById?: Prisma.IntFilter<"Group"> | number
@@ -280,6 +288,7 @@ export type GroupOrderByWithRelationInput = {
   slug?: Prisma.SortOrder
   description?: Prisma.SortOrderInput | Prisma.SortOrder
   privacy?: Prisma.SortOrder
+  passwordHash?: Prisma.SortOrderInput | Prisma.SortOrder
   city?: Prisma.SortOrderInput | Prisma.SortOrder
   state?: Prisma.SortOrderInput | Prisma.SortOrder
   createdById?: Prisma.SortOrder
@@ -300,6 +309,7 @@ export type GroupWhereUniqueInput = Prisma.AtLeast<{
   name?: Prisma.StringFilter<"Group"> | string
   description?: Prisma.StringNullableFilter<"Group"> | string | null
   privacy?: Prisma.EnumGroupPrivacyFilter<"Group"> | $Enums.GroupPrivacy
+  passwordHash?: Prisma.StringNullableFilter<"Group"> | string | null
   city?: Prisma.StringNullableFilter<"Group"> | string | null
   state?: Prisma.StringNullableFilter<"Group"> | string | null
   createdById?: Prisma.IntFilter<"Group"> | number
@@ -317,6 +327,7 @@ export type GroupOrderByWithAggregationInput = {
   slug?: Prisma.SortOrder
   description?: Prisma.SortOrderInput | Prisma.SortOrder
   privacy?: Prisma.SortOrder
+  passwordHash?: Prisma.SortOrderInput | Prisma.SortOrder
   city?: Prisma.SortOrderInput | Prisma.SortOrder
   state?: Prisma.SortOrderInput | Prisma.SortOrder
   createdById?: Prisma.SortOrder
@@ -339,6 +350,7 @@ export type GroupScalarWhereWithAggregatesInput = {
   slug?: Prisma.StringWithAggregatesFilter<"Group"> | string
   description?: Prisma.StringNullableWithAggregatesFilter<"Group"> | string | null
   privacy?: Prisma.EnumGroupPrivacyWithAggregatesFilter<"Group"> | $Enums.GroupPrivacy
+  passwordHash?: Prisma.StringNullableWithAggregatesFilter<"Group"> | string | null
   city?: Prisma.StringNullableWithAggregatesFilter<"Group"> | string | null
   state?: Prisma.StringNullableWithAggregatesFilter<"Group"> | string | null
   createdById?: Prisma.IntWithAggregatesFilter<"Group"> | number
@@ -352,6 +364,7 @@ export type GroupCreateInput = {
   slug: string
   description?: string | null
   privacy?: $Enums.GroupPrivacy
+  passwordHash?: string | null
   city?: string | null
   state?: string | null
   createdAt?: Date | string
@@ -368,6 +381,7 @@ export type GroupUncheckedCreateInput = {
   slug: string
   description?: string | null
   privacy?: $Enums.GroupPrivacy
+  passwordHash?: string | null
   city?: string | null
   state?: string | null
   createdById: number
@@ -383,6 +397,7 @@ export type GroupUpdateInput = {
   slug?: Prisma.StringFieldUpdateOperationsInput | string
   description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   privacy?: Prisma.EnumGroupPrivacyFieldUpdateOperationsInput | $Enums.GroupPrivacy
+  passwordHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   city?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   state?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -399,6 +414,7 @@ export type GroupUncheckedUpdateInput = {
   slug?: Prisma.StringFieldUpdateOperationsInput | string
   description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   privacy?: Prisma.EnumGroupPrivacyFieldUpdateOperationsInput | $Enums.GroupPrivacy
+  passwordHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   city?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   state?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdById?: Prisma.IntFieldUpdateOperationsInput | number
@@ -415,6 +431,7 @@ export type GroupCreateManyInput = {
   slug: string
   description?: string | null
   privacy?: $Enums.GroupPrivacy
+  passwordHash?: string | null
   city?: string | null
   state?: string | null
   createdById: number
@@ -428,6 +445,7 @@ export type GroupUpdateManyMutationInput = {
   slug?: Prisma.StringFieldUpdateOperationsInput | string
   description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   privacy?: Prisma.EnumGroupPrivacyFieldUpdateOperationsInput | $Enums.GroupPrivacy
+  passwordHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   city?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   state?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -441,6 +459,7 @@ export type GroupUncheckedUpdateManyInput = {
   slug?: Prisma.StringFieldUpdateOperationsInput | string
   description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   privacy?: Prisma.EnumGroupPrivacyFieldUpdateOperationsInput | $Enums.GroupPrivacy
+  passwordHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   city?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   state?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdById?: Prisma.IntFieldUpdateOperationsInput | number
@@ -460,6 +479,7 @@ export type GroupCountOrderByAggregateInput = {
   slug?: Prisma.SortOrder
   description?: Prisma.SortOrder
   privacy?: Prisma.SortOrder
+  passwordHash?: Prisma.SortOrder
   city?: Prisma.SortOrder
   state?: Prisma.SortOrder
   createdById?: Prisma.SortOrder
@@ -479,6 +499,7 @@ export type GroupMaxOrderByAggregateInput = {
   slug?: Prisma.SortOrder
   description?: Prisma.SortOrder
   privacy?: Prisma.SortOrder
+  passwordHash?: Prisma.SortOrder
   city?: Prisma.SortOrder
   state?: Prisma.SortOrder
   createdById?: Prisma.SortOrder
@@ -493,6 +514,7 @@ export type GroupMinOrderByAggregateInput = {
   slug?: Prisma.SortOrder
   description?: Prisma.SortOrder
   privacy?: Prisma.SortOrder
+  passwordHash?: Prisma.SortOrder
   city?: Prisma.SortOrder
   state?: Prisma.SortOrder
   createdById?: Prisma.SortOrder
@@ -602,6 +624,7 @@ export type GroupCreateWithoutVotesInput = {
   slug: string
   description?: string | null
   privacy?: $Enums.GroupPrivacy
+  passwordHash?: string | null
   city?: string | null
   state?: string | null
   createdAt?: Date | string
@@ -617,6 +640,7 @@ export type GroupUncheckedCreateWithoutVotesInput = {
   slug: string
   description?: string | null
   privacy?: $Enums.GroupPrivacy
+  passwordHash?: string | null
   city?: string | null
   state?: string | null
   createdById: number
@@ -647,6 +671,7 @@ export type GroupUpdateWithoutVotesInput = {
   slug?: Prisma.StringFieldUpdateOperationsInput | string
   description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   privacy?: Prisma.EnumGroupPrivacyFieldUpdateOperationsInput | $Enums.GroupPrivacy
+  passwordHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   city?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   state?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -662,6 +687,7 @@ export type GroupUncheckedUpdateWithoutVotesInput = {
   slug?: Prisma.StringFieldUpdateOperationsInput | string
   description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   privacy?: Prisma.EnumGroupPrivacyFieldUpdateOperationsInput | $Enums.GroupPrivacy
+  passwordHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   city?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   state?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdById?: Prisma.IntFieldUpdateOperationsInput | number
@@ -676,6 +702,7 @@ export type GroupCreateWithoutMembersInput = {
   slug: string
   description?: string | null
   privacy?: $Enums.GroupPrivacy
+  passwordHash?: string | null
   city?: string | null
   state?: string | null
   createdAt?: Date | string
@@ -691,6 +718,7 @@ export type GroupUncheckedCreateWithoutMembersInput = {
   slug: string
   description?: string | null
   privacy?: $Enums.GroupPrivacy
+  passwordHash?: string | null
   city?: string | null
   state?: string | null
   createdById: number
@@ -721,6 +749,7 @@ export type GroupUpdateWithoutMembersInput = {
   slug?: Prisma.StringFieldUpdateOperationsInput | string
   description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   privacy?: Prisma.EnumGroupPrivacyFieldUpdateOperationsInput | $Enums.GroupPrivacy
+  passwordHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   city?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   state?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -736,6 +765,7 @@ export type GroupUncheckedUpdateWithoutMembersInput = {
   slug?: Prisma.StringFieldUpdateOperationsInput | string
   description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   privacy?: Prisma.EnumGroupPrivacyFieldUpdateOperationsInput | $Enums.GroupPrivacy
+  passwordHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   city?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   state?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdById?: Prisma.IntFieldUpdateOperationsInput | number
@@ -750,6 +780,7 @@ export type GroupCreateWithoutCreatedByInput = {
   slug: string
   description?: string | null
   privacy?: $Enums.GroupPrivacy
+  passwordHash?: string | null
   city?: string | null
   state?: string | null
   createdAt?: Date | string
@@ -765,6 +796,7 @@ export type GroupUncheckedCreateWithoutCreatedByInput = {
   slug: string
   description?: string | null
   privacy?: $Enums.GroupPrivacy
+  passwordHash?: string | null
   city?: string | null
   state?: string | null
   createdAt?: Date | string
@@ -809,6 +841,7 @@ export type GroupScalarWhereInput = {
   slug?: Prisma.StringFilter<"Group"> | string
   description?: Prisma.StringNullableFilter<"Group"> | string | null
   privacy?: Prisma.EnumGroupPrivacyFilter<"Group"> | $Enums.GroupPrivacy
+  passwordHash?: Prisma.StringNullableFilter<"Group"> | string | null
   city?: Prisma.StringNullableFilter<"Group"> | string | null
   state?: Prisma.StringNullableFilter<"Group"> | string | null
   createdById?: Prisma.IntFilter<"Group"> | number
@@ -823,6 +856,7 @@ export type GroupCreateManyCreatedByInput = {
   slug: string
   description?: string | null
   privacy?: $Enums.GroupPrivacy
+  passwordHash?: string | null
   city?: string | null
   state?: string | null
   createdAt?: Date | string
@@ -835,6 +869,7 @@ export type GroupUpdateWithoutCreatedByInput = {
   slug?: Prisma.StringFieldUpdateOperationsInput | string
   description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   privacy?: Prisma.EnumGroupPrivacyFieldUpdateOperationsInput | $Enums.GroupPrivacy
+  passwordHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   city?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   state?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -850,6 +885,7 @@ export type GroupUncheckedUpdateWithoutCreatedByInput = {
   slug?: Prisma.StringFieldUpdateOperationsInput | string
   description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   privacy?: Prisma.EnumGroupPrivacyFieldUpdateOperationsInput | $Enums.GroupPrivacy
+  passwordHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   city?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   state?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -865,6 +901,7 @@ export type GroupUncheckedUpdateManyWithoutCreatedByInput = {
   slug?: Prisma.StringFieldUpdateOperationsInput | string
   description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   privacy?: Prisma.EnumGroupPrivacyFieldUpdateOperationsInput | $Enums.GroupPrivacy
+  passwordHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   city?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   state?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -918,6 +955,7 @@ export type GroupSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = 
   slug?: boolean
   description?: boolean
   privacy?: boolean
+  passwordHash?: boolean
   city?: boolean
   state?: boolean
   createdById?: boolean
@@ -936,6 +974,7 @@ export type GroupSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Extensi
   slug?: boolean
   description?: boolean
   privacy?: boolean
+  passwordHash?: boolean
   city?: boolean
   state?: boolean
   createdById?: boolean
@@ -951,6 +990,7 @@ export type GroupSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensi
   slug?: boolean
   description?: boolean
   privacy?: boolean
+  passwordHash?: boolean
   city?: boolean
   state?: boolean
   createdById?: boolean
@@ -966,6 +1006,7 @@ export type GroupSelectScalar = {
   slug?: boolean
   description?: boolean
   privacy?: boolean
+  passwordHash?: boolean
   city?: boolean
   state?: boolean
   createdById?: boolean
@@ -973,7 +1014,7 @@ export type GroupSelectScalar = {
   updatedAt?: boolean
 }
 
-export type GroupOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "publicId" | "name" | "slug" | "description" | "privacy" | "city" | "state" | "createdById" | "createdAt" | "updatedAt", ExtArgs["result"]["group"]>
+export type GroupOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "publicId" | "name" | "slug" | "description" | "privacy" | "passwordHash" | "city" | "state" | "createdById" | "createdAt" | "updatedAt", ExtArgs["result"]["group"]>
 export type GroupInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   createdBy?: boolean | Prisma.UserDefaultArgs<ExtArgs>
   members?: boolean | Prisma.Group$membersArgs<ExtArgs>
@@ -1001,6 +1042,7 @@ export type $GroupPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs 
     slug: string
     description: string | null
     privacy: $Enums.GroupPrivacy
+    passwordHash: string | null
     city: string | null
     state: string | null
     createdById: number
@@ -1438,6 +1480,7 @@ export interface GroupFieldRefs {
   readonly slug: Prisma.FieldRef<"Group", 'String'>
   readonly description: Prisma.FieldRef<"Group", 'String'>
   readonly privacy: Prisma.FieldRef<"Group", 'GroupPrivacy'>
+  readonly passwordHash: Prisma.FieldRef<"Group", 'String'>
   readonly city: Prisma.FieldRef<"Group", 'String'>
   readonly state: Prisma.FieldRef<"Group", 'String'>
   readonly createdById: Prisma.FieldRef<"Group", 'Int'>

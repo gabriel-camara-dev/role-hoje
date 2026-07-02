@@ -4,12 +4,14 @@ import type { CreateUserData, UpdateUserData, User } from '@/domain/main/enterpr
 export interface FindUserBy {
   id?: number;
   publicId?: string;
+  username?: string;
   email?: string;
   googleId?: string;
   token?: string;
 }
 
 export interface FindUserConflict {
+  username?: string;
   email?: string;
   ignoredPublicId?: string;
 }

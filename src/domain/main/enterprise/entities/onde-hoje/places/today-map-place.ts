@@ -5,6 +5,7 @@ export interface TodayMapPlace extends Place {
   voters: Array<{
     publicId: string;
     name: string;
+    username: string | null;
     avatarUrl: string | null;
     note: string | null;
   }>;

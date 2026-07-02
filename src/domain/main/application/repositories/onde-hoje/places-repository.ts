@@ -21,9 +21,16 @@ export interface TodayMapQuery {
 
 export interface TopPlacesTodayQuery {
   city?: string;
+  state?: string;
   groupPublicId?: string;
   day?: Date;
   viewerPublicId?: string;
+  limit?: number;
+}
+
+export interface GlobalTopPlacesQuery {
+  city?: string;
+  state?: string;
   limit?: number;
 }
 
@@ -50,6 +57,7 @@ export abstract class PlacesRepository {
   abstract upsert(data: CreatePlaceData): Promise<Place>;
   abstract todayMap(query: TodayMapQuery): Promise<TodayMapPlace[] | null>;
   abstract topPlacesToday(query: TopPlacesTodayQuery): Promise<TodayMapPlace[] | null>;
+  abstract globalTopPlaces(query: GlobalTopPlacesQuery): Promise<TodayMapPlace[]>;
   abstract history(query: PlaceHistoryQuery): Promise<PlaceHistoryDay[] | null>;
   abstract userVoteHistory(userId: number, limit: number): Promise<UserVoteHistoryItem[]>;
   abstract attendanceEstimate(query: PlaceAttendanceEstimateQuery): Promise<PlaceAttendanceEstimate | null>;

@@ -19,7 +19,7 @@ export class CreateGroupController {
   constructor(@Inject(CreateGroupUseCase) private createGroupUseCase: CreateGroupUseCase) {}
 
   @Post()
-  @ApiOperation({ summary: 'Create a public or private group' })
+  @ApiOperation({ summary: 'Create a group with name, optional description and optional private password' })
   @ApiBody({ type: CreateGroupBodyDto })
   @ApiCreatedResponse({ description: 'Group created successfully.', type: GroupResponseDto })
   async handle(

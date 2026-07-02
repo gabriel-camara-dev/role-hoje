@@ -6,6 +6,9 @@ export class FriendUserResponseDto {
 
   @ApiProperty({ type: String, example: 'Gabriel Silva' })
   name!: string;
+
+  @ApiProperty({ type: String, example: 'gabriel' })
+  username!: string | null;
 }
 
 export class FriendListItemResponseDto {

@@ -13,7 +13,7 @@ import { OndeHojeUsersRepository } from '../../../repositories/onde-hoje/onde-ho
 interface AcceptGroupMemberUseCaseRequest {
   currentUserPublicId: string;
   groupPublicId: string;
-  memberPublicId: string;
+  memberUsername: string;
 }
 
 type AcceptGroupMemberUseCaseResponse = Result<
@@ -39,7 +39,7 @@ export class AcceptGroupMemberUseCase {
     const result = await this.groupsRepository.acceptMember({
       leaderId: leader.id,
       groupPublicId: request.groupPublicId,
-      memberPublicId: request.memberPublicId,
+      memberUsername: request.memberUsername,
     });
 
     if (result.type === 'not_found') {
@@ -61,10 +61,9 @@ export class AcceptGroupMemberUseCase {
         actorId: request.currentUserPublicId,
         payload: {
           groupId: request.groupPublicId,
-          memberId: request.memberPublicId,
+          memberUsername: request.memberUsername,
           membershipStatus: result.membership.status,
         },
-        recipientIds: [request.memberPublicId],
       }),
     );
 

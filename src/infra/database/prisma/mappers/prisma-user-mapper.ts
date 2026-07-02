@@ -8,6 +8,7 @@ export class PrismaUserMapper {
       id: raw.id,
       publicId: raw.publicId,
       name: raw.name,
+      username: raw.username,
       email: raw.email,
       passwordHash: raw.passwordHash,
       googleId: raw.googleId,
@@ -31,6 +32,7 @@ export class PrismaUserMapper {
   static toPrisma(user: CreateUserData): Prisma.UserCreateInput {
     return {
       name: user.name,
+      username: user.username,
       email: user.email,
       ...(user.passwordHash !== undefined && { passwordHash: user.passwordHash }),
       ...(user.googleId !== undefined && { googleId: user.googleId }),
@@ -42,6 +44,7 @@ export class PrismaUserMapper {
   static toUpdatePrisma(data: UpdateUserData): Prisma.UserUpdateInput {
     return {
       ...(data.name !== undefined && { name: data.name }),
+      ...(data.username !== undefined && { username: data.username }),
       ...(data.email !== undefined && { email: data.email }),
       ...(data.passwordHash !== undefined && { passwordHash: data.passwordHash }),
       ...(data.googleId !== undefined && { googleId: data.googleId }),

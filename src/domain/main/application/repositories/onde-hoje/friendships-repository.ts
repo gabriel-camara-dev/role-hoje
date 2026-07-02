@@ -9,7 +9,8 @@ export abstract class FriendshipsRepository {
   abstract listFriends(userId: number): Promise<FriendListItem[]>;
   abstract requestFriendship(data: {
     requesterId: number;
-    addresseePublicId: string;
+    addresseeUsername: string;
   }): Promise<RequestFriendshipResult>;
-  abstract acceptFriendship(data: { addresseeId: number; requesterPublicId: string }): Promise<FriendshipStatus | null>;
+  abstract acceptFriendship(data: { addresseeId: number; requesterUsername: string }): Promise<FriendshipStatus | null>;
+  abstract rejectFriendship(data: { addresseeId: number; requesterUsername: string }): Promise<boolean>;
 }

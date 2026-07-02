@@ -104,6 +104,7 @@ model Group {
   slug        String       @unique
   description String?
   privacy     GroupPrivacy @default(PUBLIC)
+  passwordHash String?     @map("password_hash")
   city        String?
   state       String?
   createdById Int          @map("created_by_id")

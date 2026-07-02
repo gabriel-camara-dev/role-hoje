@@ -12,14 +12,14 @@ import { FriendshipStatusResponseDto } from '@/infra/http/swagger/presenter-sche
 export class RequestFriendshipController {
   constructor(@Inject(RequestFriendshipUseCase) private requestFriendshipUseCase: RequestFriendshipUseCase) {}
 
-  @Post('/:userPublicId/request')
-  @ApiOperation({ summary: 'Send a friend request' })
-  @ApiParam({ name: 'userPublicId', type: String })
+  @Post('/:username/request')
+  @ApiOperation({ summary: 'Send a friend request by username' })
+  @ApiParam({ name: 'username', type: String })
   @ApiCreatedResponse({ description: 'Friend request sent successfully.', type: FriendshipStatusResponseDto })
-  async handle(@CurrentUser() currentUser: UserPayload, @Param('userPublicId') userPublicId: string) {
+  async handle(@CurrentUser() currentUser: UserPayload, @Param('username') username: string) {
     const result = await this.requestFriendshipUseCase.execute({
       currentUserPublicId: currentUser.sub,
-      addresseePublicId: userPublicId,
+      addresseeUsername: username,
     });
 
     if (result.isFail()) {

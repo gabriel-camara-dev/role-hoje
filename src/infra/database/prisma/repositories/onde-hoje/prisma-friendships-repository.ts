@@ -19,8 +19,8 @@ export class PrismaFriendshipsRepository implements FriendshipsRepository {
         OR: [{ requesterId: userId }, { addresseeId: userId }],
       },
       include: {
-        requester: { select: { publicId: true, name: true } },
-        addressee: { select: { publicId: true, name: true } },
+        requester: { select: { publicId: true, name: true, username: true } },
+        addressee: { select: { publicId: true, name: true, username: true } },
       },
       orderBy: { updatedAt: 'desc' },
     });
@@ -32,8 +32,8 @@ export class PrismaFriendshipsRepository implements FriendshipsRepository {
     }));
   }
 
-  async requestFriendship(data: { requesterId: number; addresseePublicId: string }): Promise<RequestFriendshipResult> {
-    const friend = await this.prisma.user.findUnique({ where: { publicId: data.addresseePublicId } });
+  async requestFriendship(data: { requesterId: number; addresseeUsername: string }): Promise<RequestFriendshipResult> {
+    const friend = await this.prisma.user.findUnique({ where: { username: data.addresseeUsername } });
 
     if (!friend || friend.id === data.requesterId) {
       return { type: 'not_found' };
@@ -65,8 +65,8 @@ export class PrismaFriendshipsRepository implements FriendshipsRepository {
     return { type: 'requested', status: friendship.status };
   }
 
-  async acceptFriendship(data: { addresseeId: number; requesterPublicId: string }): Promise<FriendshipStatus | null> {
-    const requester = await this.prisma.user.findUnique({ where: { publicId: data.requesterPublicId } });
+  async acceptFriendship(data: { addresseeId: number; requesterUsername: string }): Promise<FriendshipStatus | null> {
+    const requester = await this.prisma.user.findUnique({ where: { username: data.requesterUsername } });
 
     if (!requester) {
       return null;
@@ -97,6 +97,24 @@ export class PrismaFriendshipsRepository implements FriendshipsRepository {
     }
 
     return friendship.status;
+  }
+
+  async rejectFriendship(data: { addresseeId: number; requesterUsername: string }): Promise<boolean> {
+    const requester = await this.prisma.user.findUnique({ where: { username: data.requesterUsername } });
+
+    if (!requester) {
+      return false;
+    }
+
+    const deleted = await this.prisma.friendship.deleteMany({
+      where: {
+        requesterId: requester.id,
+        addresseeId: data.addresseeId,
+        status: 'PENDING',
+      },
+    });
+
+    return deleted.count > 0;
   }
 }
 

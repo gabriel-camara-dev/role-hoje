@@ -30,6 +30,7 @@ export class PrismaOndeHojeMapper {
     slug: string;
     description: string | null;
     privacy: 'PUBLIC' | 'PRIVATE';
+    passwordHash?: string | null;
     city: string | null;
     state: string | null;
     _count?: {
@@ -44,6 +45,7 @@ export class PrismaOndeHojeMapper {
       slug: raw.slug,
       description: raw.description,
       privacy: raw.privacy,
+      passwordHash: raw.passwordHash,
       city: raw.city,
       state: raw.state,
       membersCount: raw._count?.members,

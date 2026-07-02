@@ -10,6 +10,7 @@ import { PasswordHasher } from './password-hasher';
 
 interface RegisterUserUseCaseRequest {
   name: string;
+  username: string;
   email: string;
   password: string;
 }
@@ -29,8 +30,8 @@ export class RegisterUserUseCase {
     @Inject(EventBus) private eventBus: EventBus,
   ) {}
 
-  async execute({ name, email, password }: RegisterUserUseCaseRequest): Promise<RegisterUserUseCaseResponse> {
-    const userWithSameFields = await this.usersRepository.findConflict({ email });
+  async execute({ name, username, email, password }: RegisterUserUseCaseRequest): Promise<RegisterUserUseCaseResponse> {
+    const userWithSameFields = await this.usersRepository.findConflict({ email, username });
 
     if (userWithSameFields) {
       return fail(new UserAlreadyExistsError());
@@ -40,6 +41,7 @@ export class RegisterUserUseCase {
 
     const user = await this.usersRepository.create({
       name,
+      username,
       email,
       passwordHash,
     });
@@ -51,6 +53,7 @@ export class RegisterUserUseCase {
         payload: {
           id: user.publicId,
           name: user.name,
+          username: user.username,
           email: user.email,
           role: user.role,
         },

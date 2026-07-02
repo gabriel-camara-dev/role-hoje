@@ -20,9 +20,16 @@ export const todayMapQuerySchema = z.object({
 
 export const topPlacesQuerySchema = z.object({
   city: z.string().min(1).optional(),
+  state: z.string().min(1).optional(),
   groupPublicId: z.string().uuid().optional(),
   day: votingWindowDateSchema.optional(),
   limit: z.coerce.number().int().positive().max(50).optional(),
+});
+
+export const globalTopPlacesQuerySchema = z.object({
+  city: z.string().min(1).optional(),
+  state: z.string().min(1).optional(),
+  limit: z.coerce.number().int().positive().max(100).optional(),
 });
 
 export const historyQuerySchema = z
@@ -54,6 +61,7 @@ export const historyQuerySchema = z
 
 export type TodayMapQuery = z.infer<typeof todayMapQuerySchema>;
 export type TopPlacesQuery = z.infer<typeof topPlacesQuerySchema>;
+export type GlobalTopPlacesQuery = z.infer<typeof globalTopPlacesQuerySchema>;
 export type HistoryQuery = z.infer<typeof historyQuerySchema>;
 
 export function parseDateOnly(value?: string) {

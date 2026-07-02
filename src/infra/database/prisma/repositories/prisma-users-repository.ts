@@ -33,14 +33,18 @@ export class PrismaUsersRepository implements UsersRepository {
 
   async findByLogin(login: string): Promise<User | null> {
     const user = await this.prisma.user.findFirst({
-      where: { email: login },
+      where: {
+        OR: [{ email: login }, { username: login }],
+      },
     });
 
     return user ? PrismaUserMapper.toDomain(user) : null;
   }
 
-  async findConflict({ email, ignoredPublicId }: FindUserConflict): Promise<User | null> {
-    const conflicts = [email ? { email } : undefined].filter((field) => field !== undefined);
+  async findConflict({ email, username, ignoredPublicId }: FindUserConflict): Promise<User | null> {
+    const conflicts = [email ? { email } : undefined, username ? { username } : undefined].filter(
+      (field) => field !== undefined,
+    );
 
     if (conflicts.length === 0) {
       return null;
@@ -113,6 +117,10 @@ export class PrismaUsersRepository implements UsersRepository {
 
     if (findUserBy.publicId) {
       return { publicId: findUserBy.publicId };
+    }
+
+    if (findUserBy.username) {
+      return { username: findUserBy.username };
     }
 
     if (findUserBy.email) {

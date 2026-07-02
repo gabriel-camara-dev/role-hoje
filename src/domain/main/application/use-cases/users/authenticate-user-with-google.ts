@@ -43,8 +43,11 @@ export class AuthenticateUserWithGoogleUseCase {
       return success({ user: linkedUser });
     }
 
+    const username = await this.generateAvailableUsername(request.email, request.name);
+
     const user = await this.usersRepository.create({
       name: request.name,
+      username,
       email: request.email,
       passwordHash: null,
       googleId: request.googleId,
@@ -58,6 +61,7 @@ export class AuthenticateUserWithGoogleUseCase {
         payload: {
           id: user.publicId,
           name: user.name,
+          username: user.username,
           email: user.email,
           role: user.role,
         },
@@ -67,4 +71,32 @@ export class AuthenticateUserWithGoogleUseCase {
 
     return success({ user });
   }
+
+  private async generateAvailableUsername(email: string, name: string) {
+    const baseUsername = slugUsername(email.split('@')[0] || name);
+
+    for (let index = 0; index < 100; index += 1) {
+      const username = index === 0 ? baseUsername : `${baseUsername}_${index + 1}`;
+      const existingUser = await this.usersRepository.findBy({ username });
+
+      if (!existingUser) {
+        return username;
+      }
+    }
+
+    return `${baseUsername}_${Date.now().toString(36)}`;
+  }
+}
+
+function slugUsername(value: string) {
+  const username = value
+    .normalize('NFD')
+    .replaceAll(/[\u0300-\u036f]/g, '')
+    .toLowerCase()
+    .replaceAll(/[^a-z0-9_]/g, '_')
+    .replaceAll(/_+/g, '_')
+    .replace(/^_+|_+$/g, '')
+    .slice(0, 24);
+
+  return username.length >= 3 ? username : `user_${username || 'new'}`;
 }

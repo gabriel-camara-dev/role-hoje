@@ -10,7 +10,7 @@ import { ResourceNotFoundError } from '../../errors/resource-not-found-error';
 
 interface AcceptFriendshipUseCaseRequest {
   currentUserPublicId: string;
-  requesterPublicId: string;
+  requesterUsername: string;
 }
 
 type AcceptFriendshipUseCaseResponse = Result<ResourceNotFoundError, { status: FriendshipStatus }>;
@@ -32,7 +32,7 @@ export class AcceptFriendshipUseCase {
 
     const status = await this.friendshipsRepository.acceptFriendship({
       addresseeId: user.id,
-      requesterPublicId: request.requesterPublicId,
+      requesterUsername: request.requesterUsername,
     });
 
     if (!status) {
@@ -43,13 +43,13 @@ export class AcceptFriendshipUseCase {
       createDomainEvent({
         eventName: 'onde-hoje.friendship.accepted',
         actorId: request.currentUserPublicId,
-        aggregateId: `${request.requesterPublicId}:${request.currentUserPublicId}`,
+        aggregateId: `${request.requesterUsername}:${request.currentUserPublicId}`,
         payload: {
-          requesterId: request.requesterPublicId,
+          requesterUsername: request.requesterUsername,
           addresseeId: request.currentUserPublicId,
           status,
         },
-        recipientIds: [request.requesterPublicId, request.currentUserPublicId],
+        recipientIds: [request.currentUserPublicId],
       }),
     );
 

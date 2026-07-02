@@ -16,6 +16,7 @@ export async function seed() {
     create: {
       publicId: '0197f9cb-e9dd-72f2-8bea-863124fbec4c',
       name: 'Admin User',
+      username: 'admin',
       email: 'admin@example.com',
       // password: 'ybp_whf3wxn2xdr6MTE'
       passwordHash: '$2a$12$y7AWvv8D1P9AVn2G8XkNZOXyrMZ658QFJyR.2kxM.oP/wmgB/.7.2',
