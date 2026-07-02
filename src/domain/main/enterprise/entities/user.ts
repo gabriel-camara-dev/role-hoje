@@ -6,9 +6,7 @@ export interface User {
   id: number;
   publicId: string;
   name: string;
-  username: string;
   email: string;
-  cpf: string | null;
   passwordHash: string | null;
   googleId: string | null;
   avatarEncryptedPath: string | null;
@@ -29,9 +27,7 @@ export interface User {
 
 export interface CreateUserData {
   name: string;
-  username: string;
   email: string;
-  cpf?: string | null;
   passwordHash?: string | null;
   googleId?: string | null;
   lastLogin?: Date | null;
@@ -40,9 +36,7 @@ export interface CreateUserData {
 
 export interface UpdateUserData {
   name?: string;
-  username?: string;
   email?: string;
-  cpf?: string | null;
   passwordHash?: string | null;
   googleId?: string | null;
   avatarEncryptedPath?: string | null;

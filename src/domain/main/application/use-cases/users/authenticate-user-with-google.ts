@@ -1,4 +1,3 @@
-import { randomBytes } from 'node:crypto';
 import { Inject, Injectable } from '@nestjs/common';
 import { createDomainEvent } from '@/core/events/domain-event';
 import { EventBus } from '@/core/events/event-bus';
@@ -44,12 +43,9 @@ export class AuthenticateUserWithGoogleUseCase {
       return success({ user: linkedUser });
     }
 
-    const username = await this.generateUsername(request.email);
     const user = await this.usersRepository.create({
       name: request.name,
-      username,
       email: request.email,
-      cpf: null,
       passwordHash: null,
       googleId: request.googleId,
       lastLogin: new Date(),
@@ -62,7 +58,6 @@ export class AuthenticateUserWithGoogleUseCase {
         payload: {
           id: user.publicId,
           name: user.name,
-          username: user.username,
           email: user.email,
           role: user.role,
         },
@@ -71,26 +66,5 @@ export class AuthenticateUserWithGoogleUseCase {
     );
 
     return success({ user });
-  }
-
-  private async generateUsername(email: string) {
-    const baseUsername = email
-      .split('@')[0]
-      .normalize('NFD')
-      .replace(/[\u0300-\u036f]/g, '')
-      .toLowerCase()
-      .replace(/[^a-z0-9_]+/g, '_')
-      .replace(/^_+|_+$/g, '')
-      .slice(0, 24);
-
-    let username = baseUsername || `user_${randomBytes(3).toString('hex')}`;
-    let conflict = await this.usersRepository.findConflict({ username });
-
-    while (conflict) {
-      username = `${baseUsername || 'user'}_${randomBytes(3).toString('hex')}`.slice(0, 32);
-      conflict = await this.usersRepository.findConflict({ username });
-    }
-
-    return username;
   }
 }

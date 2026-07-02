@@ -5,14 +5,8 @@ export class CreateUserBodyDto {
   @ApiProperty({ type: String, example: 'Gabriel Silva' })
   name!: string;
 
-  @ApiProperty({ type: String, example: 'gabriel' })
-  username!: string;
-
   @ApiProperty({ type: String, example: 'gabriel@example.com' })
   email!: string;
-
-  @ApiPropertyOptional({ type: String, example: '12345678901' })
-  cpf?: string | null;
 
   @ApiProperty({ type: String, example: 'strong-password' })
   password!: string;
@@ -30,14 +24,8 @@ export class UpdateUserBodyDto {
   @ApiPropertyOptional({ type: String, example: 'Gabriel Silva' })
   name?: string;
 
-  @ApiPropertyOptional({ type: String, example: 'gabriel' })
-  username?: string;
-
   @ApiPropertyOptional({ type: String, example: 'gabriel@example.com' })
   email?: string;
-
-  @ApiPropertyOptional({ type: String, example: '12345678901' })
-  cpf?: string;
 
   @ApiPropertyOptional({ type: String, example: 'new-strong-password' })
   password?: string;
@@ -50,14 +38,8 @@ export class UserResponseDto {
   @ApiProperty({ type: String, example: 'Gabriel Silva' })
   name!: string;
 
-  @ApiProperty({ type: String, example: 'gabriel' })
-  username!: string;
-
   @ApiProperty({ type: String, example: 'gabriel@example.com' })
   email!: string;
-
-  @ApiProperty({ type: String, example: '12345678901' })
-  cpf!: string;
 
   @ApiProperty({ enum: UserRole, example: UserRole.DEFAULT })
   role!: UserRole;

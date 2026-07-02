@@ -16,9 +16,7 @@ interface UpdateUserUseCaseRequest {
   currentUserRole: UserRole;
   publicId: string;
   name?: string;
-  username?: string;
   email?: string;
-  cpf?: string;
   password?: string;
 }
 
@@ -56,8 +54,6 @@ export class UpdateUserUseCase {
 
     const userWithSameFields = await this.usersRepository.findConflict({
       email: data.email,
-      username: data.username,
-      cpf: data.cpf,
       ignoredPublicId: publicId,
     });
 

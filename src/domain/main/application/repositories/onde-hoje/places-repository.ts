@@ -66,4 +66,10 @@ export abstract class PlacesRepository {
     groupPublicId?: string;
     note?: string;
   }): Promise<PlaceVote | null>;
+  abstract cancelVote(data: {
+    userId: number;
+    placePublicId: string;
+    day: Date;
+    groupPublicId?: string;
+  }): Promise<PlaceVote | null>;
 }

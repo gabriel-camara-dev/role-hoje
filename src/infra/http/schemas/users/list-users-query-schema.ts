@@ -8,9 +8,7 @@ export const listUsersQuerySchema = z
     limit: limitSchema.optional(),
     pageSize: limitSchema.optional(),
     name: z.string().trim().min(1).optional(),
-    username: z.string().trim().min(1).optional(),
     email: z.string().trim().min(1).optional(),
-    cpf: z.string().trim().min(1).optional(),
   })
   .transform(({ page, limit, pageSize, ...filters }) => ({
     ...filters,

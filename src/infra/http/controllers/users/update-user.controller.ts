@@ -31,7 +31,7 @@ export class UpdateUserController {
   @ApiBody({ type: UpdateUserBodyDto })
   @ApiOkResponse({ description: 'User updated successfully.', type: UserResponseDto })
   @ApiNotFoundResponse({ description: 'User not found.' })
-  @ApiConflictResponse({ description: 'User with same email, username or cpf already exists.' })
+  @ApiConflictResponse({ description: 'User with same email already exists.' })
   async handle(
     @CurrentUser() currentUser: UserPayload,
     @Param(new ZodValidationPipe<PublicIdSchemaType>(publicIdSchema)) params: PublicIdSchemaType,

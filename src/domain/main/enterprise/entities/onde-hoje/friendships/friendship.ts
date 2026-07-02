@@ -6,6 +6,5 @@ export interface FriendListItem {
   friend: {
     publicId: string;
     name: string;
-    username: string;
   };
 }

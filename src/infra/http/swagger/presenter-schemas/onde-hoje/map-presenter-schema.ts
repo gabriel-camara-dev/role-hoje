@@ -8,8 +8,8 @@ export class MapVoterResponseDto {
   @ApiProperty({ type: String, example: 'Gabriel Silva' })
   name!: string;
 
-  @ApiProperty({ type: String, example: 'gabriel' })
-  username!: string;
+  @ApiPropertyOptional({ type: String, example: '/users/018f4a2c-87b7-7cc4-9f93-0faaf26cfbed/avatar' })
+  avatarUrl?: string | null;
 
   @ApiPropertyOptional({ type: String, example: 'Chego depois das 20h' })
   note?: string | null;

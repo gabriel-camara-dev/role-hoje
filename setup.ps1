@@ -8,12 +8,12 @@ $jwtSecret = [System.BitConverter]::ToString($bytes) -replace '-'
 
 Write-Host "Removendo .env antigo e criando um novo a partir do .env.example..."
 
-# Remove o .env se existir
-if (Test-Path .env) {
-    Remove-Item .env -Force
+if (-not (Test-Path .env)) {
+    Copy-Item .env.example .env
+} else {
+    Write-Host ".env ja existe; mantendo valores atuais e atualizando apenas os campos basicos."
 }
 
-Copy-Item .env.example .env
 (Get-Content .env) -replace "^APP_NAME=.*", "APP_NAME=$currentFolder" `
                  -replace "^JWT_SECRET=.*", "JWT_SECRET=$jwtSecret" `
                  -replace "^PROJECT_NAME=.*", "PROJECT_NAME=$currentFolder" | Set-Content .env

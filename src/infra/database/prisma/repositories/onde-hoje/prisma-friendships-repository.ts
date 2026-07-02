@@ -19,8 +19,8 @@ export class PrismaFriendshipsRepository implements FriendshipsRepository {
         OR: [{ requesterId: userId }, { addresseeId: userId }],
       },
       include: {
-        requester: { select: { publicId: true, name: true, username: true } },
-        addressee: { select: { publicId: true, name: true, username: true } },
+        requester: { select: { publicId: true, name: true } },
+        addressee: { select: { publicId: true, name: true } },
       },
       orderBy: { updatedAt: 'desc' },
     });

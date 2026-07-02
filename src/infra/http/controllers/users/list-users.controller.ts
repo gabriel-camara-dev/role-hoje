@@ -23,9 +23,7 @@ export class ListUsersController {
   @ApiQuery({ name: 'page', required: false, example: 1 })
   @ApiQuery({ name: 'limit', required: false, example: 10 })
   @ApiQuery({ name: 'name', required: false })
-  @ApiQuery({ name: 'username', required: false })
   @ApiQuery({ name: 'email', required: false })
-  @ApiQuery({ name: 'cpf', required: false })
   @ApiOkResponse({ description: 'Users retrieved successfully.', type: ListUsersResponseDto })
   async handle(
     @CurrentUser() currentUser: UserPayload,

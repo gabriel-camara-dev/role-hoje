@@ -8,9 +8,7 @@ export class PrismaUserMapper {
       id: raw.id,
       publicId: raw.publicId,
       name: raw.name,
-      username: raw.username,
       email: raw.email,
-      cpf: raw.cpf,
       passwordHash: raw.passwordHash,
       googleId: raw.googleId,
       avatarEncryptedPath: raw.avatarEncryptedPath,
@@ -33,9 +31,7 @@ export class PrismaUserMapper {
   static toPrisma(user: CreateUserData): Prisma.UserCreateInput {
     return {
       name: user.name,
-      username: user.username,
       email: user.email,
-      ...(user.cpf !== undefined && { cpf: user.cpf }),
       ...(user.passwordHash !== undefined && { passwordHash: user.passwordHash }),
       ...(user.googleId !== undefined && { googleId: user.googleId }),
       ...(user.lastLogin !== undefined && { lastLogin: user.lastLogin }),
@@ -46,9 +42,7 @@ export class PrismaUserMapper {
   static toUpdatePrisma(data: UpdateUserData): Prisma.UserUpdateInput {
     return {
       ...(data.name !== undefined && { name: data.name }),
-      ...(data.username !== undefined && { username: data.username }),
       ...(data.email !== undefined && { email: data.email }),
-      ...(data.cpf !== undefined && { cpf: data.cpf }),
       ...(data.passwordHash !== undefined && { passwordHash: data.passwordHash }),
       ...(data.googleId !== undefined && { googleId: data.googleId }),
       ...(data.avatarEncryptedPath !== undefined && { avatarEncryptedPath: data.avatarEncryptedPath }),

@@ -1,17 +1,27 @@
 import { z } from 'zod';
 
 export const dateOnlySchema = z.string().regex(/^\d{4}-\d{2}-\d{2}$/);
+export const votingWindowDateSchema = dateOnlySchema.refine(
+  (value) => {
+    const day = parseDateOnly(value);
+
+    return Boolean(day && day >= todayDate() && day <= maxVotingDate());
+  },
+  {
+    message: 'Date must be today or up to one month in the future',
+  },
+);
 
 export const todayMapQuerySchema = z.object({
   city: z.string().min(1).optional(),
   groupPublicId: z.string().uuid().optional(),
-  day: dateOnlySchema.optional(),
+  day: votingWindowDateSchema.optional(),
 });
 
 export const topPlacesQuerySchema = z.object({
   city: z.string().min(1).optional(),
   groupPublicId: z.string().uuid().optional(),
-  day: dateOnlySchema.optional(),
+  day: votingWindowDateSchema.optional(),
   limit: z.coerce.number().int().positive().max(50).optional(),
 });
 
@@ -67,6 +77,13 @@ export function addDays(date: Date, days: number) {
   copy.setDate(copy.getDate() + days);
 
   return copy;
+}
+
+export function maxVotingDate() {
+  const date = todayDate();
+  date.setMonth(date.getMonth() + 1);
+
+  return date;
 }
 
 function daysBetween(from: Date, to: Date) {

@@ -3,18 +3,18 @@
 # Pega o nome da pasta atual
 CURRENT_FOLDER=$(basename "$(pwd)")
 
-# Gera uma chave JWT aleatória de 64 caracteres hexadecimais
+# Gera uma chave JWT aleatoria de 64 caracteres hexadecimais
 JWT_SECRET=$(openssl rand -hex 32)
 
-echo "Removendo .env antigo e criando um novo a partir do .env.example..."
+echo "Preparando .env a partir da .env.example..."
 
-# Remove o .env se existir
-rm -f .env
+if [ ! -f .env ]; then
+  cp .env.example .env
+else
+  echo ".env ja existe; mantendo valores atuais e atualizando apenas os campos basicos."
+fi
 
-# Copia o exemplo
-cp .env.example .env
-
-# Substitui o valor de APP_NAME e JWT_SECRET
+# Substitui o valor de APP_NAME e JWT_SECRET sem apagar outras configuracoes manuais.
 sed -i "s/^APP_NAME=.*/APP_NAME=$CURRENT_FOLDER/" .env
 sed -i "s/^JWT_SECRET=.*/JWT_SECRET=$JWT_SECRET/" .env
 sed -i "s/^PROJECT_NAME=.*/PROJECT_NAME=$CURRENT_FOLDER/" .env

@@ -1,14 +1,16 @@
 import { z } from 'zod';
-import { dateOnlySchema } from '@/infra/http/schemas/onde-hoje/map/map-query-schemas';
+import { votingWindowDateSchema } from '@/infra/http/schemas/onde-hoje/map/map-query-schemas';
 
 export const voteSchema = z.object({
-  day: dateOnlySchema.optional(),
+  day: votingWindowDateSchema,
   groupPublicId: z.string().uuid().optional(),
   note: z.string().max(240).optional(),
 });
 
-export const legacyTodayVoteSchema = voteSchema.extend({
+export const legacyTodayVoteSchema = z.object({
   day: z.undefined().optional(),
+  groupPublicId: z.string().uuid().optional(),
+  note: z.string().max(240).optional(),
 });
 
 export const myVotesQuerySchema = z.object({

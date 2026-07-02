@@ -10,7 +10,6 @@ export interface PlaceAttendanceEstimate {
   attendees: Array<{
     publicId: string;
     name: string;
-    username: string;
     note: string | null;
     place: Pick<Place, 'publicId' | 'name' | 'distanceKm'>;
   }>;

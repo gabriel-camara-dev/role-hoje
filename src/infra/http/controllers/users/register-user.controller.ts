@@ -19,7 +19,7 @@ export class RegisterUserController {
   @ApiOperation({ summary: 'Create user' })
   @ApiBody({ type: CreateUserBodyDto })
   @ApiCreatedResponse({ description: 'User created successfully.', type: UserResponseDto })
-  @ApiConflictResponse({ description: 'User with same email, username or cpf already exists.' })
+  @ApiConflictResponse({ description: 'User with same email already exists.' })
   async handle(@Body(new ZodValidationPipe<RegisterSchemaType>(registerSchema)) body: RegisterSchemaType) {
     const result = await this.registerUserUseCase.execute(body);
 

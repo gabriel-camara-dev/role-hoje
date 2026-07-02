@@ -5,24 +5,18 @@ export interface FindUserBy {
   id?: number;
   publicId?: string;
   email?: string;
-  username?: string;
-  cpf?: string;
   googleId?: string;
   token?: string;
 }
 
 export interface FindUserConflict {
   email?: string;
-  username?: string;
-  cpf?: string;
   ignoredPublicId?: string;
 }
 
 export interface ListUsersQuery extends PaginationParams {
   name?: string;
-  username?: string;
   email?: string;
-  cpf?: string;
 }
 
 export interface ListUsersResult extends PaginatedResults<User> {}

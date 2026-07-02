@@ -94,9 +94,6 @@ export class AttendanceAttendeeDto {
   @ApiProperty({ type: String, example: 'Gabriel Silva' })
   name!: string;
 
-  @ApiProperty({ type: String, example: 'gabriel' })
-  username!: string;
-
   @ApiPropertyOptional({ type: String, example: 'Chego depois das 20h' })
   note?: string | null;
 

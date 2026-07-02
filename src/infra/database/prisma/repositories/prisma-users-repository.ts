@@ -33,20 +33,14 @@ export class PrismaUsersRepository implements UsersRepository {
 
   async findByLogin(login: string): Promise<User | null> {
     const user = await this.prisma.user.findFirst({
-      where: {
-        OR: [{ email: login }, { cpf: login }, { username: login }],
-      },
+      where: { email: login },
     });
 
     return user ? PrismaUserMapper.toDomain(user) : null;
   }
 
-  async findConflict({ email, username, cpf, ignoredPublicId }: FindUserConflict): Promise<User | null> {
-    const conflicts = [
-      email ? { email } : undefined,
-      username ? { username } : undefined,
-      cpf ? { cpf } : undefined,
-    ].filter((field) => field !== undefined);
+  async findConflict({ email, ignoredPublicId }: FindUserConflict): Promise<User | null> {
+    const conflicts = [email ? { email } : undefined].filter((field) => field !== undefined);
 
     if (conflicts.length === 0) {
       return null;
@@ -71,16 +65,8 @@ export class PrismaUsersRepository implements UsersRepository {
       where.name = { contains: query.name, mode: 'insensitive' };
     }
 
-    if (query.username) {
-      where.username = { contains: query.username, mode: 'insensitive' };
-    }
-
     if (query.email) {
       where.email = { contains: query.email, mode: 'insensitive' };
-    }
-
-    if (query.cpf) {
-      where.cpf = { contains: query.cpf };
     }
 
     const [users, totalCount] = await Promise.all([
@@ -131,14 +117,6 @@ export class PrismaUsersRepository implements UsersRepository {
 
     if (findUserBy.email) {
       return { email: findUserBy.email };
-    }
-
-    if (findUserBy.username) {
-      return { username: findUserBy.username };
-    }
-
-    if (findUserBy.cpf) {
-      return { cpf: findUserBy.cpf };
     }
 
     if (findUserBy.googleId) {

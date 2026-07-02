@@ -1,18 +1,9 @@
 import type { Place } from './place';
+import type { TodayMapPlace } from './today-map-place';
 
 export interface PlaceHistoryDay {
   day: Date;
-  places: Array<
-    Place & {
-      voteCount: number;
-      voters: Array<{
-        publicId: string;
-        name: string;
-        username: string;
-        note: string | null;
-      }>;
-    }
-  >;
+  places: TodayMapPlace[];
 }
 
 export interface UserVoteHistoryItem {

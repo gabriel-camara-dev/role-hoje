@@ -143,7 +143,7 @@ export class PrismaPlacesRepository implements PlacesRepository {
               select: {
                 publicId: true,
                 name: true,
-                username: true,
+                avatarUpdatedAt: true,
               },
             },
           },
@@ -159,7 +159,7 @@ export class PrismaPlacesRepository implements PlacesRepository {
         voters: place.votes.slice(0, 8).map((vote) => ({
           publicId: vote.user.publicId,
           name: vote.user.name,
-          username: vote.user.username,
+          avatarUrl: this.avatarUrl(vote.user),
           note: vote.note,
         })),
       }))
@@ -208,7 +208,7 @@ export class PrismaPlacesRepository implements PlacesRepository {
               select: {
                 publicId: true,
                 name: true,
-                username: true,
+                avatarUpdatedAt: true,
               },
             },
           },
@@ -224,7 +224,7 @@ export class PrismaPlacesRepository implements PlacesRepository {
         voters: place.votes.slice(0, 8).map((vote) => ({
           publicId: vote.user.publicId,
           name: vote.user.name,
-          username: vote.user.username,
+          avatarUrl: this.avatarUrl(vote.user),
           note: vote.note,
         })),
       }))
@@ -279,7 +279,7 @@ export class PrismaPlacesRepository implements PlacesRepository {
           select: {
             publicId: true,
             name: true,
-            username: true,
+            avatarUpdatedAt: true,
           },
         },
       },
@@ -306,7 +306,7 @@ export class PrismaPlacesRepository implements PlacesRepository {
           placeWithVotes.voters.push({
             publicId: vote.user.publicId,
             name: vote.user.name,
-            username: vote.user.username,
+            avatarUrl: this.avatarUrl(vote.user),
             note: vote.note,
           });
         }
@@ -318,7 +318,7 @@ export class PrismaPlacesRepository implements PlacesRepository {
             {
               publicId: vote.user.publicId,
               name: vote.user.name,
-              username: vote.user.username,
+              avatarUrl: this.avatarUrl(vote.user),
               note: vote.note,
             },
           ],
@@ -395,7 +395,6 @@ export class PrismaPlacesRepository implements PlacesRepository {
           select: {
             publicId: true,
             name: true,
-            username: true,
           },
         },
       },
@@ -426,7 +425,6 @@ export class PrismaPlacesRepository implements PlacesRepository {
       attendees: nearbyVotes.slice(0, 30).map(({ vote, place }) => ({
         publicId: vote.user.publicId,
         name: vote.user.name,
-        username: vote.user.username,
         note: vote.note,
         place: {
           publicId: place.publicId,
@@ -472,10 +470,7 @@ export class PrismaPlacesRepository implements PlacesRepository {
         userId: data.userId,
         status: 'ACTIVE',
         day: data.day,
-        NOT: {
-          placeId: place.id,
-          scopeKey: group?.publicId ?? 'global',
-        },
+        OR: [{ placeId: { not: place.id } }, { scopeKey: { not: group?.publicId ?? 'global' } }],
       },
     });
   }
@@ -541,6 +536,48 @@ export class PrismaPlacesRepository implements PlacesRepository {
     };
   }
 
+  async cancelVote(data: {
+    userId: number;
+    placePublicId: string;
+    day: Date;
+    groupPublicId?: string;
+  }): Promise<PlaceVote | null> {
+    const [place, group] = await Promise.all([
+      this.prisma.place.findUnique({ where: { publicId: data.placePublicId } }),
+      data.groupPublicId ? this.prisma.group.findUnique({ where: { publicId: data.groupPublicId } }) : null,
+    ]);
+
+    if (!place || (data.groupPublicId && !group)) {
+      return null;
+    }
+
+    const existingVote = await this.prisma.placeVote.findUnique({
+      where: {
+        uq_vote_user_place_scope_day: {
+          userId: data.userId,
+          placeId: place.id,
+          scopeKey: group?.publicId ?? 'global',
+          day: data.day,
+        },
+      },
+    });
+
+    if (existingVote?.status !== 'ACTIVE') {
+      return null;
+    }
+
+    const vote = await this.prisma.placeVote.update({
+      where: { id: existingVote.id },
+      data: { status: 'CANCELLED' },
+    });
+
+    return {
+      publicId: vote.publicId,
+      day: vote.day,
+      status: vote.status,
+    };
+  }
+
   private withDistance(place: Place, latitude?: number, longitude?: number): Place {
     if (latitude === undefined || longitude === undefined) {
       return place;
@@ -566,5 +603,9 @@ export class PrismaPlacesRepository implements PlacesRepository {
     });
 
     return !!membership;
+  }
+
+  private avatarUrl(user: { publicId: string; avatarUpdatedAt: Date | null }) {
+    return user.avatarUpdatedAt ? `/users/${user.publicId}/avatar` : null;
   }
 }
