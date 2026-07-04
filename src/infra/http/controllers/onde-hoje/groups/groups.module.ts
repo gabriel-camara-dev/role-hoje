@@ -9,6 +9,7 @@ import { ListPublicGroupsUseCase } from '@/domain/main/application/use-cases/ond
 import { RemoveGroupMemberUseCase } from '@/domain/main/application/use-cases/onde-hoje/groups/remove-group-member';
 import { PasswordHasher } from '@/domain/main/application/use-cases/users/password-hasher';
 import { BcryptPasswordHasher } from '@/infra/auth/bcrypt-password-hasher';
+import { CacheModule } from '@/infra/cache/cache.module';
 import { DatabaseModule } from '@/infra/database/database.module';
 import { EnvModule } from '@/infra/env/env.module';
 import { EventsModule } from '@/infra/events/events.module';
@@ -22,7 +23,7 @@ import { ListPublicGroupsController } from './list-public-groups.controller';
 import { RemoveGroupMemberController } from './remove-group-member.controller';
 
 @Module({
-  imports: [DatabaseModule, EventsModule, EnvModule],
+  imports: [DatabaseModule, EventsModule, EnvModule, CacheModule],
   controllers: [
     ListPublicGroupsController,
     ListMyGroupsController,

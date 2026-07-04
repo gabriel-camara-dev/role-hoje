@@ -1,4 +1,6 @@
 import { Inject, Injectable } from '@nestjs/common';
+import { CacheRepository } from '@/infra/cache/cache-repository';
+import { invalidateOndeHojeGroupCaches } from '@/infra/cache/onde-hoje-cache';
 import type { Result } from '@/core/result';
 import { fail, success } from '@/core/result';
 import { ConflictError } from '../../errors/conflict-error';
@@ -23,6 +25,7 @@ export class RemoveGroupMemberUseCase {
   constructor(
     @Inject(GroupsRepository) private groupsRepository: GroupsRepository,
     @Inject(OndeHojeUsersRepository) private usersRepository: OndeHojeUsersRepository,
+    @Inject(CacheRepository) private cacheRepository: CacheRepository,
   ) {}
 
   async execute(request: RemoveGroupMemberUseCaseRequest): Promise<RemoveGroupMemberUseCaseResponse> {
@@ -41,6 +44,8 @@ export class RemoveGroupMemberUseCase {
     if (result.type === 'not_found') return fail(new ResourceNotFoundError('Group or member not found'));
     if (result.type === 'forbidden') return fail(new ForbiddenError('Only the group owner can remove members'));
     if (result.type !== 'removed') return fail(new ConflictError('Could not remove member'));
+
+    await invalidateOndeHojeGroupCaches(this.cacheRepository);
 
     return success({ removed: true });
   }

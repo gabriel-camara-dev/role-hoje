@@ -3,7 +3,7 @@ import { filter, Subject } from 'rxjs';
 import type { Observable } from 'rxjs';
 import type { EventBus } from '@/core/events/event-bus';
 import type { DomainEvent } from '@/core/events/domain-event';
-import { RedisService } from '@/infra/cache/redis.service';
+import { RedisService } from '@/infra/cache/redis/redis.service';
 
 const domainEventsChannel = 'domain-events';
 
@@ -15,7 +15,7 @@ export class RedisEventBus implements EventBus, OnModuleInit {
   constructor(@Inject(RedisService) private redis: RedisService) {}
 
   async onModuleInit() {
-    await this.redis.subscribe(domainEventsChannel, (message) => {
+    await this.redis.subscribeToChannel(domainEventsChannel, (message) => {
       try {
         const event = JSON.parse(message) as DomainEvent<string>;
 

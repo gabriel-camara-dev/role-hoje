@@ -1,4 +1,6 @@
 import { Inject, Injectable } from '@nestjs/common';
+import { CacheRepository } from '@/infra/cache/cache-repository';
+import { invalidateOndeHojePlaceCaches } from '@/infra/cache/onde-hoje-cache';
 import { createDomainEvent } from '@/core/events/domain-event';
 import { EventBus } from '@/core/events/event-bus';
 import type { Result } from '@/core/result';
@@ -23,6 +25,7 @@ export class CancelVoteUseCase {
     @Inject(PlacesRepository) private placesRepository: PlacesRepository,
     @Inject(OndeHojeUsersRepository) private usersRepository: OndeHojeUsersRepository,
     @Inject(EventBus) private eventBus: EventBus,
+    @Inject(CacheRepository) private cacheRepository: CacheRepository,
   ) {}
 
   async execute(request: CancelVoteUseCaseRequest): Promise<CancelVoteUseCaseResponse> {
@@ -56,6 +59,8 @@ export class CancelVoteUseCase {
         },
       }),
     );
+
+    await invalidateOndeHojePlaceCaches(this.cacheRepository);
 
     return success({ vote });
   }

@@ -29,7 +29,7 @@ export const envSchema = z
     // Redis
     REDIS_HOST: z.string().default('localhost'),
     REDIS_PORT: z.coerce.number().default(6379),
-    REDIS_PASSWORD: z.string(),
+    REDIS_PASSWORD: z.string().optional(),
     REDIS_DB: z.coerce.number().default(0),
 
     // Resend
