@@ -59,7 +59,8 @@ export const VoteType = {
   GENERAL: 'GENERAL',
   MUSIC: 'MUSIC',
   FOOD: 'FOOD',
-  DRINK: 'DRINK'
+  DRINK: 'DRINK',
+  SPORTS: 'SPORTS'
 } as const
 
 export type VoteType = (typeof VoteType)[keyof typeof VoteType]

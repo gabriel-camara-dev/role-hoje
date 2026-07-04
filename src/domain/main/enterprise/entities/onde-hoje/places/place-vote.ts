@@ -1,4 +1,4 @@
-export type PlaceVoteType = 'GENERAL' | 'MUSIC' | 'FOOD' | 'DRINK';
+export type PlaceVoteType = 'GENERAL' | 'MUSIC' | 'FOOD' | 'DRINK' | 'SPORTS';
 
 export interface PlaceVote {
   publicId: string;

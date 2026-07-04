@@ -781,6 +781,7 @@ function dominantVoteType(votes: Array<{ voteType: PlaceVote['voteType'] }>): Pl
       MUSIC: 0,
       FOOD: 0,
       DRINK: 0,
+      SPORTS: 0,
     } satisfies Record<PlaceVote['voteType'], number>,
   );
 

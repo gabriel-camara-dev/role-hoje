@@ -1,0 +1,1 @@
+ALTER TYPE "places"."VoteType" ADD VALUE IF NOT EXISTS 'SPORTS';

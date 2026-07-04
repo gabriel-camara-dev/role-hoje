@@ -1,7 +1,7 @@
 import { z } from 'zod';
 import { votingWindowDateSchema } from '@/infra/http/schemas/onde-hoje/map/map-query-schemas';
 
-export const voteTypeSchema = z.enum(['GENERAL', 'MUSIC', 'FOOD', 'DRINK']).default('GENERAL');
+export const voteTypeSchema = z.enum(['GENERAL', 'MUSIC', 'FOOD', 'DRINK', 'SPORTS']).default('GENERAL');
 
 export const voteSchema = z.object({
   day: votingWindowDateSchema,

@@ -25,8 +25,8 @@ export class MapVoterResponseDto {
   @ApiPropertyOptional({ type: String, example: 'Chego depois das 20h' })
   note?: string | null;
 
-  @ApiProperty({ enum: ['GENERAL', 'MUSIC', 'FOOD', 'DRINK'], example: 'MUSIC' })
-  voteType!: 'GENERAL' | 'MUSIC' | 'FOOD' | 'DRINK';
+  @ApiProperty({ enum: ['GENERAL', 'MUSIC', 'FOOD', 'DRINK', 'SPORTS'], example: 'MUSIC' })
+  voteType!: 'GENERAL' | 'MUSIC' | 'FOOD' | 'DRINK' | 'SPORTS';
 
   @ApiPropertyOptional({ type: MapVoterFriendshipResponseDto })
   friendship?: MapVoterFriendshipResponseDto;
@@ -36,8 +36,8 @@ export class TodayMapPlaceResponseDto extends PlaceResponseDto {
   @ApiProperty({ type: Number, example: 8 })
   voteCount!: number;
 
-  @ApiProperty({ enum: ['GENERAL', 'MUSIC', 'FOOD', 'DRINK'], example: 'MUSIC' })
-  dominantVoteType!: 'GENERAL' | 'MUSIC' | 'FOOD' | 'DRINK';
+  @ApiProperty({ enum: ['GENERAL', 'MUSIC', 'FOOD', 'DRINK', 'SPORTS'], example: 'MUSIC' })
+  dominantVoteType!: 'GENERAL' | 'MUSIC' | 'FOOD' | 'DRINK' | 'SPORTS';
 
   @ApiProperty({ type: [MapVoterResponseDto] })
   voters!: MapVoterResponseDto[];
@@ -61,8 +61,8 @@ export class VoteTodayBodyDto {
   @ApiPropertyOptional({ type: String, example: 'Chego depois das 20h' })
   note?: string;
 
-  @ApiPropertyOptional({ enum: ['GENERAL', 'MUSIC', 'FOOD', 'DRINK'], example: 'MUSIC' })
-  voteType?: 'GENERAL' | 'MUSIC' | 'FOOD' | 'DRINK';
+  @ApiPropertyOptional({ enum: ['GENERAL', 'MUSIC', 'FOOD', 'DRINK', 'SPORTS'], example: 'MUSIC' })
+  voteType?: 'GENERAL' | 'MUSIC' | 'FOOD' | 'DRINK' | 'SPORTS';
 }
 
 export class VoteTodayResponseDto {
@@ -75,6 +75,6 @@ export class VoteTodayResponseDto {
   @ApiProperty({ type: String, example: 'ACTIVE' })
   status!: string;
 
-  @ApiProperty({ enum: ['GENERAL', 'MUSIC', 'FOOD', 'DRINK'], example: 'MUSIC' })
-  voteType!: 'GENERAL' | 'MUSIC' | 'FOOD' | 'DRINK';
+  @ApiProperty({ enum: ['GENERAL', 'MUSIC', 'FOOD', 'DRINK', 'SPORTS'], example: 'MUSIC' })
+  voteType!: 'GENERAL' | 'MUSIC' | 'FOOD' | 'DRINK' | 'SPORTS';
 }

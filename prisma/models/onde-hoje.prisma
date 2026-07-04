@@ -33,6 +33,7 @@ enum VoteType {
   MUSIC
   FOOD
   DRINK
+  SPORTS
 
   @@schema("places")
 }
