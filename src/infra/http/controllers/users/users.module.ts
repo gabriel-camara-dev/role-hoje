@@ -14,6 +14,7 @@ import { BcryptPasswordHasher } from '@/infra/auth/bcrypt-password-hasher';
 import { EncryptedAvatarStorageService } from '@/infra/storage/encrypted-avatar-storage.service';
 import { UserAvatarModule } from './avatar/avatar.module';
 import { GoogleOAuthConfiguredGuard } from './google-oauth.controller';
+import { LoginRateLimiterService } from './login-rate-limiter.service';
 import { usersControllers } from './user.routes';
 
 @Module({
@@ -31,6 +32,7 @@ import { usersControllers } from './user.routes';
     { provide: PasswordHasher, useClass: BcryptPasswordHasher },
     GoogleOAuthConfiguredGuard,
     EncryptedAvatarStorageService,
+    LoginRateLimiterService,
   ],
 })
 export class UsersModule {}

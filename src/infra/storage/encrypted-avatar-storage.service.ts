@@ -6,6 +6,7 @@ import { EnvService } from '../env/env.service';
 
 const allowedImageMimeTypes = new Set(['image/jpeg', 'image/png', 'image/webp']);
 const maxAvatarSizeInBytes = 2 * 1024 * 1024;
+const avatarFetchTimeoutInMs = 5_000;
 
 export interface StoredEncryptedAvatar {
   encryptedPath: string;
@@ -44,20 +45,32 @@ export class EncryptedAvatarStorageService {
       throw new BadRequestException('Avatar URL must use HTTPS');
     }
 
-    const response = await fetch(parsedUrl);
+    if (!isAllowedAvatarHost(parsedUrl.hostname)) {
+      throw new BadRequestException('Avatar URL host is not allowed');
+    }
+
+    const response = await fetch(parsedUrl, {
+      signal: AbortSignal.timeout(avatarFetchTimeoutInMs),
+    }).catch(() => {
+      throw new BadRequestException('Could not fetch avatar image');
+    });
 
     if (!response.ok) {
       throw new BadRequestException('Could not fetch avatar image');
     }
 
-    const mimeType = response.headers.get('content-type')?.split(';')[0]?.trim() ?? 'application/octet-stream';
     const contentLength = Number(response.headers.get('content-length') ?? 0);
 
     if (contentLength > maxAvatarSizeInBytes) {
       throw new BadRequestException('Avatar image is too large');
     }
 
-    const buffer = Buffer.from(await response.arrayBuffer());
+    const buffer = await readLimitedResponse(response);
+    const mimeType = detectImageMimeType(buffer);
+
+    if (!mimeType) {
+      throw new BadRequestException('Avatar must be a JPEG, PNG or WEBP image');
+    }
 
     return this.storeBuffer({
       buffer,
@@ -71,7 +84,9 @@ export class EncryptedAvatarStorageService {
     mimeType: string;
     originalName: string;
   }): Promise<StoredEncryptedAvatar> {
-    if (!allowedImageMimeTypes.has(params.mimeType)) {
+    const detectedMimeType = detectImageMimeType(params.buffer);
+
+    if (!detectedMimeType || !allowedImageMimeTypes.has(detectedMimeType)) {
       throw new BadRequestException('Avatar must be a JPEG, PNG or WEBP image');
     }
 
@@ -94,7 +109,7 @@ export class EncryptedAvatarStorageService {
       encryptedPath,
       iv: iv.toString('base64'),
       authTag: authTag.toString('base64'),
-      mimeType: params.mimeType,
+      mimeType: detectedMimeType,
       originalName: params.originalName,
     };
   }
@@ -173,4 +188,55 @@ function extensionFromMimeType(mimeType: string) {
   }
 
   return '.img';
+}
+
+function isAllowedAvatarHost(hostname: string) {
+  return hostname === 'googleusercontent.com' || hostname.endsWith('.googleusercontent.com');
+}
+
+async function readLimitedResponse(response: Response) {
+  if (!response.body) {
+    throw new BadRequestException('Could not fetch avatar image');
+  }
+
+  const reader = response.body.getReader();
+  const chunks: Buffer[] = [];
+  let totalBytes = 0;
+
+  while (true) {
+    const { done, value } = await reader.read();
+
+    if (done) {
+      break;
+    }
+
+    totalBytes += value.byteLength;
+
+    if (totalBytes > maxAvatarSizeInBytes) {
+      await reader.cancel();
+      throw new BadRequestException('Avatar image is too large');
+    }
+
+    chunks.push(Buffer.from(value));
+  }
+
+  return Buffer.concat(chunks);
+}
+
+function detectImageMimeType(buffer: Buffer) {
+  if (buffer.length >= 3 && buffer[0] === 0xff && buffer[1] === 0xd8 && buffer[2] === 0xff) {
+    return 'image/jpeg';
+  }
+
+  const pngSignature = Buffer.from([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a]);
+
+  if (buffer.length >= pngSignature.length && buffer.subarray(0, pngSignature.length).equals(pngSignature)) {
+    return 'image/png';
+  }
+
+  if (buffer.length >= 12 && buffer.toString('ascii', 0, 4) === 'RIFF' && buffer.toString('ascii', 8, 12) === 'WEBP') {
+    return 'image/webp';
+  }
+
+  return null;
 }

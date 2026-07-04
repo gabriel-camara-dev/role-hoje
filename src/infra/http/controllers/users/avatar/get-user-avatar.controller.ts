@@ -50,6 +50,7 @@ export class GetUserAvatarController {
     });
 
     response.contentType(avatar.mimeType);
+    response.setHeader('X-Content-Type-Options', 'nosniff');
     response.setHeader('Content-Disposition', `inline; filename="${avatar.originalName.replaceAll('"', '')}"`);
 
     return new StreamableFile(avatar.buffer);

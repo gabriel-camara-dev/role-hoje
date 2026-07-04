@@ -40,17 +40,23 @@ export class GetMapHistoryController {
     @Req() request: Request,
     @Query(new ZodValidationPipe<HistoryQuery>(historyQuerySchema)) query: HistoryQuery,
   ) {
+    const viewerPublicId = await this.optionalViewerResolver.getPublicId(request);
     const result = await this.getMapHistoryUseCase.execute({
       ...query,
       from: parseDateOnly(query.from) ?? addDays(todayDate(), -6),
       to: parseDateOnly(query.to) ?? todayDate(),
-      viewerPublicId: await this.optionalViewerResolver.getPublicId(request),
+      viewerPublicId,
     });
 
     if (result.isFail()) {
       throwHttpError(result.value);
     }
 
-    return result.value.history.map((historyDay) => MapPresenter.historyDayToHTTP(historyDay));
+    return result.value.history.map((historyDay) => ({
+      ...historyDay,
+      places: historyDay.places.map((place) =>
+        MapPresenter.todayPlaceToHTTP(place, { includeVoters: Boolean(viewerPublicId) }),
+      ),
+    }));
   }
 }

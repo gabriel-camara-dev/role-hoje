@@ -41,17 +41,20 @@ export class ListTopPlacesController {
     @Req() request: Request,
     @Query(new ZodValidationPipe<TopPlacesQuery>(topPlacesQuerySchema)) query: TopPlacesQuery,
   ) {
+    const viewerPublicId = await this.optionalViewerResolver.getPublicId(request);
     const result = await this.listTopPlacesTodayUseCase.execute({
       ...query,
       day: parseDateOnly(query.day) ?? todayDate(),
-      viewerPublicId: await this.optionalViewerResolver.getPublicId(request),
+      viewerPublicId,
     });
 
     if (result.isFail()) {
       throwHttpError(result.value);
     }
 
-    return result.value.places.map((place) => MapPresenter.todayPlaceToHTTP(place));
+    return result.value.places.map((place) =>
+      MapPresenter.todayPlaceToHTTP(place, { includeVoters: Boolean(viewerPublicId) }),
+    );
   }
 
   @Get('/map/global-ranking')

@@ -21,6 +21,7 @@ import { JoinGroupController } from './join-group.controller';
 import { ListMyGroupsController } from './list-my-groups.controller';
 import { ListPublicGroupsController } from './list-public-groups.controller';
 import { RemoveGroupMemberController } from './remove-group-member.controller';
+import { OptionalViewerResolver } from '../map/optional-viewer';
 
 @Module({
   imports: [DatabaseModule, EventsModule, EnvModule, CacheModule],
@@ -43,6 +44,7 @@ import { RemoveGroupMemberController } from './remove-group-member.controller';
     AcceptGroupMemberUseCase,
     InviteGroupMemberUseCase,
     RemoveGroupMemberUseCase,
+    OptionalViewerResolver,
     { provide: PasswordHasher, useClass: BcryptPasswordHasher },
   ],
 })

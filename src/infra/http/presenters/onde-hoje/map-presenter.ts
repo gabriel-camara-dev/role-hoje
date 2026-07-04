@@ -3,12 +3,12 @@ import type { TodayMapPlace } from '@/domain/main/enterprise/entities/onde-hoje/
 import { PlacePresenter } from './place-presenter';
 
 export class MapPresenter {
-  static todayPlaceToHTTP(place: TodayMapPlace) {
+  static todayPlaceToHTTP(place: TodayMapPlace, options: { includeVoters?: boolean } = {}) {
     return {
       ...PlacePresenter.toHTTP(place),
       voteCount: place.voteCount,
       dominantVoteType: place.dominantVoteType,
-      voters: place.voters,
+      voters: options.includeVoters ? place.voters : [],
     };
   }
 

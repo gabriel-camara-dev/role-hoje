@@ -1,6 +1,7 @@
-import { Body, Controller, HttpCode, Inject, Post } from '@nestjs/common';
+import { Body, Controller, HttpCode, Inject, Post, Req } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { ApiBody, ApiOkResponse, ApiOperation, ApiTags, ApiUnauthorizedResponse } from '@nestjs/swagger';
+import type { Request } from 'express';
 import { AuthenticateUserUseCase } from '@/domain/main/application/use-cases/users/authenticate-user';
 import { Public } from '@/infra/auth/public';
 import { throwHttpError } from '@/infra/http/errors/http-error-handler';
@@ -11,6 +12,7 @@ import {
 } from '@/infra/http/swagger/presenter-schemas/user-presenter-schema';
 import { ZodValidationPipe } from '../../pipes/zod-validation-pipe';
 import { UserPresenter } from '../../presenters/user-presenter';
+import { LoginRateLimiterService } from './login-rate-limiter.service';
 
 @ApiTags('Auth')
 @Controller('/sessions')
@@ -18,6 +20,7 @@ export class AuthenticateUserController {
   constructor(
     @Inject(AuthenticateUserUseCase) private authenticateUserUseCase: AuthenticateUserUseCase,
     @Inject(JwtService) private jwtService: JwtService,
+    @Inject(LoginRateLimiterService) private loginRateLimiter: LoginRateLimiterService,
   ) {}
 
   @Post()
@@ -27,12 +30,21 @@ export class AuthenticateUserController {
   @ApiBody({ type: AuthenticateUserBodyDto })
   @ApiOkResponse({ description: 'User authenticated successfully.', type: AuthenticateUserResponseDto })
   @ApiUnauthorizedResponse({ description: 'Invalid credentials.' })
-  async handle(@Body(new ZodValidationPipe<AuthenticateSchemaType>(authenticateSchema)) body: AuthenticateSchemaType) {
+  async handle(
+    @Req() request: Request,
+    @Body(new ZodValidationPipe<AuthenticateSchemaType>(authenticateSchema)) body: AuthenticateSchemaType,
+  ) {
+    const rateLimitKey = this.loginRateLimiter.getKey(request, body.login);
+
+    this.loginRateLimiter.assertAllowed(rateLimitKey);
+
     const result = await this.authenticateUserUseCase.execute(body);
 
     if (result.isFail()) {
       throwHttpError(result.value);
     }
+
+    this.loginRateLimiter.reset(rateLimitKey);
 
     const { user } = result.value;
     const token = await this.jwtService.signAsync({ sub: user.publicId, role: user.role }, { expiresIn: '1d' });
