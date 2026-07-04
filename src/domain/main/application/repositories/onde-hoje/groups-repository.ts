@@ -23,12 +23,17 @@ export interface GroupMemberListItem {
     publicId: string;
     name: string;
     username: string;
+    avatarUrl: string | null;
   };
 }
 
 export interface MyGroupItem extends Group {
   myRole: 'OWNER' | 'MODERATOR' | 'MEMBER';
   myStatus: 'ACTIVE' | 'PENDING' | 'BLOCKED';
+  members: GroupMemberListItem[];
+}
+
+export interface PublicGroupItem extends Group {
   members: GroupMemberListItem[];
 }
 
@@ -42,6 +47,7 @@ export type MutateGroupMemberResult =
 export abstract class GroupsRepository {
   abstract listPublic(query: ListPublicGroupsQuery): Promise<Group[]>;
   abstract listMine(userId: number): Promise<MyGroupItem[]>;
+  abstract getPublic(groupPublicId: string): Promise<PublicGroupItem | null>;
   abstract create(data: CreateGroupData): Promise<Group>;
   abstract join(data: {
     userId: number;

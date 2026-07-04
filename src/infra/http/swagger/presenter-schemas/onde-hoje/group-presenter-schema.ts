@@ -29,6 +29,36 @@ export class GroupResponseDto {
   todayVotesCount?: number;
 }
 
+export class GroupMemberUserResponseDto {
+  @ApiProperty({ type: String, example: '018f4a2c-87b7-7cc4-9f93-0faaf26cfbed' })
+  publicId!: string;
+
+  @ApiProperty({ type: String, example: 'Gabriel Silva' })
+  name!: string;
+
+  @ApiProperty({ type: String, example: 'gabriel' })
+  username!: string;
+
+  @ApiPropertyOptional({ type: String, example: '/users/018f4a2c-87b7-7cc4-9f93-0faaf26cfbed/avatar' })
+  avatarUrl?: string | null;
+}
+
+export class GroupMemberResponseDto {
+  @ApiProperty({ enum: ['ACTIVE', 'PENDING', 'BLOCKED'], example: 'ACTIVE' })
+  status!: 'ACTIVE' | 'PENDING' | 'BLOCKED';
+
+  @ApiProperty({ enum: ['OWNER', 'MODERATOR', 'MEMBER'], example: 'MEMBER' })
+  role!: 'OWNER' | 'MODERATOR' | 'MEMBER';
+
+  @ApiProperty({ type: GroupMemberUserResponseDto })
+  user!: GroupMemberUserResponseDto;
+}
+
+export class PublicGroupResponseDto extends GroupResponseDto {
+  @ApiProperty({ type: [GroupMemberResponseDto] })
+  members!: GroupMemberResponseDto[];
+}
+
 export class CreateGroupBodyDto {
   @ApiProperty({ type: String, example: 'Role da Firma' })
   name!: string;

@@ -8,6 +8,7 @@ import type {
   ListPublicGroupsQuery,
   MutateGroupMemberResult,
   MyGroupItem,
+  PublicGroupItem,
 } from '@/domain/main/application/repositories/onde-hoje/groups-repository';
 import { PrismaOndeHojeMapper } from '../../mappers/prisma-onde-hoje-mapper';
 import { PrismaService } from '../../prisma.service';
@@ -77,6 +78,7 @@ export class PrismaGroupsRepository implements GroupsRepository {
                     publicId: true,
                     name: true,
                     username: true,
+                    avatarUpdatedAt: true,
                   },
                 },
               },
@@ -105,11 +107,69 @@ export class PrismaGroupsRepository implements GroupsRepository {
           members: membership.group.members.map((member) => ({
             role: member.role,
             status: member.status,
-            user: member.user,
+            user: {
+              publicId: member.user.publicId,
+              name: member.user.name,
+              username: member.user.username,
+              avatarUrl: member.user.avatarUpdatedAt ? `/users/${member.user.publicId}/avatar` : null,
+            },
           })),
         };
       }),
     );
+  }
+
+  async getPublic(groupPublicId: string): Promise<PublicGroupItem | null> {
+    const today = new Date();
+    const todayDate = new Date(today.getFullYear(), today.getMonth(), today.getDate());
+    const group = await this.prisma.group.findFirst({
+      where: {
+        publicId: groupPublicId,
+        privacy: 'PUBLIC',
+      },
+      include: {
+        members: {
+          where: { status: 'ACTIVE' },
+          include: {
+            user: {
+              select: {
+                publicId: true,
+                name: true,
+                username: true,
+                avatarUpdatedAt: true,
+              },
+            },
+          },
+          orderBy: [{ status: 'asc' }, { updatedAt: 'desc' }],
+        },
+      },
+    });
+
+    if (!group) {
+      return null;
+    }
+
+    const [membersCount, todayVotesCount] = await Promise.all([
+      this.prisma.groupMember.count({ where: { groupId: group.id, status: 'ACTIVE' } }),
+      this.prisma.placeVote.count({ where: { groupId: group.id, day: todayDate, status: 'ACTIVE' } }),
+    ]);
+
+    return {
+      ...PrismaOndeHojeMapper.groupToDomain({
+        ...group,
+        _count: { members: membersCount, votes: todayVotesCount },
+      }),
+      members: group.members.map((member) => ({
+        role: member.role,
+        status: member.status,
+        user: {
+          publicId: member.user.publicId,
+          name: member.user.name,
+          username: member.user.username,
+          avatarUrl: member.user.avatarUpdatedAt ? `/users/${member.user.publicId}/avatar` : null,
+        },
+      })),
+    };
   }
 
   async join(data: {
