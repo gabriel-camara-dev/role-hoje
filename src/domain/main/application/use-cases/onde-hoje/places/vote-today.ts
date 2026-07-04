@@ -5,7 +5,7 @@ import type { Result } from '@/core/result';
 import { fail, success } from '@/core/result';
 import { OndeHojeUsersRepository } from '../../../repositories/onde-hoje/onde-hoje-users-repository';
 import { PlacesRepository } from '../../../repositories/onde-hoje/places-repository';
-import type { PlaceVote } from '../../../../enterprise/entities/onde-hoje/places/place-vote';
+import type { PlaceVote, PlaceVoteType } from '../../../../enterprise/entities/onde-hoje/places/place-vote';
 import { VoteLimitExceededError } from '../../errors/vote-limit-exceeded-error';
 import { ResourceNotFoundError } from '../../errors/resource-not-found-error';
 
@@ -15,6 +15,7 @@ interface VoteTodayUseCaseRequest {
   day?: Date;
   groupPublicId?: string;
   note?: string;
+  voteType?: PlaceVoteType;
 }
 
 const MAX_ACTIVE_VOTES_PER_DAY = 3;
@@ -58,6 +59,7 @@ export class VoteTodayUseCase {
       day,
       groupPublicId: request.groupPublicId,
       note: request.note,
+      voteType: request.voteType,
     });
 
     if (!vote) {

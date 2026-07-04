@@ -145,6 +145,9 @@ export class UserVoteHistoryItemResponseDto {
   @ApiPropertyOptional({ type: String, example: 'Chego depois das 20h' })
   note?: string | null;
 
+  @ApiProperty({ enum: ['GENERAL', 'MUSIC', 'FOOD', 'DRINK'], example: 'MUSIC' })
+  voteType!: 'GENERAL' | 'MUSIC' | 'FOOD' | 'DRINK';
+
   @ApiProperty({ type: String, example: 'global' })
   scopeKey!: string;
 

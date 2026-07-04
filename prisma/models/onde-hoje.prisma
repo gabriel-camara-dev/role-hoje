@@ -28,6 +28,15 @@ enum VoteStatus {
   @@schema("places")
 }
 
+enum VoteType {
+  GENERAL
+  MUSIC
+  FOOD
+  DRINK
+
+  @@schema("places")
+}
+
 enum FriendshipStatus {
   PENDING
   ACCEPTED
@@ -79,6 +88,7 @@ model PlaceVote {
   day       DateTime   @db.Date
   note      String?
   status    VoteStatus @default(ACTIVE)
+  voteType  VoteType   @default(GENERAL) @map("vote_type")
   scopeKey  String     @default("global") @map("scope_key")
   userId    Int        @map("user_id")
   placeId   Int        @map("place_id")

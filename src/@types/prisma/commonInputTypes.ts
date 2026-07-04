@@ -228,6 +228,13 @@ export type EnumVoteStatusFilter<$PrismaModel = never> = {
   not?: Prisma.NestedEnumVoteStatusFilter<$PrismaModel> | $Enums.VoteStatus
 }
 
+export type EnumVoteTypeFilter<$PrismaModel = never> = {
+  equals?: $Enums.VoteType | Prisma.EnumVoteTypeFieldRefInput<$PrismaModel>
+  in?: $Enums.VoteType[] | Prisma.ListEnumVoteTypeFieldRefInput<$PrismaModel>
+  notIn?: $Enums.VoteType[] | Prisma.ListEnumVoteTypeFieldRefInput<$PrismaModel>
+  not?: Prisma.NestedEnumVoteTypeFilter<$PrismaModel> | $Enums.VoteType
+}
+
 export type EnumVoteStatusWithAggregatesFilter<$PrismaModel = never> = {
   equals?: $Enums.VoteStatus | Prisma.EnumVoteStatusFieldRefInput<$PrismaModel>
   in?: $Enums.VoteStatus[] | Prisma.ListEnumVoteStatusFieldRefInput<$PrismaModel>
@@ -236,6 +243,16 @@ export type EnumVoteStatusWithAggregatesFilter<$PrismaModel = never> = {
   _count?: Prisma.NestedIntFilter<$PrismaModel>
   _min?: Prisma.NestedEnumVoteStatusFilter<$PrismaModel>
   _max?: Prisma.NestedEnumVoteStatusFilter<$PrismaModel>
+}
+
+export type EnumVoteTypeWithAggregatesFilter<$PrismaModel = never> = {
+  equals?: $Enums.VoteType | Prisma.EnumVoteTypeFieldRefInput<$PrismaModel>
+  in?: $Enums.VoteType[] | Prisma.ListEnumVoteTypeFieldRefInput<$PrismaModel>
+  notIn?: $Enums.VoteType[] | Prisma.ListEnumVoteTypeFieldRefInput<$PrismaModel>
+  not?: Prisma.NestedEnumVoteTypeWithAggregatesFilter<$PrismaModel> | $Enums.VoteType
+  _count?: Prisma.NestedIntFilter<$PrismaModel>
+  _min?: Prisma.NestedEnumVoteTypeFilter<$PrismaModel>
+  _max?: Prisma.NestedEnumVoteTypeFilter<$PrismaModel>
 }
 
 export type EnumGroupPrivacyFilter<$PrismaModel = never> = {
@@ -592,6 +609,13 @@ export type NestedEnumVoteStatusFilter<$PrismaModel = never> = {
   not?: Prisma.NestedEnumVoteStatusFilter<$PrismaModel> | $Enums.VoteStatus
 }
 
+export type NestedEnumVoteTypeFilter<$PrismaModel = never> = {
+  equals?: $Enums.VoteType | Prisma.EnumVoteTypeFieldRefInput<$PrismaModel>
+  in?: $Enums.VoteType[] | Prisma.ListEnumVoteTypeFieldRefInput<$PrismaModel>
+  notIn?: $Enums.VoteType[] | Prisma.ListEnumVoteTypeFieldRefInput<$PrismaModel>
+  not?: Prisma.NestedEnumVoteTypeFilter<$PrismaModel> | $Enums.VoteType
+}
+
 export type NestedEnumVoteStatusWithAggregatesFilter<$PrismaModel = never> = {
   equals?: $Enums.VoteStatus | Prisma.EnumVoteStatusFieldRefInput<$PrismaModel>
   in?: $Enums.VoteStatus[] | Prisma.ListEnumVoteStatusFieldRefInput<$PrismaModel>
@@ -600,6 +624,16 @@ export type NestedEnumVoteStatusWithAggregatesFilter<$PrismaModel = never> = {
   _count?: Prisma.NestedIntFilter<$PrismaModel>
   _min?: Prisma.NestedEnumVoteStatusFilter<$PrismaModel>
   _max?: Prisma.NestedEnumVoteStatusFilter<$PrismaModel>
+}
+
+export type NestedEnumVoteTypeWithAggregatesFilter<$PrismaModel = never> = {
+  equals?: $Enums.VoteType | Prisma.EnumVoteTypeFieldRefInput<$PrismaModel>
+  in?: $Enums.VoteType[] | Prisma.ListEnumVoteTypeFieldRefInput<$PrismaModel>
+  notIn?: $Enums.VoteType[] | Prisma.ListEnumVoteTypeFieldRefInput<$PrismaModel>
+  not?: Prisma.NestedEnumVoteTypeWithAggregatesFilter<$PrismaModel> | $Enums.VoteType
+  _count?: Prisma.NestedIntFilter<$PrismaModel>
+  _min?: Prisma.NestedEnumVoteTypeFilter<$PrismaModel>
+  _max?: Prisma.NestedEnumVoteTypeFilter<$PrismaModel>
 }
 
 export type NestedEnumGroupPrivacyFilter<$PrismaModel = never> = {

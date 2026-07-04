@@ -7,6 +7,7 @@ export class MapPresenter {
     return {
       ...PlacePresenter.toHTTP(place),
       voteCount: place.voteCount,
+      dominantVoteType: place.dominantVoteType,
       voters: place.voters,
     };
   }

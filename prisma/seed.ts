@@ -1,13 +1,13 @@
-import { PrismaPg } from '@prisma/adapter-pg'
-import { PrismaClient } from '../src/@types/prisma/client.js'
-import { env } from '../src/infra/env/env.js'
+import { PrismaPg } from '@prisma/adapter-pg';
+import { PrismaClient } from '../src/@types/prisma/client.js';
+import { env } from '../src/infra/env/env.js';
 
-const connectionString = `${env.DATABASE_URL}`
+const connectionString = `${env.DATABASE_URL}`;
 
-const adapter = new PrismaPg({ connectionString })
+const adapter = new PrismaPg({ connectionString });
 export const prisma = new PrismaClient({
   adapter,
-})
+});
 
 export async function seed() {
   const admin = await prisma.user.upsert({
@@ -22,10 +22,10 @@ export async function seed() {
       passwordHash: '$2a$12$y7AWvv8D1P9AVn2G8XkNZOXyrMZ658QFJyR.2kxM.oP/wmgB/.7.2',
       role: 'ADMIN',
     },
-  })
+  });
 
-  const hoje = new Date()
-  hoje.setHours(0, 0, 0, 0)
+  const hoje = new Date();
+  hoje.setHours(0, 0, 0, 0);
 
   const [boteco, parque] = await Promise.all([
     prisma.place.upsert({
@@ -60,7 +60,7 @@ export async function seed() {
         createdById: admin.id,
       },
     }),
-  ])
+  ]);
 
   const group = await prisma.group.upsert({
     where: { slug: 'role-de-hoje-sp' },
@@ -74,7 +74,7 @@ export async function seed() {
       state: 'SP',
       createdById: admin.id,
     },
-  })
+  });
 
   await prisma.groupMember.upsert({
     where: {
@@ -90,7 +90,7 @@ export async function seed() {
       role: 'OWNER',
       status: 'ACTIVE',
     },
-  })
+  });
 
   await Promise.all([
     prisma.placeVote.upsert({
@@ -130,17 +130,17 @@ export async function seed() {
         note: 'Bom para um role mais tranquilo.',
       },
     }),
-  ])
+  ]);
 }
 
 seed()
   .then(() => {
-    console.log('Seeding completed successfully.')
-    prisma.$disconnect()
-    process.exit(0)
+    console.log('Seeding completed successfully.');
+    prisma.$disconnect();
+    process.exit(0);
   })
   .catch((error) => {
-    console.error('Error during seeding:', error)
-    prisma.$disconnect()
-    process.exit(1)
-  })
+    console.error('Error during seeding:', error);
+    prisma.$disconnect();
+    process.exit(1);
+  });

@@ -14,7 +14,10 @@ interface InviteGroupMemberUseCaseRequest {
   memberUsername: string;
 }
 
-type InviteGroupMemberUseCaseResponse = Result<ResourceNotFoundError | ForbiddenError | ConflictError, { membership: GroupMembership }>;
+type InviteGroupMemberUseCaseResponse = Result<
+  ResourceNotFoundError | ForbiddenError | ConflictError,
+  { membership: GroupMembership }
+>;
 
 @Injectable()
 export class InviteGroupMemberUseCase {

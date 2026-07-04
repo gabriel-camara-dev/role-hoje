@@ -31,10 +31,16 @@ export class RegisterUserUseCase {
   ) {}
 
   async execute({ name, username, email, password }: RegisterUserUseCaseRequest): Promise<RegisterUserUseCaseResponse> {
-    const userWithSameFields = await this.usersRepository.findConflict({ email, username });
+    const userWithSameEmail = await this.usersRepository.findConflict({ email });
 
-    if (userWithSameFields) {
-      return fail(new UserAlreadyExistsError());
+    if (userWithSameEmail) {
+      return fail(new UserAlreadyExistsError('email'));
+    }
+
+    const userWithSameUsername = await this.usersRepository.findConflict({ username });
+
+    if (userWithSameUsername) {
+      return fail(new UserAlreadyExistsError('username'));
     }
 
     const passwordHash = await this.passwordHasher.hash(password);

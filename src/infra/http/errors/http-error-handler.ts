@@ -8,6 +8,7 @@ export function throwHttpError(error: AppError): never {
       message: error.message,
       error: error.name,
       statusCode: toHttpStatus(error.type),
+      ...('field' in error ? { field: error.field } : {}),
     },
     toHttpStatus(error.type),
   );

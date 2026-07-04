@@ -95,6 +95,7 @@ export class VotePlaceController {
       day: parseDateOnly(body.day) ?? todayDate(),
       groupPublicId: body.groupPublicId,
       note: body.note,
+      voteType: body.voteType,
     });
 
     if (result.isFail()) {

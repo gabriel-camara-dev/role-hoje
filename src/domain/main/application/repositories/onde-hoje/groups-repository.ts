@@ -43,7 +43,12 @@ export abstract class GroupsRepository {
   abstract listPublic(query: ListPublicGroupsQuery): Promise<Group[]>;
   abstract listMine(userId: number): Promise<MyGroupItem[]>;
   abstract create(data: CreateGroupData): Promise<Group>;
-  abstract join(data: { userId: number; groupPublicId?: string; name?: string; password?: string }): Promise<JoinGroupResult>;
+  abstract join(data: {
+    userId: number;
+    groupPublicId?: string;
+    name?: string;
+    password?: string;
+  }): Promise<JoinGroupResult>;
   abstract acceptMember(data: {
     leaderId: number;
     groupPublicId: string;

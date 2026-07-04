@@ -35,7 +35,7 @@ export class ListTopPlacesController {
   @ApiQuery({ name: 'state', required: false, type: String })
   @ApiQuery({ name: 'groupPublicId', required: false, type: String })
   @ApiQuery({ name: 'day', required: false, type: String, example: '2026-06-30' })
-  @ApiQuery({ name: 'limit', required: false, type: Number, example: 10 })
+  @ApiQuery({ name: 'limit', required: false, type: Number, example: 3 })
   @ApiOkResponse({ description: 'Top places retrieved successfully.', type: [TodayMapPlaceResponseDto] })
   async handle(
     @Req() request: Request,

@@ -53,14 +53,22 @@ export class UpdateUserUseCase {
       return fail(new ResourceNotFoundError('User not found'));
     }
 
-    const userWithSameFields = await this.usersRepository.findConflict({
+    const userWithSameEmail = await this.usersRepository.findConflict({
       email: data.email,
+      ignoredPublicId: publicId,
+    });
+
+    if (userWithSameEmail) {
+      return fail(new UserAlreadyExistsError('email'));
+    }
+
+    const userWithSameUsername = await this.usersRepository.findConflict({
       username: data.username,
       ignoredPublicId: publicId,
     });
 
-    if (userWithSameFields) {
-      return fail(new UserAlreadyExistsError());
+    if (userWithSameUsername) {
+      return fail(new UserAlreadyExistsError('username'));
     }
 
     const user = await this.usersRepository.updateById(userExists.id, {

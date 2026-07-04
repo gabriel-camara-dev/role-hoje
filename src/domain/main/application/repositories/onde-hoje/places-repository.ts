@@ -1,7 +1,7 @@
 import type { CreatePlaceData, Place } from '../../../enterprise/entities/onde-hoje/places/place';
 import type { PlaceAttendanceEstimate } from '../../../enterprise/entities/onde-hoje/places/place-attendance-estimate';
 import type { PlaceHistoryDay, UserVoteHistoryItem } from '../../../enterprise/entities/onde-hoje/places/place-history';
-import type { PlaceVote } from '../../../enterprise/entities/onde-hoje/places/place-vote';
+import type { PlaceVote, PlaceVoteType } from '../../../enterprise/entities/onde-hoje/places/place-vote';
 import type { TodayMapPlace } from '../../../enterprise/entities/onde-hoje/places/today-map-place';
 
 export interface ListPlacesQuery {
@@ -73,6 +73,7 @@ export abstract class PlacesRepository {
     day: Date;
     groupPublicId?: string;
     note?: string;
+    voteType?: PlaceVoteType;
   }): Promise<PlaceVote | null>;
   abstract cancelVote(data: {
     userId: number;

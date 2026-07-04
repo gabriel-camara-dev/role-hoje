@@ -55,6 +55,16 @@ export const VoteStatus = {
 export type VoteStatus = (typeof VoteStatus)[keyof typeof VoteStatus]
 
 
+export const VoteType = {
+  GENERAL: 'GENERAL',
+  MUSIC: 'MUSIC',
+  FOOD: 'FOOD',
+  DRINK: 'DRINK'
+} as const
+
+export type VoteType = (typeof VoteType)[keyof typeof VoteType]
+
+
 export const FriendshipStatus = {
   PENDING: 'PENDING',
   ACCEPTED: 'ACCEPTED',

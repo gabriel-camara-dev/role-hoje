@@ -39,7 +39,8 @@ export class CreateGroupUseCase {
       name: request.name,
       description: request.description,
       privacy: request.privacy,
-      passwordHash: request.privacy === 'PRIVATE' && request.password ? await this.passwordHasher.hash(request.password) : null,
+      passwordHash:
+        request.privacy === 'PRIVATE' && request.password ? await this.passwordHasher.hash(request.password) : null,
       createdById: user.id,
     });
 

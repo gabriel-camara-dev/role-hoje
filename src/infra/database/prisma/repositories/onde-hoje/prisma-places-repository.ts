@@ -154,19 +154,23 @@ export class PrismaPlacesRepository implements PlacesRepository {
       },
     });
 
-    return places
+    const mappedPlaces = places
       .map((place) => ({
         ...PrismaOndeHojeMapper.placeToDomain(place),
         voteCount: place.votes.length,
+        dominantVoteType: dominantVoteType(place.votes),
         voters: place.votes.slice(0, 8).map((vote) => ({
           publicId: vote.user.publicId,
           name: vote.user.name,
           username: vote.user.username,
           avatarUrl: this.avatarUrl(vote.user),
           note: vote.note,
+          voteType: vote.voteType,
         })),
       }))
       .sort((a, b) => b.voteCount - a.voteCount);
+
+    return this.withFriendshipStatuses(mappedPlaces, query.viewerPublicId);
   }
 
   async topPlacesToday(query: TopPlacesTodayQuery): Promise<TodayMapPlace[] | null> {
@@ -222,20 +226,24 @@ export class PrismaPlacesRepository implements PlacesRepository {
       },
     });
 
-    return places
+    const mappedPlaces = places
       .map((place) => ({
         ...PrismaOndeHojeMapper.placeToDomain(place),
         voteCount: place.votes.length,
+        dominantVoteType: dominantVoteType(place.votes),
         voters: place.votes.slice(0, 8).map((vote) => ({
           publicId: vote.user.publicId,
           name: vote.user.name,
           username: vote.user.username,
           avatarUrl: this.avatarUrl(vote.user),
           note: vote.note,
+          voteType: vote.voteType,
         })),
       }))
       .sort((a, b) => b.voteCount - a.voteCount)
-      .slice(0, query.limit ?? 10);
+      .slice(0, query.limit ?? 3);
+
+    return this.withFriendshipStatuses(mappedPlaces, query.viewerPublicId);
   }
 
   async globalTopPlaces(query: GlobalTopPlacesQuery): Promise<TodayMapPlace[]> {
@@ -274,12 +282,14 @@ export class PrismaPlacesRepository implements PlacesRepository {
       .map((place) => ({
         ...PrismaOndeHojeMapper.placeToDomain(place),
         voteCount: place.votes.length,
+        dominantVoteType: dominantVoteType(place.votes),
         voters: place.votes.slice(0, 8).map((vote) => ({
           publicId: vote.user.publicId,
           name: vote.user.name,
           username: vote.user.username,
           avatarUrl: this.avatarUrl(vote.user),
           note: vote.note,
+          voteType: vote.voteType,
         })),
       }))
       .sort((a, b) => b.voteCount - a.voteCount)
@@ -357,6 +367,10 @@ export class PrismaPlacesRepository implements PlacesRepository {
 
       if (placeWithVotes) {
         placeWithVotes.voteCount += 1;
+        placeWithVotes.dominantVoteType = dominantVoteType([
+          ...placeWithVotes.voters.map((voter) => ({ voteType: voter.voteType })),
+          { voteType: vote.voteType },
+        ]);
         if (placeWithVotes.voters.length < 8) {
           placeWithVotes.voters.push({
             publicId: vote.user.publicId,
@@ -364,12 +378,14 @@ export class PrismaPlacesRepository implements PlacesRepository {
             username: vote.user.username,
             avatarUrl: this.avatarUrl(vote.user),
             note: vote.note,
+            voteType: vote.voteType,
           });
         }
       } else {
         historyDay.places.push({
           ...place,
           voteCount: 1,
+          dominantVoteType: vote.voteType,
           voters: [
             {
               publicId: vote.user.publicId,
@@ -377,6 +393,7 @@ export class PrismaPlacesRepository implements PlacesRepository {
               username: vote.user.username,
               avatarUrl: this.avatarUrl(vote.user),
               note: vote.note,
+              voteType: vote.voteType,
             },
           ],
         });
@@ -415,6 +432,7 @@ export class PrismaPlacesRepository implements PlacesRepository {
       votePublicId: vote.publicId,
       day: vote.day,
       note: vote.note,
+      voteType: vote.voteType,
       scopeKey: vote.scopeKey,
       group: vote.group,
       place: PrismaOndeHojeMapper.placeToDomain(vote.place),
@@ -538,6 +556,7 @@ export class PrismaPlacesRepository implements PlacesRepository {
     day: Date;
     groupPublicId?: string;
     note?: string;
+    voteType?: PlaceVote['voteType'];
   }): Promise<PlaceVote | null> {
     const [place, group] = await Promise.all([
       this.prisma.place.findUnique({ where: { publicId: data.placePublicId } }),
@@ -563,6 +582,17 @@ export class PrismaPlacesRepository implements PlacesRepository {
       }
     }
 
+    const firstActiveVote = await this.prisma.placeVote.findFirst({
+      where: {
+        placeId: place.id,
+        scopeKey: group?.publicId ?? 'global',
+        day: data.day,
+        status: 'ACTIVE',
+      },
+      orderBy: { createdAt: 'asc' },
+    });
+    const voteType = firstActiveVote?.voteType ?? data.voteType ?? 'GENERAL';
+
     const vote = await this.prisma.placeVote.upsert({
       where: {
         uq_vote_user_place_scope_day: {
@@ -575,6 +605,7 @@ export class PrismaPlacesRepository implements PlacesRepository {
       update: {
         note: data.note,
         status: 'ACTIVE',
+        voteType,
       },
       create: {
         userId: data.userId,
@@ -583,6 +614,7 @@ export class PrismaPlacesRepository implements PlacesRepository {
         scopeKey: group?.publicId ?? 'global',
         day: data.day,
         note: data.note,
+        voteType,
       },
     });
 
@@ -590,6 +622,7 @@ export class PrismaPlacesRepository implements PlacesRepository {
       publicId: vote.publicId,
       day: vote.day,
       status: vote.status,
+      voteType: vote.voteType,
     };
   }
 
@@ -632,6 +665,7 @@ export class PrismaPlacesRepository implements PlacesRepository {
       publicId: vote.publicId,
       day: vote.day,
       status: vote.status,
+      voteType: vote.voteType,
     };
   }
 
@@ -665,4 +699,90 @@ export class PrismaPlacesRepository implements PlacesRepository {
   private avatarUrl(user: { publicId: string; avatarUpdatedAt: Date | null }) {
     return user.avatarUpdatedAt ? `/users/${user.publicId}/avatar` : null;
   }
+
+  private async withFriendshipStatuses(places: TodayMapPlace[], viewerPublicId?: string): Promise<TodayMapPlace[]> {
+    if (!viewerPublicId || places.length === 0) {
+      return places;
+    }
+
+    const viewer = await this.prisma.user.findUnique({
+      where: { publicId: viewerPublicId },
+      select: { id: true },
+    });
+
+    if (!viewer) {
+      return places;
+    }
+
+    const voterPublicIds = Array.from(
+      new Set(
+        places
+          .flatMap((place) => place.voters.map((voter) => voter.publicId))
+          .filter((publicId) => publicId !== viewerPublicId),
+      ),
+    );
+
+    if (voterPublicIds.length === 0) {
+      return places;
+    }
+
+    const friendships = await this.prisma.friendship.findMany({
+      where: {
+        OR: [
+          {
+            requesterId: viewer.id,
+            addressee: { publicId: { in: voterPublicIds } },
+          },
+          {
+            addresseeId: viewer.id,
+            requester: { publicId: { in: voterPublicIds } },
+          },
+        ],
+      },
+      include: {
+        requester: { select: { publicId: true } },
+        addressee: { select: { publicId: true } },
+      },
+    });
+
+    const friendshipByUserPublicId = new Map<
+      string,
+      { status: 'PENDING' | 'ACCEPTED' | 'BLOCKED'; direction: 'sent' | 'received' }
+    >();
+
+    for (const friendship of friendships) {
+      const isSent = friendship.requesterId === viewer.id;
+      const otherPublicId = isSent ? friendship.addressee.publicId : friendship.requester.publicId;
+
+      friendshipByUserPublicId.set(otherPublicId, {
+        status: friendship.status,
+        direction: isSent ? 'sent' : 'received',
+      });
+    }
+
+    return places.map((place) => ({
+      ...place,
+      voters: place.voters.map((voter) => ({
+        ...voter,
+        friendship: friendshipByUserPublicId.get(voter.publicId),
+      })),
+    }));
+  }
+}
+
+function dominantVoteType(votes: Array<{ voteType: PlaceVote['voteType'] }>): PlaceVote['voteType'] {
+  const counts = votes.reduce(
+    (acc, vote) => {
+      acc[vote.voteType] += 1;
+      return acc;
+    },
+    {
+      GENERAL: 0,
+      MUSIC: 0,
+      FOOD: 0,
+      DRINK: 0,
+    } satisfies Record<PlaceVote['voteType'], number>,
+  );
+
+  return (Object.entries(counts) as Array<[PlaceVote['voteType'], number]>).sort(([, a], [, b]) => b - a)[0][0];
 }

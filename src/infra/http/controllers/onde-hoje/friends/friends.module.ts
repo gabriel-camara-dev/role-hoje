@@ -12,7 +12,12 @@ import { RequestFriendshipController } from './request-friendship.controller';
 
 @Module({
   imports: [DatabaseModule, EventsModule],
-  controllers: [ListFriendsController, RequestFriendshipController, AcceptFriendshipController, RejectFriendshipController],
+  controllers: [
+    ListFriendsController,
+    RequestFriendshipController,
+    AcceptFriendshipController,
+    RejectFriendshipController,
+  ],
   providers: [ListFriendsUseCase, RequestFriendshipUseCase, AcceptFriendshipUseCase, RejectFriendshipUseCase],
 })
 export class FriendsModule {}

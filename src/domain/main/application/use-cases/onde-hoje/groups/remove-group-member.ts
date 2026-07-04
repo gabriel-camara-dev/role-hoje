@@ -13,7 +13,10 @@ interface RemoveGroupMemberUseCaseRequest {
   memberUsername: string;
 }
 
-type RemoveGroupMemberUseCaseResponse = Result<ResourceNotFoundError | ForbiddenError | ConflictError, { removed: true }>;
+type RemoveGroupMemberUseCaseResponse = Result<
+  ResourceNotFoundError | ForbiddenError | ConflictError,
+  { removed: true }
+>;
 
 @Injectable()
 export class RemoveGroupMemberUseCase {

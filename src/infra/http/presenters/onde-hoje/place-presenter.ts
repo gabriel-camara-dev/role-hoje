@@ -26,6 +26,7 @@ export class PlacePresenter {
       id: vote.votePublicId,
       day: formatDateOnly(vote.day),
       note: vote.note,
+      voteType: vote.voteType,
       scopeKey: vote.scopeKey,
       group: vote.group,
       place: PlacePresenter.toHTTP(vote.place),

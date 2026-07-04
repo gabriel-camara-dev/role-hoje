@@ -1085,6 +1085,7 @@ export const PlaceVoteScalarFieldEnum = {
   day: 'day',
   note: 'note',
   status: 'status',
+  voteType: 'voteType',
   scopeKey: 'scopeKey',
   userId: 'userId',
   placeId: 'placeId',
@@ -1299,6 +1300,20 @@ export type EnumVoteStatusFieldRefInput<$PrismaModel> = FieldRefInputType<$Prism
  * Reference to a field of type 'VoteStatus[]'
  */
 export type ListEnumVoteStatusFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'VoteStatus[]'>
+    
+
+
+/**
+ * Reference to a field of type 'VoteType'
+ */
+export type EnumVoteTypeFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'VoteType'>
+    
+
+
+/**
+ * Reference to a field of type 'VoteType[]'
+ */
+export type ListEnumVoteTypeFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'VoteType[]'>
     
 
 

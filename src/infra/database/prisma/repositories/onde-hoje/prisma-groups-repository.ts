@@ -112,7 +112,12 @@ export class PrismaGroupsRepository implements GroupsRepository {
     );
   }
 
-  async join(data: { userId: number; groupPublicId?: string; name?: string; password?: string }): Promise<JoinGroupResult> {
+  async join(data: {
+    userId: number;
+    groupPublicId?: string;
+    name?: string;
+    password?: string;
+  }): Promise<JoinGroupResult> {
     const group = data.groupPublicId
       ? await this.prisma.group.findUnique({ where: { publicId: data.groupPublicId } })
       : data.name
