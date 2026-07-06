@@ -195,8 +195,10 @@ export class PrismaPlacesRepository implements PlacesRepository {
     const places = await this.prisma.place.findMany({
       where: {
         isActive: true,
-        ...(query.city ? cityOrFreeMapPointWhere(query.city) : {}),
-        ...(query.state ? { state: { equals: query.state, mode: 'insensitive' } } : {}),
+        AND: [
+          ...(query.city ? [cityOrFreeMapPointWhere(query.city)] : []),
+          ...(query.state ? [stateOrFreeMapPointWhere(query.state)] : []),
+        ],
         votes: {
           some: {
             day,
@@ -251,8 +253,10 @@ export class PrismaPlacesRepository implements PlacesRepository {
     const places = await this.prisma.place.findMany({
       where: {
         isActive: true,
-        ...(query.city ? { city: { equals: query.city, mode: 'insensitive' } } : {}),
-        ...(query.state ? { state: { equals: query.state, mode: 'insensitive' } } : {}),
+        AND: [
+          ...(query.city ? [cityOrFreeMapPointWhere(query.city)] : []),
+          ...(query.state ? [stateOrFreeMapPointWhere(query.state)] : []),
+        ],
         votes: {
           some: {
             status: 'ACTIVE',
@@ -795,6 +799,59 @@ function cityOrFreeMapPointWhere(city: string) {
       { city: { equals: city, mode: 'insensitive' as const } },
       {
         city: null,
+        googlePlaceId: { startsWith: 'map-click:' },
+      },
+    ],
+  };
+}
+
+const BRAZILIAN_STATE_NAMES: Record<string, string> = {
+  AC: 'Acre',
+  AL: 'Alagoas',
+  AP: 'Amapá',
+  AM: 'Amazonas',
+  BA: 'Bahia',
+  CE: 'Ceará',
+  DF: 'Distrito Federal',
+  ES: 'Espírito Santo',
+  GO: 'Goiás',
+  MA: 'Maranhão',
+  MT: 'Mato Grosso',
+  MS: 'Mato Grosso do Sul',
+  MG: 'Minas Gerais',
+  PA: 'Pará',
+  PB: 'Paraíba',
+  PR: 'Paraná',
+  PE: 'Pernambuco',
+  PI: 'Piauí',
+  RJ: 'Rio de Janeiro',
+  RN: 'Rio Grande do Norte',
+  RS: 'Rio Grande do Sul',
+  RO: 'Rondônia',
+  RR: 'Roraima',
+  SC: 'Santa Catarina',
+  SP: 'São Paulo',
+  SE: 'Sergipe',
+  TO: 'Tocantins',
+};
+
+// Places store the full state name from Google (e.g. "Rio de Janeiro"), but the
+// ranking filter sends the 2-letter UF code (e.g. "RJ"). Match both, and also
+// include free map-click points that have no resolved state.
+function stateOrFreeMapPointWhere(state: string) {
+  const trimmed = state.trim();
+  const candidates = new Set<string>([trimmed]);
+  const fullName = BRAZILIAN_STATE_NAMES[trimmed.toUpperCase()];
+
+  if (fullName) {
+    candidates.add(fullName);
+  }
+
+  return {
+    OR: [
+      ...Array.from(candidates, (name) => ({ state: { equals: name, mode: 'insensitive' as const } })),
+      {
+        state: null,
         googlePlaceId: { startsWith: 'map-click:' },
       },
     ],

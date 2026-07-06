@@ -44,6 +44,8 @@ export type MutateGroupMemberResult =
   | { type: 'forbidden' }
   | { type: 'not_pending' };
 
+export type LeaveGroupResult = { type: 'left' } | { type: 'deleted' } | { type: 'not_found' };
+
 export abstract class GroupsRepository {
   abstract listPublic(query: ListPublicGroupsQuery): Promise<Group[]>;
   abstract listMine(userId: number): Promise<MyGroupItem[]>;
@@ -70,4 +72,5 @@ export abstract class GroupsRepository {
     groupPublicId: string;
     memberUsername: string;
   }): Promise<MutateGroupMemberResult>;
+  abstract leave(data: { userId: number; groupPublicId: string }): Promise<LeaveGroupResult>;
 }

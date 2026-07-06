@@ -12,5 +12,12 @@ export const joinGroupSchema = z.object({
   password: z.string().max(80).optional(),
 });
 
+export const joinGroupByIdSchema = z
+  .object({
+    password: z.string().max(80).optional(),
+  })
+  .default({});
+
 export type CreateGroupBody = z.infer<typeof createGroupSchema>;
+export type JoinGroupByIdBody = z.infer<typeof joinGroupByIdSchema>;
 export type JoinGroupBody = z.infer<typeof joinGroupSchema>;

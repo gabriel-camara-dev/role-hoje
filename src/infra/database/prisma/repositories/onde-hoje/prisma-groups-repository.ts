@@ -6,6 +6,7 @@ import type {
   AcceptGroupMemberResult,
   GroupsRepository,
   JoinGroupResult,
+  LeaveGroupResult,
   ListPublicGroupsQuery,
   MutateGroupMemberResult,
   MyGroupItem,
@@ -342,6 +343,53 @@ export class PrismaGroupsRepository implements GroupsRepository {
     });
 
     return deleted.count > 0 ? { type: 'removed' } : { type: 'not_found' };
+  }
+
+  async leave(data: { userId: number; groupPublicId: string }): Promise<LeaveGroupResult> {
+    return this.prisma.$transaction(async (tx) => {
+      const membership = await tx.groupMember.findFirst({
+        where: {
+          userId: data.userId,
+          group: { publicId: data.groupPublicId },
+        },
+        include: { group: true },
+      });
+
+      if (membership?.status !== 'ACTIVE') {
+        return { type: 'not_found' };
+      }
+
+      if (membership.role !== 'OWNER') {
+        await tx.groupMember.delete({ where: { id: membership.id } });
+        return { type: 'left' };
+      }
+
+      const successor = await tx.groupMember.findFirst({
+        where: {
+          groupId: membership.groupId,
+          status: 'ACTIVE',
+          userId: { not: data.userId },
+        },
+        orderBy: [{ createdAt: 'asc' }, { id: 'asc' }],
+      });
+
+      if (!successor) {
+        await tx.group.delete({ where: { id: membership.groupId } });
+        return { type: 'deleted' };
+      }
+
+      await tx.groupMember.update({
+        where: { id: successor.id },
+        data: { role: 'OWNER' },
+      });
+      await tx.group.update({
+        where: { id: membership.groupId },
+        data: { createdById: successor.userId },
+      });
+      await tx.groupMember.delete({ where: { id: membership.id } });
+
+      return { type: 'left' };
+    });
   }
 
   private async findOwnerAccess(leaderId: number, groupPublicId: string, memberUsername: string) {

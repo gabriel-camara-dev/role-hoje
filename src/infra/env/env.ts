@@ -22,6 +22,7 @@ export const envSchema = z
     GOOGLE_CLIENT_ID: z.string().optional(),
     GOOGLE_CLIENT_SECRET: z.string().optional(),
     GOOGLE_CALLBACK_URL: z.url().default('http://localhost:3333/sessions/google/callback'),
+    GOOGLE_MAPS_API_KEY: z.string().optional(),
     AVATAR_ENCRYPTION_SECRET: z.string().min(32).optional(),
     AVATAR_STORAGE_DIR: z.string().default('storage/avatars'),
 

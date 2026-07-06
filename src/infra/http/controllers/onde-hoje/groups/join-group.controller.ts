@@ -4,7 +4,12 @@ import { JoinGroupUseCase } from '@/domain/main/application/use-cases/onde-hoje/
 import { CurrentUser } from '@/infra/auth/current-user-generator';
 import type { UserPayload } from '@/infra/auth/jwt-strategy';
 import { throwHttpError } from '@/infra/http/errors/http-error-handler';
-import { joinGroupSchema, type JoinGroupBody } from '@/infra/http/schemas/onde-hoje/groups/group-schemas';
+import {
+  joinGroupByIdSchema,
+  joinGroupSchema,
+  type JoinGroupBody,
+  type JoinGroupByIdBody,
+} from '@/infra/http/schemas/onde-hoje/groups/group-schemas';
 import { GroupMembershipResponseDto } from '@/infra/http/swagger/presenter-schemas/onde-hoje/group-presenter-schema';
 import { ZodValidationPipe } from '../../../pipes/zod-validation-pipe';
 
@@ -18,10 +23,15 @@ export class JoinGroupController {
   @ApiOperation({ summary: 'Join a public group or request access to a private one' })
   @ApiParam({ name: 'groupPublicId', type: String })
   @ApiCreatedResponse({ description: 'Membership created or updated successfully.', type: GroupMembershipResponseDto })
-  async handle(@CurrentUser() currentUser: UserPayload, @Param('groupPublicId') groupPublicId: string) {
+  async handle(
+    @CurrentUser() currentUser: UserPayload,
+    @Param('groupPublicId') groupPublicId: string,
+    @Body(new ZodValidationPipe<JoinGroupByIdBody>(joinGroupByIdSchema)) body: JoinGroupByIdBody,
+  ) {
     const result = await this.joinGroupUseCase.execute({
       currentUserPublicId: currentUser.sub,
       groupPublicId,
+      password: body.password,
     });
 
     if (result.isFail()) {

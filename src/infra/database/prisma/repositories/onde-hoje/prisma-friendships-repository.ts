@@ -19,17 +19,28 @@ export class PrismaFriendshipsRepository implements FriendshipsRepository {
         OR: [{ requesterId: userId }, { addresseeId: userId }],
       },
       include: {
-        requester: { select: { publicId: true, name: true, username: true } },
-        addressee: { select: { publicId: true, name: true, username: true } },
+        requester: { select: { publicId: true, name: true, username: true, avatarUpdatedAt: true } },
+        addressee: { select: { publicId: true, name: true, username: true, avatarUpdatedAt: true } },
       },
       orderBy: { updatedAt: 'desc' },
     });
 
-    return friendships.map((friendship) => ({
-      status: friendship.status,
-      direction: friendship.requesterId === userId ? 'sent' : 'received',
-      friend: friendship.requesterId === userId ? friendship.addressee : friendship.requester,
-    }));
+    return friendships.map((friendship) => {
+      const friend = friendship.requesterId === userId ? friendship.addressee : friendship.requester;
+
+      return {
+        status: friendship.status,
+        direction: friendship.requesterId === userId ? 'sent' : 'received',
+        friend: {
+          publicId: friend.publicId,
+          name: friend.name,
+          username: friend.username,
+          avatarUrl: friend.avatarUpdatedAt
+            ? `/users/${friend.publicId}/avatar?v=${friend.avatarUpdatedAt.getTime()}`
+            : null,
+        },
+      };
+    });
   }
 
   async requestFriendship(data: { requesterId: number; addresseeUsername: string }): Promise<RequestFriendshipResult> {

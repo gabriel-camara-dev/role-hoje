@@ -7,5 +7,6 @@ export interface FriendListItem {
     publicId: string;
     name: string;
     username: string | null;
+    avatarUrl: string | null;
   };
 }
