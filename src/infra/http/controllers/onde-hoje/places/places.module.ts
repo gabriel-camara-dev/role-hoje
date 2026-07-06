@@ -5,7 +5,7 @@ import { ListPlacesUseCase } from '@/domain/main/application/use-cases/onde-hoje
 import { UpsertPlaceUseCase } from '@/domain/main/application/use-cases/onde-hoje/places/upsert-place';
 import { DatabaseModule } from '@/infra/database/database.module';
 import { EventsModule } from '@/infra/events/events.module';
-import { GoogleGeocodingService } from '@/infra/geocoding/google-geocoding.service';
+import { NominatimGeocodingService } from '@/infra/geocoding/nominatim-geocoding.service';
 import { GetPlaceAttendanceEstimateController } from './get-place-attendance-estimate.controller';
 import { ListPlacesController } from './list-places.controller';
 import { UpsertPlaceController } from './upsert-place.controller';
@@ -17,7 +17,7 @@ import { UpsertPlaceController } from './upsert-place.controller';
     ListPlacesUseCase,
     UpsertPlaceUseCase,
     GetPlaceAttendanceEstimateUseCase,
-    { provide: GeocodingGateway, useClass: GoogleGeocodingService },
+    { provide: GeocodingGateway, useClass: NominatimGeocodingService },
   ],
 })
 export class PlacesModule {}
