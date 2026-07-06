@@ -1,6 +1,4 @@
 import { Inject, Injectable } from '@nestjs/common';
-import { CacheRepository } from '@/infra/cache/cache-repository';
-import { ondeHojeCacheKey, ondeHojeCachePrefixes, ondeHojeCacheTtl } from '@/infra/cache/onde-hoje-cache';
 import type { Result } from '@/core/result';
 import { fail, success } from '@/core/result';
 import { type TodayMapQuery, PlacesRepository } from '../../../repositories/onde-hoje/places-repository';
@@ -11,22 +9,10 @@ type GetTodayMapUseCaseResponse = Result<ResourceNotFoundError, { places: TodayM
 
 @Injectable()
 export class GetTodayMapUseCase {
-  constructor(
-    @Inject(PlacesRepository) private placesRepository: PlacesRepository,
-    @Inject(CacheRepository) private cacheRepository: CacheRepository,
-  ) {}
+  constructor(@Inject(PlacesRepository) private placesRepository: PlacesRepository) {}
 
   async execute(query: TodayMapQuery): Promise<GetTodayMapUseCaseResponse> {
-    const places = await this.cacheRepository.remember(
-      ondeHojeCacheKey(ondeHojeCachePrefixes.todayMap, {
-        city: query.city,
-        day: query.day,
-        groupPublicId: query.groupPublicId,
-        viewerPublicId: query.viewerPublicId,
-      }),
-      ondeHojeCacheTtl.todayMap,
-      () => this.placesRepository.todayMap(query),
-    );
+    const places = await this.placesRepository.todayMap(query);
 
     if (!places) {
       return fail(new ResourceNotFoundError('Group not found'));
