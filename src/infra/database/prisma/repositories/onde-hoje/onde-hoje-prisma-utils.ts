@@ -1,7 +1,4 @@
-export function todayDate() {
-  const now = new Date();
-  return new Date(now.getFullYear(), now.getMonth(), now.getDate());
-}
+export { todayDateOnly as todayDate } from '@/core/date/date-only';
 
 export function toDateKey(date: Date) {
   return date.toISOString().slice(0, 10);

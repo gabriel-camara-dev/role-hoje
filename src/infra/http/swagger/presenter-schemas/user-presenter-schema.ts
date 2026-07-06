@@ -29,12 +29,6 @@ export class UpdateUserBodyDto {
 
   @ApiPropertyOptional({ type: String, example: 'gabriel' })
   username?: string;
-
-  @ApiPropertyOptional({ type: String, example: 'gabriel@example.com' })
-  email?: string;
-
-  @ApiPropertyOptional({ type: String, example: 'new-strong-password' })
-  password?: string;
 }
 
 export class UserResponseDto {
@@ -49,6 +43,9 @@ export class UserResponseDto {
 
   @ApiProperty({ type: String, example: 'gabriel@example.com' })
   email!: string;
+
+  @ApiPropertyOptional({ type: Date, nullable: true, example: '2026-06-30T14:00:00.000Z' })
+  emailVerifiedAt?: Date | null;
 
   @ApiProperty({ enum: UserRole, example: UserRole.DEFAULT })
   role!: UserRole;

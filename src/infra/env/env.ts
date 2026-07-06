@@ -13,6 +13,7 @@ export const envSchema = z
     // App
     APP_NAME: z.string().default('Backend Template Reborn'),
     APP_PORT: z.coerce.number().default(3000),
+    APP_URL: z.url().optional(),
     JWT_SECRET: z.string().min(60, 'JWT secret must be at least 60 characters long').optional(),
     JWT_PRIVATE_KEY: z.string().optional(),
     JWT_PUBLIC_KEY: z.string().optional(),

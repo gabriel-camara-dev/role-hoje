@@ -1,7 +1,5 @@
 import { Inject, Injectable } from '@nestjs/common';
 import { PasswordHasher } from '@/domain/main/application/use-cases/users/password-hasher';
-import { CacheRepository } from '@/infra/cache/cache-repository';
-import { invalidateOndeHojeGroupCaches } from '@/infra/cache/onde-hoje-cache';
 import { createDomainEvent } from '@/core/events/domain-event';
 import { EventBus } from '@/core/events/event-bus';
 import type { Result } from '@/core/result';
@@ -28,7 +26,6 @@ export class CreateGroupUseCase {
     @Inject(OndeHojeUsersRepository) private usersRepository: OndeHojeUsersRepository,
     @Inject(PasswordHasher) private passwordHasher: PasswordHasher,
     @Inject(EventBus) private eventBus: EventBus,
-    @Inject(CacheRepository) private cacheRepository: CacheRepository,
   ) {}
 
   async execute(request: CreateGroupUseCaseRequest): Promise<CreateGroupUseCaseResponse> {
@@ -60,8 +57,6 @@ export class CreateGroupUseCase {
         recipientIds: [request.currentUserPublicId],
       }),
     );
-
-    await invalidateOndeHojeGroupCaches(this.cacheRepository);
 
     return success({ group });
   }

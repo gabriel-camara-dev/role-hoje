@@ -16,6 +16,7 @@ import type {
   TopPlacesTodayQuery,
 } from '@/domain/main/application/repositories/onde-hoje/places-repository';
 import type { CreatePlaceData, Place } from '@/domain/main/enterprise/entities/onde-hoje/places/place';
+import { toDateOnly } from '@/core/date/date-only';
 import { PrismaOndeHojeMapper } from '../../mappers/prisma-onde-hoje-mapper';
 import { PrismaService } from '../../prisma.service';
 import { getCoordinateBounds, getDistanceKm, todayDate, toDateKey } from './onde-hoje-prisma-utils';
@@ -123,7 +124,7 @@ export class PrismaPlacesRepository implements PlacesRepository {
     const places = await this.prisma.place.findMany({
       where: {
         isActive: true,
-        ...(query.city ? { city: { equals: query.city, mode: 'insensitive' } } : {}),
+        ...(query.city ? cityOrFreeMapPointWhere(query.city) : {}),
         votes: {
           some: {
             day,
@@ -194,7 +195,7 @@ export class PrismaPlacesRepository implements PlacesRepository {
     const places = await this.prisma.place.findMany({
       where: {
         isActive: true,
-        ...(query.city ? { city: { equals: query.city, mode: 'insensitive' } } : {}),
+        ...(query.city ? cityOrFreeMapPointWhere(query.city) : {}),
         ...(query.state ? { state: { equals: query.state, mode: 'insensitive' } } : {}),
         votes: {
           some: {
@@ -451,7 +452,7 @@ export class PrismaPlacesRepository implements PlacesRepository {
 
     const placeDomain = PrismaOndeHojeMapper.placeToDomain(place);
     const bounds = getCoordinateBounds(placeDomain.latitude, placeDomain.longitude, query.radiusKm);
-    const day = new Date(query.scheduledAt.getFullYear(), query.scheduledAt.getMonth(), query.scheduledAt.getDate());
+    const day = toDateOnly(query.scheduledAt);
 
     const votes = await this.prisma.placeVote.findMany({
       where: {
@@ -786,4 +787,16 @@ function dominantVoteType(votes: Array<{ voteType: PlaceVote['voteType'] }>): Pl
   );
 
   return (Object.entries(counts) as Array<[PlaceVote['voteType'], number]>).sort(([, a], [, b]) => b - a)[0][0];
+}
+
+function cityOrFreeMapPointWhere(city: string) {
+  return {
+    OR: [
+      { city: { equals: city, mode: 'insensitive' as const } },
+      {
+        city: null,
+        googlePlaceId: { startsWith: 'map-click:' },
+      },
+    ],
+  };
 }

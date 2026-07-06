@@ -7,6 +7,7 @@ import { fail, success } from '@/core/result';
 import { InvalidCredentialsError } from '../errors/invalid-credentials-error';
 import { UsersRepository } from '../../repositories/users-repository';
 import type { User } from '../../../enterprise/entities/user';
+import { EmailNotVerifiedError } from './errors/email-not-verified-error';
 
 interface AuthenticateUserUseCaseRequest {
   login: string;
@@ -14,7 +15,7 @@ interface AuthenticateUserUseCaseRequest {
 }
 
 type AuthenticateUserUseCaseResponse = Result<
-  InvalidCredentialsError,
+  InvalidCredentialsError | EmailNotVerifiedError,
   {
     user: User;
   }
@@ -36,6 +37,10 @@ export class AuthenticateUserUseCase {
 
     if (!user?.passwordHash || !doesPasswordMatch) {
       return fail(new InvalidCredentialsError());
+    }
+
+    if (!user.emailVerifiedAt) {
+      return fail(new EmailNotVerifiedError());
     }
 
     const authenticatedUser = await this.usersRepository.updateById(user.id, {

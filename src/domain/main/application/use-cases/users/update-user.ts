@@ -9,7 +9,6 @@ import { UsersRepository } from '../../repositories/users-repository';
 import type { User } from '../../../enterprise/entities/user';
 import type { UserRole } from '../../../enterprise/entities/user-role';
 import { UserAlreadyExistsError } from './errors/user-already-exists-error';
-import { PasswordHasher } from './password-hasher';
 
 interface UpdateUserUseCaseRequest {
   currentUserPublicId: string;
@@ -17,8 +16,6 @@ interface UpdateUserUseCaseRequest {
   publicId: string;
   name?: string;
   username?: string;
-  email?: string;
-  password?: string;
 }
 
 type UpdateUserUseCaseResponse = Result<
@@ -32,7 +29,6 @@ type UpdateUserUseCaseResponse = Result<
 export class UpdateUserUseCase {
   constructor(
     @Inject(UsersRepository) private usersRepository: UsersRepository,
-    @Inject(PasswordHasher) private passwordHasher: PasswordHasher,
     @Inject(EventBus) private eventBus: EventBus,
   ) {}
 
@@ -40,7 +36,6 @@ export class UpdateUserUseCase {
     currentUserPublicId,
     currentUserRole,
     publicId,
-    password,
     ...data
   }: UpdateUserUseCaseRequest): Promise<UpdateUserUseCaseResponse> {
     if (currentUserPublicId !== publicId && currentUserRole !== 'ADMIN') {
@@ -51,15 +46,6 @@ export class UpdateUserUseCase {
 
     if (!userExists) {
       return fail(new ResourceNotFoundError('User not found'));
-    }
-
-    const userWithSameEmail = await this.usersRepository.findConflict({
-      email: data.email,
-      ignoredPublicId: publicId,
-    });
-
-    if (userWithSameEmail) {
-      return fail(new UserAlreadyExistsError('email'));
     }
 
     const userWithSameUsername = await this.usersRepository.findConflict({
@@ -73,12 +59,6 @@ export class UpdateUserUseCase {
 
     const user = await this.usersRepository.updateById(userExists.id, {
       ...data,
-      ...(password
-        ? {
-            passwordHash: await this.passwordHasher.hash(password),
-            passwordChangedAt: new Date(),
-          }
-        : {}),
     });
 
     await this.eventBus.publish(
@@ -87,7 +67,7 @@ export class UpdateUserUseCase {
         aggregateId: user.publicId,
         payload: {
           id: user.publicId,
-          changedFields: Object.keys({ ...data, ...(password ? { password: true } : {}) }),
+          changedFields: Object.keys(data),
         },
         recipientIds: [user.publicId],
       }),

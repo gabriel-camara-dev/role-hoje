@@ -5,6 +5,7 @@ type PublicUser = {
   name: string;
   username: string;
   email: string;
+  emailVerifiedAt: Date | null;
   role: UserRole;
   avatarUpdatedAt: Date | null;
   createdAt: Date;
@@ -16,6 +17,7 @@ type HTTPUser = {
   name: string;
   username: string;
   email: string;
+  emailVerifiedAt: Date | null;
   role: UserRole;
   avatarUrl: string | null;
   createdAt: Date;
@@ -35,6 +37,7 @@ export class UserPresenter {
       name: input.name,
       username: input.username,
       email: input.email,
+      emailVerifiedAt: input.emailVerifiedAt,
       role: input.role,
       avatarUrl: input.avatarUpdatedAt ? `/users/${input.publicId}/avatar` : null,
       createdAt: input.createdAt,

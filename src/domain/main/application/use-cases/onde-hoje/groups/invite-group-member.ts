@@ -1,6 +1,4 @@
 import { Inject, Injectable } from '@nestjs/common';
-import { CacheRepository } from '@/infra/cache/cache-repository';
-import { invalidateOndeHojeGroupCaches } from '@/infra/cache/onde-hoje-cache';
 import type { Result } from '@/core/result';
 import { fail, success } from '@/core/result';
 import { ConflictError } from '../../errors/conflict-error';
@@ -26,7 +24,6 @@ export class InviteGroupMemberUseCase {
   constructor(
     @Inject(GroupsRepository) private groupsRepository: GroupsRepository,
     @Inject(OndeHojeUsersRepository) private usersRepository: OndeHojeUsersRepository,
-    @Inject(CacheRepository) private cacheRepository: CacheRepository,
   ) {}
 
   async execute(request: InviteGroupMemberUseCaseRequest): Promise<InviteGroupMemberUseCaseResponse> {
@@ -45,8 +42,6 @@ export class InviteGroupMemberUseCase {
     if (result.type === 'not_found') return fail(new ResourceNotFoundError('Group or user not found'));
     if (result.type === 'forbidden') return fail(new ForbiddenError('Only the group owner can invite members'));
     if (result.type !== 'mutated') return fail(new ConflictError('Could not invite member'));
-
-    await invalidateOndeHojeGroupCaches(this.cacheRepository);
 
     return success({ membership: result.membership });
   }

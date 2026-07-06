@@ -1,4 +1,10 @@
 import { z } from 'zod';
+import {
+  addDaysToDateOnly,
+  addMonthsToDateOnly,
+  parseDateOnly as parseDateOnlyUtc,
+  todayDateOnly,
+} from '@/core/date/date-only';
 
 export const dateOnlySchema = z.string().regex(/^\d{4}-\d{2}-\d{2}$/);
 export const votingWindowDateSchema = dateOnlySchema.refine(
@@ -65,33 +71,19 @@ export type GlobalTopPlacesQuery = z.infer<typeof globalTopPlacesQuerySchema>;
 export type HistoryQuery = z.infer<typeof historyQuerySchema>;
 
 export function parseDateOnly(value?: string) {
-  if (!value) {
-    return null;
-  }
-
-  const [year, month, day] = value.split('-').map(Number);
-
-  return new Date(year, month - 1, day);
+  return parseDateOnlyUtc(value);
 }
 
 export function todayDate() {
-  const now = new Date();
-
-  return new Date(now.getFullYear(), now.getMonth(), now.getDate());
+  return todayDateOnly();
 }
 
 export function addDays(date: Date, days: number) {
-  const copy = new Date(date);
-  copy.setDate(copy.getDate() + days);
-
-  return copy;
+  return addDaysToDateOnly(date, days);
 }
 
 export function maxVotingDate() {
-  const date = todayDate();
-  date.setMonth(date.getMonth() + 1);
-
-  return date;
+  return addMonthsToDateOnly(todayDate(), 1);
 }
 
 function daysBetween(from: Date, to: Date) {

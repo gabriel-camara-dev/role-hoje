@@ -1,6 +1,5 @@
 import { Inject, Injectable } from '@nestjs/common';
-import { CacheRepository } from '@/infra/cache/cache-repository';
-import { invalidateOndeHojePlaceCaches } from '@/infra/cache/onde-hoje-cache';
+import { todayDateOnly } from '@/core/date/date-only';
 import { createDomainEvent } from '@/core/events/domain-event';
 import { EventBus } from '@/core/events/event-bus';
 import type { Result } from '@/core/result';
@@ -30,12 +29,11 @@ export class VoteTodayUseCase {
     @Inject(PlacesRepository) private placesRepository: PlacesRepository,
     @Inject(OndeHojeUsersRepository) private usersRepository: OndeHojeUsersRepository,
     @Inject(EventBus) private eventBus: EventBus,
-    @Inject(CacheRepository) private cacheRepository: CacheRepository,
   ) {}
 
   async execute(request: VoteTodayUseCaseRequest): Promise<VoteTodayUseCaseResponse> {
     const user = await this.usersRepository.findByPublicId(request.currentUserPublicId);
-    const day = request.day ?? todayDate();
+    const day = request.day ?? todayDateOnly();
 
     if (!user) {
       return fail(new ResourceNotFoundError('Authenticated user not found'));
@@ -94,14 +92,6 @@ export class VoteTodayUseCase {
       }),
     );
 
-    await invalidateOndeHojePlaceCaches(this.cacheRepository);
-
     return success({ vote });
   }
-}
-
-function todayDate() {
-  const now = new Date();
-
-  return new Date(now.getFullYear(), now.getMonth(), now.getDate());
 }

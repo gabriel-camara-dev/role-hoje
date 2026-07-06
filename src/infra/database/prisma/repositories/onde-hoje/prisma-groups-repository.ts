@@ -1,5 +1,6 @@
 import { Inject, Injectable } from '@nestjs/common';
 import { compare } from 'bcryptjs';
+import { todayDateOnly } from '@/core/date/date-only';
 import type { CreateGroupData, Group } from '@/domain/main/enterprise/entities/onde-hoje/groups/group';
 import type {
   AcceptGroupMemberResult,
@@ -19,8 +20,7 @@ export class PrismaGroupsRepository implements GroupsRepository {
   constructor(@Inject(PrismaService) private prisma: PrismaService) {}
 
   async listPublic(query: ListPublicGroupsQuery): Promise<Group[]> {
-    const today = new Date();
-    const todayDate = new Date(today.getFullYear(), today.getMonth(), today.getDate());
+    const todayDate = todayDateOnly();
     const groups = await this.prisma.group.findMany({
       where: {
         privacy: 'PUBLIC',
@@ -64,8 +64,7 @@ export class PrismaGroupsRepository implements GroupsRepository {
   }
 
   async listMine(userId: number): Promise<MyGroupItem[]> {
-    const today = new Date();
-    const todayDate = new Date(today.getFullYear(), today.getMonth(), today.getDate());
+    const todayDate = todayDateOnly();
     const memberships = await this.prisma.groupMember.findMany({
       where: { userId },
       include: {
@@ -120,8 +119,7 @@ export class PrismaGroupsRepository implements GroupsRepository {
   }
 
   async getPublic(groupPublicId: string): Promise<PublicGroupItem | null> {
-    const today = new Date();
-    const todayDate = new Date(today.getFullYear(), today.getMonth(), today.getDate());
+    const todayDate = todayDateOnly();
     const group = await this.prisma.group.findFirst({
       where: {
         publicId: groupPublicId,

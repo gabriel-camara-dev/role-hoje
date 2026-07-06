@@ -1,6 +1,4 @@
 import { Inject, Injectable } from '@nestjs/common';
-import { CacheRepository } from '@/infra/cache/cache-repository';
-import { invalidateOndeHojeGroupCaches } from '@/infra/cache/onde-hoje-cache';
 import { createDomainEvent } from '@/core/events/domain-event';
 import { EventBus } from '@/core/events/event-bus';
 import type { Result } from '@/core/result';
@@ -29,7 +27,6 @@ export class AcceptGroupMemberUseCase {
     @Inject(GroupsRepository) private groupsRepository: GroupsRepository,
     @Inject(OndeHojeUsersRepository) private usersRepository: OndeHojeUsersRepository,
     @Inject(EventBus) private eventBus: EventBus,
-    @Inject(CacheRepository) private cacheRepository: CacheRepository,
   ) {}
 
   async execute(request: AcceptGroupMemberUseCaseRequest): Promise<AcceptGroupMemberUseCaseResponse> {
@@ -69,8 +66,6 @@ export class AcceptGroupMemberUseCase {
         },
       }),
     );
-
-    await invalidateOndeHojeGroupCaches(this.cacheRepository);
 
     return success({ membership: result.membership });
   }

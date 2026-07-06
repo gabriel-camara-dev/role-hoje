@@ -8,6 +8,7 @@ export interface FindUserBy {
   email?: string;
   googleId?: string;
   token?: string;
+  emailVerificationTokenHash?: string;
 }
 
 export interface FindUserConflict {
@@ -31,4 +32,5 @@ export abstract class UsersRepository {
   abstract list(query: ListUsersQuery): Promise<ListUsersResult>;
   abstract updateById(id: number, data: UpdateUserData): Promise<User>;
   abstract deleteById(id: number): Promise<User>;
+  abstract deleteExpiredUnverified(now: Date): Promise<number>;
 }

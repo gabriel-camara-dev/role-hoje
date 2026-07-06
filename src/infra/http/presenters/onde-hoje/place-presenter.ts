@@ -1,3 +1,4 @@
+import { formatDateOnly } from '@/core/date/date-only';
 import type { PlaceAttendanceEstimate } from '@/domain/main/enterprise/entities/onde-hoje/places/place-attendance-estimate';
 import type { UserVoteHistoryItem } from '@/domain/main/enterprise/entities/onde-hoje/places/place-history';
 import type { Place } from '@/domain/main/enterprise/entities/onde-hoje/places/place';
@@ -44,12 +45,4 @@ export class PlacePresenter {
       attendees: estimate.attendees,
     };
   }
-}
-
-function formatDateOnly(date: Date) {
-  const year = date.getFullYear();
-  const month = String(date.getMonth() + 1).padStart(2, '0');
-  const day = String(date.getDate()).padStart(2, '0');
-
-  return `${year}-${month}-${day}`;
 }

@@ -26,6 +26,9 @@ export class AuthenticateUserWithGoogleUseCase {
 
     if (userByGoogleId) {
       const authenticatedUser = await this.usersRepository.updateById(userByGoogleId.id, {
+        emailVerifiedAt: userByGoogleId.emailVerifiedAt ?? new Date(),
+        emailVerificationTokenHash: null,
+        emailVerificationTokenExpiresAt: null,
         lastLogin: new Date(),
       });
 
@@ -37,6 +40,9 @@ export class AuthenticateUserWithGoogleUseCase {
     if (userByEmail) {
       const linkedUser = await this.usersRepository.updateById(userByEmail.id, {
         googleId: request.googleId,
+        emailVerifiedAt: userByEmail.emailVerifiedAt ?? new Date(),
+        emailVerificationTokenHash: null,
+        emailVerificationTokenExpiresAt: null,
         lastLogin: new Date(),
       });
 
@@ -51,6 +57,7 @@ export class AuthenticateUserWithGoogleUseCase {
       email: request.email,
       passwordHash: null,
       googleId: request.googleId,
+      emailVerifiedAt: new Date(),
       lastLogin: new Date(),
     });
 

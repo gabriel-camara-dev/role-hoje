@@ -110,6 +110,17 @@ export class PrismaUsersRepository implements UsersRepository {
     return PrismaUserMapper.toDomain(user);
   }
 
+  async deleteExpiredUnverified(now: Date): Promise<number> {
+    const { count } = await this.prisma.user.deleteMany({
+      where: {
+        emailVerifiedAt: null,
+        emailVerificationTokenExpiresAt: { lt: now },
+      },
+    });
+
+    return count;
+  }
+
   private mapFindUserByToWhere(findUserBy: FindUserBy): Prisma.UserWhereUniqueInput {
     if (findUserBy.id) {
       return { id: findUserBy.id };
@@ -133,6 +144,10 @@ export class PrismaUsersRepository implements UsersRepository {
 
     if (findUserBy.token) {
       return { token: findUserBy.token };
+    }
+
+    if (findUserBy.emailVerificationTokenHash) {
+      return { emailVerificationTokenHash: findUserBy.emailVerificationTokenHash };
     }
 
     throw new Error('At least one field must be provided for FindUserBy');

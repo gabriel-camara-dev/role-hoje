@@ -1,12 +1,14 @@
 import { Inject, Injectable } from '@nestjs/common';
 import { createDomainEvent } from '@/core/events/domain-event';
 import { EventBus } from '@/core/events/event-bus';
+import { EmailSender } from '@/domain/main/application/mail/email-sender';
 import type { Result } from '@/core/result';
 import { fail, success } from '@/core/result';
 import { UsersRepository } from '../../repositories/users-repository';
 import type { User } from '../../../enterprise/entities/user';
 import { UserAlreadyExistsError } from './errors/user-already-exists-error';
 import { PasswordHasher } from './password-hasher';
+import { generateEmailVerificationToken } from './email-verification-token';
 
 interface RegisterUserUseCaseRequest {
   name: string;
@@ -28,6 +30,7 @@ export class RegisterUserUseCase {
     @Inject(UsersRepository) private usersRepository: UsersRepository,
     @Inject(PasswordHasher) private passwordHasher: PasswordHasher,
     @Inject(EventBus) private eventBus: EventBus,
+    @Inject(EmailSender) private emailSender: EmailSender,
   ) {}
 
   async execute({ name, username, email, password }: RegisterUserUseCaseRequest): Promise<RegisterUserUseCaseResponse> {
@@ -44,12 +47,21 @@ export class RegisterUserUseCase {
     }
 
     const passwordHash = await this.passwordHasher.hash(password);
+    const emailVerificationToken = generateEmailVerificationToken();
 
     const user = await this.usersRepository.create({
       name,
       username,
       email,
       passwordHash,
+      emailVerificationTokenHash: emailVerificationToken.tokenHash,
+      emailVerificationTokenExpiresAt: emailVerificationToken.expiresAt,
+    });
+
+    await this.emailSender.sendEmailConfirmation({
+      email: user.email,
+      name: user.name,
+      token: emailVerificationToken.token,
     });
 
     await this.eventBus.publish(

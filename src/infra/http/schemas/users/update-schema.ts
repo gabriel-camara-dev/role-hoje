@@ -1,6 +1,4 @@
 import { z } from 'zod';
-import { emailSchema } from '../utils/email';
-import { passwordSchema } from '../utils/password';
 
 export const updateSchema = z
   .object({
@@ -13,8 +11,6 @@ export const updateSchema = z
       .max(30)
       .regex(/^[a-z0-9_]+$/, 'Username can contain only lowercase letters, numbers and underscores')
       .optional(),
-    email: emailSchema.optional(),
-    password: passwordSchema.optional(),
   })
   .refine((data) => Object.keys(data).length > 0, {
     message: 'At least one field must be provided',

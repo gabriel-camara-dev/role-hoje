@@ -23,6 +23,9 @@ export class PrismaUserMapper {
       role: raw.role,
       token: raw.token,
       tokenExpiresAt: raw.tokenExpiresAt,
+      emailVerifiedAt: raw.emailVerifiedAt,
+      emailVerificationTokenHash: raw.emailVerificationTokenHash,
+      emailVerificationTokenExpiresAt: raw.emailVerificationTokenExpiresAt,
       createdAt: raw.createdAt,
       updatedAt: raw.updatedAt,
       passwordChangedAt: raw.passwordChangedAt,
@@ -38,6 +41,13 @@ export class PrismaUserMapper {
       ...(user.googleId !== undefined && { googleId: user.googleId }),
       ...(user.lastLogin !== undefined && { lastLogin: user.lastLogin }),
       ...(user.role ? { role: user.role } : {}),
+      ...(user.emailVerifiedAt !== undefined && { emailVerifiedAt: user.emailVerifiedAt }),
+      ...(user.emailVerificationTokenHash !== undefined && {
+        emailVerificationTokenHash: user.emailVerificationTokenHash,
+      }),
+      ...(user.emailVerificationTokenExpiresAt !== undefined && {
+        emailVerificationTokenExpiresAt: user.emailVerificationTokenExpiresAt,
+      }),
     };
   }
 
@@ -57,6 +67,13 @@ export class PrismaUserMapper {
       ...(data.passwordChangedAt !== undefined && { passwordChangedAt: data.passwordChangedAt }),
       ...(data.token !== undefined && { token: data.token }),
       ...(data.tokenExpiresAt !== undefined && { tokenExpiresAt: data.tokenExpiresAt }),
+      ...(data.emailVerifiedAt !== undefined && { emailVerifiedAt: data.emailVerifiedAt }),
+      ...(data.emailVerificationTokenHash !== undefined && {
+        emailVerificationTokenHash: data.emailVerificationTokenHash,
+      }),
+      ...(data.emailVerificationTokenExpiresAt !== undefined && {
+        emailVerificationTokenExpiresAt: data.emailVerificationTokenExpiresAt,
+      }),
       ...(data.loginAttempts !== undefined && { loginAttempts: data.loginAttempts }),
       ...(data.lastLogin !== undefined && { lastLogin: data.lastLogin }),
     };

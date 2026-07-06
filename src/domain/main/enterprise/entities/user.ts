@@ -21,6 +21,9 @@ export interface User {
   role: UserRole;
   token: string | null;
   tokenExpiresAt: Date | null;
+  emailVerifiedAt: Date | null;
+  emailVerificationTokenHash: string | null;
+  emailVerificationTokenExpiresAt: Date | null;
   createdAt: Date;
   updatedAt: Date;
   passwordChangedAt: Date | null;
@@ -34,6 +37,9 @@ export interface CreateUserData {
   googleId?: string | null;
   lastLogin?: Date | null;
   role?: UserRole;
+  emailVerifiedAt?: Date | null;
+  emailVerificationTokenHash?: string | null;
+  emailVerificationTokenExpiresAt?: Date | null;
 }
 
 export interface UpdateUserData {
@@ -51,6 +57,9 @@ export interface UpdateUserData {
   passwordChangedAt?: Date;
   token?: string | null;
   tokenExpiresAt?: Date | null;
+  emailVerifiedAt?: Date | null;
+  emailVerificationTokenHash?: string | null;
+  emailVerificationTokenExpiresAt?: Date | null;
   loginAttempts?: number;
   lastLogin?: Date | null;
 }
