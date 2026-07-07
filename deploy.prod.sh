@@ -4,7 +4,7 @@
 set -euo pipefail
 
 echo "==> Atualizando código"
-git pull origin main
+git pull
 
 echo "==> Instalando dependências"
 corepack enable
