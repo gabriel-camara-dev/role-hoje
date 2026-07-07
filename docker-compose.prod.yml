@@ -1,0 +1,66 @@
+# Postgres + Redis para PRODUÇÃO no VPS.
+# Diferenças vs docker-compose.yml (dev):
+#  - Portas expostas SOMENTE em 127.0.0.1 (não ficam abertas na internet).
+#  - Redis exige senha (REDIS_PASSWORD).
+# Uso: docker compose -f docker-compose.prod.yml --env-file .env up -d
+services:
+  postgres:
+    image: postgres:18-alpine3.23
+    container_name: ${POSTGRES_CONTAINER_NAME:-role-hoje-postgres}
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-postgres}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?defina POSTGRES_PASSWORD no .env}
+      POSTGRES_DB: ${POSTGRES_DB:-role_hoje}
+    ports:
+      - "127.0.0.1:${POSTGRES_HOST_PORT:-5432}:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - app-network
+    healthcheck:
+      test:
+        [
+          "CMD-SHELL",
+          "pg_isready -U ${POSTGRES_USER:-postgres} -d ${POSTGRES_DB:-role_hoje}",
+        ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+
+  redis:
+    image: redis:8.2.2-alpine
+    container_name: ${REDIS_CONTAINER_NAME:-role-hoje-redis}
+    restart: unless-stopped
+    command:
+      [
+        "redis-server",
+        "--appendonly",
+        "yes",
+        "--requirepass",
+        "${REDIS_PASSWORD:?defina REDIS_PASSWORD no .env}",
+      ]
+    ports:
+      - "127.0.0.1:${REDIS_HOST_PORT:-6379}:6379"
+    volumes:
+      - redis_data:/data
+    networks:
+      - app-network
+    healthcheck:
+      test:
+        ["CMD-SHELL", "redis-cli -a \"$${REDIS_PASSWORD}\" ping | grep PONG"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+
+volumes:
+  postgres_data:
+    driver: local
+  redis_data:
+    driver: local
+
+networks:
+  app-network:
+    driver: bridge

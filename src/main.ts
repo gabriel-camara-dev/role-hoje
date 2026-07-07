@@ -1,10 +1,15 @@
 import { NestFactory } from '@nestjs/core';
+import type { NestExpressApplication } from '@nestjs/platform-express';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import { AppModule } from './app.module';
 import { env } from './infra/env/env';
 
 async function bootstrap() {
-  const app = await NestFactory.create(AppModule);
+  const app = await NestFactory.create<NestExpressApplication>(AppModule);
+
+  // Atrás de um reverse proxy (Nginx), confia no primeiro proxy para que
+  // request.ip / X-Forwarded-For reflitam o IP real do cliente (auditoria de login e rate limiter).
+  app.set('trust proxy', 1);
 
   app.enableCors({
     origin: env.FRONTEND_URL,
