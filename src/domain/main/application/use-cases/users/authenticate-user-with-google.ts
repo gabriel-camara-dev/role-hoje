@@ -3,13 +3,16 @@ import { createDomainEvent } from '@/core/events/domain-event';
 import { EventBus } from '@/core/events/event-bus';
 import type { Result } from '@/core/result';
 import { success } from '@/core/result';
+import { AuthenticationAuditRepository } from '../../repositories/authentication-audit-repository';
 import { UsersRepository } from '../../repositories/users-repository';
 import type { User } from '../../../enterprise/entities/user';
+import type { AuthenticationContext } from './authenticate-user';
 
 interface AuthenticateUserWithGoogleUseCaseRequest {
   googleId: string;
   email: string;
   name: string;
+  context?: AuthenticationContext;
 }
 
 type AuthenticateUserWithGoogleUseCaseResponse = Result<never, { user: User }>;
@@ -18,6 +21,7 @@ type AuthenticateUserWithGoogleUseCaseResponse = Result<never, { user: User }>;
 export class AuthenticateUserWithGoogleUseCase {
   constructor(
     @Inject(UsersRepository) private usersRepository: UsersRepository,
+    @Inject(AuthenticationAuditRepository) private authenticationAuditRepository: AuthenticationAuditRepository,
     @Inject(EventBus) private eventBus: EventBus,
   ) {}
 
@@ -32,6 +36,8 @@ export class AuthenticateUserWithGoogleUseCase {
         lastLogin: new Date(),
       });
 
+      await this.recordSuccess(authenticatedUser.id, request.context);
+
       return success({ user: authenticatedUser });
     }
 
@@ -45,6 +51,8 @@ export class AuthenticateUserWithGoogleUseCase {
         emailVerificationTokenExpiresAt: null,
         lastLogin: new Date(),
       });
+
+      await this.recordSuccess(linkedUser.id, request.context);
 
       return success({ user: linkedUser });
     }
@@ -76,7 +84,17 @@ export class AuthenticateUserWithGoogleUseCase {
       }),
     );
 
+    await this.recordSuccess(user.id, request.context);
+
     return success({ user });
+  }
+
+  private async recordSuccess(userId: number, context?: AuthenticationContext) {
+    await this.authenticationAuditRepository.record({
+      status: 'SUCCESS',
+      userId,
+      ...context,
+    });
   }
 
   private async generateAvailableUsername(email: string, name: string) {

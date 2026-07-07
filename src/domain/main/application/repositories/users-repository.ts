@@ -20,6 +20,7 @@ export interface FindUserConflict {
 export interface ListUsersQuery extends PaginationParams {
   name?: string;
   email?: string;
+  username?: string;
 }
 
 export interface ListUsersResult extends PaginatedResults<User> {}

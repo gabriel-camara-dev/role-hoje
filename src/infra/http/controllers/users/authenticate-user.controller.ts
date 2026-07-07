@@ -2,6 +2,7 @@ import { Body, Controller, HttpCode, Inject, Post, Req } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { ApiBody, ApiOkResponse, ApiOperation, ApiTags, ApiUnauthorizedResponse } from '@nestjs/swagger';
 import type { Request } from 'express';
+import { AuthenticationAuditRepository } from '@/domain/main/application/repositories/authentication-audit-repository';
 import { AuthenticateUserUseCase } from '@/domain/main/application/use-cases/users/authenticate-user';
 import { Public } from '@/infra/auth/public';
 import { throwHttpError } from '@/infra/http/errors/http-error-handler';
@@ -12,6 +13,7 @@ import {
 } from '@/infra/http/swagger/presenter-schemas/user-presenter-schema';
 import { ZodValidationPipe } from '../../pipes/zod-validation-pipe';
 import { UserPresenter } from '../../presenters/user-presenter';
+import { buildAuthenticationContext } from './auth-audit-context';
 import { LoginRateLimiterService } from './login-rate-limiter.service';
 
 @ApiTags('Auth')
@@ -21,6 +23,8 @@ export class AuthenticateUserController {
     @Inject(AuthenticateUserUseCase) private authenticateUserUseCase: AuthenticateUserUseCase,
     @Inject(JwtService) private jwtService: JwtService,
     @Inject(LoginRateLimiterService) private loginRateLimiter: LoginRateLimiterService,
+    @Inject(AuthenticationAuditRepository)
+    private authenticationAuditRepository: AuthenticationAuditRepository,
   ) {}
 
   @Post()
@@ -34,11 +38,17 @@ export class AuthenticateUserController {
     @Req() request: Request,
     @Body(new ZodValidationPipe<AuthenticateSchemaType>(authenticateSchema)) body: AuthenticateSchemaType,
   ) {
+    const context = buildAuthenticationContext(request);
     const rateLimitKey = this.loginRateLimiter.getKey(request, body.login);
 
-    this.loginRateLimiter.assertAllowed(rateLimitKey);
+    try {
+      this.loginRateLimiter.assertAllowed(rateLimitKey);
+    } catch (error) {
+      await this.authenticationAuditRepository.record({ status: 'BLOCKED', ...context });
+      throw error;
+    }
 
-    const result = await this.authenticateUserUseCase.execute(body);
+    const result = await this.authenticateUserUseCase.execute({ ...body, context });
 
     if (result.isFail()) {
       throwHttpError(result.value);

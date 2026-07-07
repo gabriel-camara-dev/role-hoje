@@ -22,6 +22,7 @@ import { EnvService } from '@/infra/env/env.service';
 import { AuthenticateUserResponseDto } from '@/infra/http/swagger/presenter-schemas/user-presenter-schema';
 import { EncryptedAvatarStorageService } from '@/infra/storage/encrypted-avatar-storage.service';
 import { UserPresenter } from '../../presenters/user-presenter';
+import { buildAuthenticationContext } from './auth-audit-context';
 
 type GoogleOAuthRequest = Request & {
   user: GoogleOAuthUser;
@@ -64,7 +65,12 @@ export class GoogleOAuthController {
   @ApiOperation({ summary: 'Handle Google OAuth callback' })
   @ApiOkResponse({ description: 'User authenticated with Google successfully.', type: AuthenticateUserResponseDto })
   async callback(@Req() request: GoogleOAuthRequest, @Res() response: Response) {
-    const result = await this.authenticateUserWithGoogleUseCase.execute(request.user);
+    const result = await this.authenticateUserWithGoogleUseCase.execute({
+      googleId: request.user.googleId,
+      email: request.user.email,
+      name: request.user.name,
+      context: buildAuthenticationContext(request),
+    });
     const user = await this.importGoogleAvatarIfMissing(result.value.user, request.user.pictureUrl);
     const token = await this.jwtService.signAsync({ sub: user.publicId, role: user.role }, { expiresIn: '1d' });
     const frontendCallbackUrl = new URL('/auth/google/callback', this.env.get('FRONTEND_URL'));

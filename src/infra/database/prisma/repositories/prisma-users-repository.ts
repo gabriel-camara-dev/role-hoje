@@ -73,6 +73,10 @@ export class PrismaUsersRepository implements UsersRepository {
       where.email = { contains: query.email, mode: 'insensitive' };
     }
 
+    if (query.username) {
+      where.username = { contains: query.username.replace(/^@/, ''), mode: 'insensitive' };
+    }
+
     const [users, totalCount] = await Promise.all([
       this.prisma.user.findMany({
         where,
