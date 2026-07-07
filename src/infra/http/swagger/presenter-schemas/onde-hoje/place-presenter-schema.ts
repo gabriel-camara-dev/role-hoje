@@ -10,6 +10,12 @@ export class PlaceResponseDto {
   @ApiProperty({ type: String, example: 'Bar do Centro' })
   name!: string;
 
+  @ApiPropertyOptional({ type: String, example: 'Bar do Centro' })
+  googlePlaceName?: string | null;
+
+  @ApiPropertyOptional({ type: String, example: 'Role depois do trampo' })
+  nickname?: string | null;
+
   @ApiProperty({ type: String, example: 'Rua das Flores, 123 - Centro' })
   formattedAddress!: string;
 
@@ -47,6 +53,12 @@ export class CreatePlaceBodyDto {
 
   @ApiProperty({ type: String, example: 'Bar do Centro' })
   name!: string;
+
+  @ApiPropertyOptional({ type: String, example: 'Bar do Centro' })
+  googlePlaceName?: string;
+
+  @ApiPropertyOptional({ type: String, example: 'Role depois do trampo' })
+  nickname?: string;
 
   @ApiProperty({ type: String, example: 'Rua das Flores, 123 - Centro' })
   formattedAddress!: string;

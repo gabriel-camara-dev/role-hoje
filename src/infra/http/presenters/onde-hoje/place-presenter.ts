@@ -9,6 +9,8 @@ export class PlacePresenter {
       id: place.publicId,
       googlePlaceId: place.googlePlaceId,
       name: place.name,
+      googlePlaceName: place.googlePlaceName,
+      nickname: place.nickname,
       formattedAddress: place.formattedAddress,
       latitude: place.latitude,
       longitude: place.longitude,

@@ -3,6 +3,8 @@ import { z } from 'zod';
 export const createPlaceSchema = z.object({
   googlePlaceId: z.string().min(1),
   name: z.string().min(2),
+  googlePlaceName: z.string().trim().min(2).optional(),
+  nickname: z.string().trim().min(2).max(80).optional(),
   formattedAddress: z.string().min(3),
   latitude: z.coerce.number().min(-90).max(90),
   longitude: z.coerce.number().min(-180).max(180),

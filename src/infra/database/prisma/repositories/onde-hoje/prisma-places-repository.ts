@@ -46,6 +46,8 @@ export class PrismaPlacesRepository implements PlacesRepository {
           ? {
               OR: [
                 { name: { contains: query.q, mode: 'insensitive' } },
+                { googlePlaceName: { contains: query.q, mode: 'insensitive' } },
+                { nickname: { contains: query.q, mode: 'insensitive' } },
                 { formattedAddress: { contains: query.q, mode: 'insensitive' } },
               ],
             }
@@ -69,7 +71,9 @@ export class PrismaPlacesRepository implements PlacesRepository {
   async upsert(data: CreatePlaceData): Promise<Place> {
     const placeData = {
       googlePlaceId: data.googlePlaceId,
-      name: data.name,
+      googlePlaceName: cleanOptionalText(data.googlePlaceName) ?? data.name,
+      nickname: cleanOptionalText(data.nickname),
+      name: displayPlaceName(data),
       formattedAddress: data.formattedAddress,
       latitude: data.latitude,
       longitude: data.longitude,
@@ -86,6 +90,8 @@ export class PrismaPlacesRepository implements PlacesRepository {
       where: { googlePlaceId: data.googlePlaceId },
       update: {
         name: placeData.name,
+        googlePlaceName: placeData.googlePlaceName,
+        nickname: placeData.nickname,
         formattedAddress: placeData.formattedAddress,
         latitude: placeData.latitude,
         longitude: placeData.longitude,
@@ -803,6 +809,16 @@ function cityOrFreeMapPointWhere(city: string) {
       },
     ],
   };
+}
+
+function cleanOptionalText(value?: string | null) {
+  const trimmed = value?.trim();
+
+  return trimmed || null;
+}
+
+function displayPlaceName(data: CreatePlaceData) {
+  return cleanOptionalText(data.nickname) ?? cleanOptionalText(data.googlePlaceName) ?? data.name;
 }
 
 const BRAZILIAN_STATE_NAMES: Record<string, string> = {

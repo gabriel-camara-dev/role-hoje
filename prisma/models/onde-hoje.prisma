@@ -59,6 +59,8 @@ model Place {
   publicId         String   @unique @default(uuid(7)) @map("public_id")
   googlePlaceId    String   @unique @map("google_place_id")
   name             String
+  googlePlaceName  String?  @map("google_place_name")
+  nickname         String?
   formattedAddress String   @map("formatted_address")
   latitude         Decimal  @db.Decimal(10, 7)
   longitude        Decimal  @db.Decimal(10, 7)

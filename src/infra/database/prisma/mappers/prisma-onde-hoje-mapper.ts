@@ -9,6 +9,8 @@ export class PrismaOndeHojeMapper {
       publicId: raw.publicId,
       googlePlaceId: raw.googlePlaceId,
       name: raw.name,
+      googlePlaceName: raw.googlePlaceName,
+      nickname: raw.nickname,
       formattedAddress: raw.formattedAddress,
       latitude: Number(raw.latitude),
       longitude: Number(raw.longitude),

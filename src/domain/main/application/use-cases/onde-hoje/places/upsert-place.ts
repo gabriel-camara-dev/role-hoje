@@ -13,6 +13,8 @@ interface UpsertPlaceUseCaseRequest {
   currentUserPublicId: string;
   googlePlaceId: string;
   name: string;
+  googlePlaceName?: string;
+  nickname?: string;
   formattedAddress: string;
   latitude: number;
   longitude: number;

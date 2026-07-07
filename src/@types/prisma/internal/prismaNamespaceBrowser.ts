@@ -96,6 +96,8 @@ export const PlaceScalarFieldEnum = {
   publicId: 'publicId',
   googlePlaceId: 'googlePlaceId',
   name: 'name',
+  googlePlaceName: 'googlePlaceName',
+  nickname: 'nickname',
   formattedAddress: 'formattedAddress',
   latitude: 'latitude',
   longitude: 'longitude',

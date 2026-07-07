@@ -45,6 +45,8 @@ export type PlaceMinAggregateOutputType = {
   publicId: string | null
   googlePlaceId: string | null
   name: string | null
+  googlePlaceName: string | null
+  nickname: string | null
   formattedAddress: string | null
   latitude: runtime.Decimal | null
   longitude: runtime.Decimal | null
@@ -65,6 +67,8 @@ export type PlaceMaxAggregateOutputType = {
   publicId: string | null
   googlePlaceId: string | null
   name: string | null
+  googlePlaceName: string | null
+  nickname: string | null
   formattedAddress: string | null
   latitude: runtime.Decimal | null
   longitude: runtime.Decimal | null
@@ -85,6 +89,8 @@ export type PlaceCountAggregateOutputType = {
   publicId: number
   googlePlaceId: number
   name: number
+  googlePlaceName: number
+  nickname: number
   formattedAddress: number
   latitude: number
   longitude: number
@@ -121,6 +127,8 @@ export type PlaceMinAggregateInputType = {
   publicId?: true
   googlePlaceId?: true
   name?: true
+  googlePlaceName?: true
+  nickname?: true
   formattedAddress?: true
   latitude?: true
   longitude?: true
@@ -141,6 +149,8 @@ export type PlaceMaxAggregateInputType = {
   publicId?: true
   googlePlaceId?: true
   name?: true
+  googlePlaceName?: true
+  nickname?: true
   formattedAddress?: true
   latitude?: true
   longitude?: true
@@ -161,6 +171,8 @@ export type PlaceCountAggregateInputType = {
   publicId?: true
   googlePlaceId?: true
   name?: true
+  googlePlaceName?: true
+  nickname?: true
   formattedAddress?: true
   latitude?: true
   longitude?: true
@@ -268,6 +280,8 @@ export type PlaceGroupByOutputType = {
   publicId: string
   googlePlaceId: string
   name: string
+  googlePlaceName: string | null
+  nickname: string | null
   formattedAddress: string
   latitude: runtime.Decimal
   longitude: runtime.Decimal
@@ -311,6 +325,8 @@ export type PlaceWhereInput = {
   publicId?: Prisma.StringFilter<"Place"> | string
   googlePlaceId?: Prisma.StringFilter<"Place"> | string
   name?: Prisma.StringFilter<"Place"> | string
+  googlePlaceName?: Prisma.StringNullableFilter<"Place"> | string | null
+  nickname?: Prisma.StringNullableFilter<"Place"> | string | null
   formattedAddress?: Prisma.StringFilter<"Place"> | string
   latitude?: Prisma.DecimalFilter<"Place"> | runtime.Decimal | runtime.DecimalJsLike | number | string
   longitude?: Prisma.DecimalFilter<"Place"> | runtime.Decimal | runtime.DecimalJsLike | number | string
@@ -334,6 +350,8 @@ export type PlaceOrderByWithRelationInput = {
   publicId?: Prisma.SortOrder
   googlePlaceId?: Prisma.SortOrder
   name?: Prisma.SortOrder
+  googlePlaceName?: Prisma.SortOrderInput | Prisma.SortOrder
+  nickname?: Prisma.SortOrderInput | Prisma.SortOrder
   formattedAddress?: Prisma.SortOrder
   latitude?: Prisma.SortOrder
   longitude?: Prisma.SortOrder
@@ -360,6 +378,8 @@ export type PlaceWhereUniqueInput = Prisma.AtLeast<{
   OR?: Prisma.PlaceWhereInput[]
   NOT?: Prisma.PlaceWhereInput | Prisma.PlaceWhereInput[]
   name?: Prisma.StringFilter<"Place"> | string
+  googlePlaceName?: Prisma.StringNullableFilter<"Place"> | string | null
+  nickname?: Prisma.StringNullableFilter<"Place"> | string | null
   formattedAddress?: Prisma.StringFilter<"Place"> | string
   latitude?: Prisma.DecimalFilter<"Place"> | runtime.Decimal | runtime.DecimalJsLike | number | string
   longitude?: Prisma.DecimalFilter<"Place"> | runtime.Decimal | runtime.DecimalJsLike | number | string
@@ -383,6 +403,8 @@ export type PlaceOrderByWithAggregationInput = {
   publicId?: Prisma.SortOrder
   googlePlaceId?: Prisma.SortOrder
   name?: Prisma.SortOrder
+  googlePlaceName?: Prisma.SortOrderInput | Prisma.SortOrder
+  nickname?: Prisma.SortOrderInput | Prisma.SortOrder
   formattedAddress?: Prisma.SortOrder
   latitude?: Prisma.SortOrder
   longitude?: Prisma.SortOrder
@@ -411,6 +433,8 @@ export type PlaceScalarWhereWithAggregatesInput = {
   publicId?: Prisma.StringWithAggregatesFilter<"Place"> | string
   googlePlaceId?: Prisma.StringWithAggregatesFilter<"Place"> | string
   name?: Prisma.StringWithAggregatesFilter<"Place"> | string
+  googlePlaceName?: Prisma.StringNullableWithAggregatesFilter<"Place"> | string | null
+  nickname?: Prisma.StringNullableWithAggregatesFilter<"Place"> | string | null
   formattedAddress?: Prisma.StringWithAggregatesFilter<"Place"> | string
   latitude?: Prisma.DecimalWithAggregatesFilter<"Place"> | runtime.Decimal | runtime.DecimalJsLike | number | string
   longitude?: Prisma.DecimalWithAggregatesFilter<"Place"> | runtime.Decimal | runtime.DecimalJsLike | number | string
@@ -430,6 +454,8 @@ export type PlaceCreateInput = {
   publicId?: string
   googlePlaceId: string
   name: string
+  googlePlaceName?: string | null
+  nickname?: string | null
   formattedAddress: string
   latitude: runtime.Decimal | runtime.DecimalJsLike | number | string
   longitude: runtime.Decimal | runtime.DecimalJsLike | number | string
@@ -452,6 +478,8 @@ export type PlaceUncheckedCreateInput = {
   publicId?: string
   googlePlaceId: string
   name: string
+  googlePlaceName?: string | null
+  nickname?: string | null
   formattedAddress: string
   latitude: runtime.Decimal | runtime.DecimalJsLike | number | string
   longitude: runtime.Decimal | runtime.DecimalJsLike | number | string
@@ -473,6 +501,8 @@ export type PlaceUpdateInput = {
   publicId?: Prisma.StringFieldUpdateOperationsInput | string
   googlePlaceId?: Prisma.StringFieldUpdateOperationsInput | string
   name?: Prisma.StringFieldUpdateOperationsInput | string
+  googlePlaceName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  nickname?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   formattedAddress?: Prisma.StringFieldUpdateOperationsInput | string
   latitude?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   longitude?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
@@ -495,6 +525,8 @@ export type PlaceUncheckedUpdateInput = {
   publicId?: Prisma.StringFieldUpdateOperationsInput | string
   googlePlaceId?: Prisma.StringFieldUpdateOperationsInput | string
   name?: Prisma.StringFieldUpdateOperationsInput | string
+  googlePlaceName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  nickname?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   formattedAddress?: Prisma.StringFieldUpdateOperationsInput | string
   latitude?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   longitude?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
@@ -517,6 +549,8 @@ export type PlaceCreateManyInput = {
   publicId?: string
   googlePlaceId: string
   name: string
+  googlePlaceName?: string | null
+  nickname?: string | null
   formattedAddress: string
   latitude: runtime.Decimal | runtime.DecimalJsLike | number | string
   longitude: runtime.Decimal | runtime.DecimalJsLike | number | string
@@ -536,6 +570,8 @@ export type PlaceUpdateManyMutationInput = {
   publicId?: Prisma.StringFieldUpdateOperationsInput | string
   googlePlaceId?: Prisma.StringFieldUpdateOperationsInput | string
   name?: Prisma.StringFieldUpdateOperationsInput | string
+  googlePlaceName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  nickname?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   formattedAddress?: Prisma.StringFieldUpdateOperationsInput | string
   latitude?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   longitude?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
@@ -555,6 +591,8 @@ export type PlaceUncheckedUpdateManyInput = {
   publicId?: Prisma.StringFieldUpdateOperationsInput | string
   googlePlaceId?: Prisma.StringFieldUpdateOperationsInput | string
   name?: Prisma.StringFieldUpdateOperationsInput | string
+  googlePlaceName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  nickname?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   formattedAddress?: Prisma.StringFieldUpdateOperationsInput | string
   latitude?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   longitude?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
@@ -575,6 +613,8 @@ export type PlaceCountOrderByAggregateInput = {
   publicId?: Prisma.SortOrder
   googlePlaceId?: Prisma.SortOrder
   name?: Prisma.SortOrder
+  googlePlaceName?: Prisma.SortOrder
+  nickname?: Prisma.SortOrder
   formattedAddress?: Prisma.SortOrder
   latitude?: Prisma.SortOrder
   longitude?: Prisma.SortOrder
@@ -602,6 +642,8 @@ export type PlaceMaxOrderByAggregateInput = {
   publicId?: Prisma.SortOrder
   googlePlaceId?: Prisma.SortOrder
   name?: Prisma.SortOrder
+  googlePlaceName?: Prisma.SortOrder
+  nickname?: Prisma.SortOrder
   formattedAddress?: Prisma.SortOrder
   latitude?: Prisma.SortOrder
   longitude?: Prisma.SortOrder
@@ -622,6 +664,8 @@ export type PlaceMinOrderByAggregateInput = {
   publicId?: Prisma.SortOrder
   googlePlaceId?: Prisma.SortOrder
   name?: Prisma.SortOrder
+  googlePlaceName?: Prisma.SortOrder
+  nickname?: Prisma.SortOrder
   formattedAddress?: Prisma.SortOrder
   latitude?: Prisma.SortOrder
   longitude?: Prisma.SortOrder
@@ -760,6 +804,8 @@ export type PlaceCreateWithoutVotesInput = {
   publicId?: string
   googlePlaceId: string
   name: string
+  googlePlaceName?: string | null
+  nickname?: string | null
   formattedAddress: string
   latitude: runtime.Decimal | runtime.DecimalJsLike | number | string
   longitude: runtime.Decimal | runtime.DecimalJsLike | number | string
@@ -781,6 +827,8 @@ export type PlaceUncheckedCreateWithoutVotesInput = {
   publicId?: string
   googlePlaceId: string
   name: string
+  googlePlaceName?: string | null
+  nickname?: string | null
   formattedAddress: string
   latitude: runtime.Decimal | runtime.DecimalJsLike | number | string
   longitude: runtime.Decimal | runtime.DecimalJsLike | number | string
@@ -817,6 +865,8 @@ export type PlaceUpdateWithoutVotesInput = {
   publicId?: Prisma.StringFieldUpdateOperationsInput | string
   googlePlaceId?: Prisma.StringFieldUpdateOperationsInput | string
   name?: Prisma.StringFieldUpdateOperationsInput | string
+  googlePlaceName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  nickname?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   formattedAddress?: Prisma.StringFieldUpdateOperationsInput | string
   latitude?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   longitude?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
@@ -838,6 +888,8 @@ export type PlaceUncheckedUpdateWithoutVotesInput = {
   publicId?: Prisma.StringFieldUpdateOperationsInput | string
   googlePlaceId?: Prisma.StringFieldUpdateOperationsInput | string
   name?: Prisma.StringFieldUpdateOperationsInput | string
+  googlePlaceName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  nickname?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   formattedAddress?: Prisma.StringFieldUpdateOperationsInput | string
   latitude?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   longitude?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
@@ -858,6 +910,8 @@ export type PlaceCreateWithoutReportsInput = {
   publicId?: string
   googlePlaceId: string
   name: string
+  googlePlaceName?: string | null
+  nickname?: string | null
   formattedAddress: string
   latitude: runtime.Decimal | runtime.DecimalJsLike | number | string
   longitude: runtime.Decimal | runtime.DecimalJsLike | number | string
@@ -879,6 +933,8 @@ export type PlaceUncheckedCreateWithoutReportsInput = {
   publicId?: string
   googlePlaceId: string
   name: string
+  googlePlaceName?: string | null
+  nickname?: string | null
   formattedAddress: string
   latitude: runtime.Decimal | runtime.DecimalJsLike | number | string
   longitude: runtime.Decimal | runtime.DecimalJsLike | number | string
@@ -915,6 +971,8 @@ export type PlaceUpdateWithoutReportsInput = {
   publicId?: Prisma.StringFieldUpdateOperationsInput | string
   googlePlaceId?: Prisma.StringFieldUpdateOperationsInput | string
   name?: Prisma.StringFieldUpdateOperationsInput | string
+  googlePlaceName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  nickname?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   formattedAddress?: Prisma.StringFieldUpdateOperationsInput | string
   latitude?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   longitude?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
@@ -936,6 +994,8 @@ export type PlaceUncheckedUpdateWithoutReportsInput = {
   publicId?: Prisma.StringFieldUpdateOperationsInput | string
   googlePlaceId?: Prisma.StringFieldUpdateOperationsInput | string
   name?: Prisma.StringFieldUpdateOperationsInput | string
+  googlePlaceName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  nickname?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   formattedAddress?: Prisma.StringFieldUpdateOperationsInput | string
   latitude?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   longitude?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
@@ -956,6 +1016,8 @@ export type PlaceCreateWithoutCreatedByInput = {
   publicId?: string
   googlePlaceId: string
   name: string
+  googlePlaceName?: string | null
+  nickname?: string | null
   formattedAddress: string
   latitude: runtime.Decimal | runtime.DecimalJsLike | number | string
   longitude: runtime.Decimal | runtime.DecimalJsLike | number | string
@@ -977,6 +1039,8 @@ export type PlaceUncheckedCreateWithoutCreatedByInput = {
   publicId?: string
   googlePlaceId: string
   name: string
+  googlePlaceName?: string | null
+  nickname?: string | null
   formattedAddress: string
   latitude: runtime.Decimal | runtime.DecimalJsLike | number | string
   longitude: runtime.Decimal | runtime.DecimalJsLike | number | string
@@ -1027,6 +1091,8 @@ export type PlaceScalarWhereInput = {
   publicId?: Prisma.StringFilter<"Place"> | string
   googlePlaceId?: Prisma.StringFilter<"Place"> | string
   name?: Prisma.StringFilter<"Place"> | string
+  googlePlaceName?: Prisma.StringNullableFilter<"Place"> | string | null
+  nickname?: Prisma.StringNullableFilter<"Place"> | string | null
   formattedAddress?: Prisma.StringFilter<"Place"> | string
   latitude?: Prisma.DecimalFilter<"Place"> | runtime.Decimal | runtime.DecimalJsLike | number | string
   longitude?: Prisma.DecimalFilter<"Place"> | runtime.Decimal | runtime.DecimalJsLike | number | string
@@ -1047,6 +1113,8 @@ export type PlaceCreateManyCreatedByInput = {
   publicId?: string
   googlePlaceId: string
   name: string
+  googlePlaceName?: string | null
+  nickname?: string | null
   formattedAddress: string
   latitude: runtime.Decimal | runtime.DecimalJsLike | number | string
   longitude: runtime.Decimal | runtime.DecimalJsLike | number | string
@@ -1065,6 +1133,8 @@ export type PlaceUpdateWithoutCreatedByInput = {
   publicId?: Prisma.StringFieldUpdateOperationsInput | string
   googlePlaceId?: Prisma.StringFieldUpdateOperationsInput | string
   name?: Prisma.StringFieldUpdateOperationsInput | string
+  googlePlaceName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  nickname?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   formattedAddress?: Prisma.StringFieldUpdateOperationsInput | string
   latitude?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   longitude?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
@@ -1086,6 +1156,8 @@ export type PlaceUncheckedUpdateWithoutCreatedByInput = {
   publicId?: Prisma.StringFieldUpdateOperationsInput | string
   googlePlaceId?: Prisma.StringFieldUpdateOperationsInput | string
   name?: Prisma.StringFieldUpdateOperationsInput | string
+  googlePlaceName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  nickname?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   formattedAddress?: Prisma.StringFieldUpdateOperationsInput | string
   latitude?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   longitude?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
@@ -1107,6 +1179,8 @@ export type PlaceUncheckedUpdateManyWithoutCreatedByInput = {
   publicId?: Prisma.StringFieldUpdateOperationsInput | string
   googlePlaceId?: Prisma.StringFieldUpdateOperationsInput | string
   name?: Prisma.StringFieldUpdateOperationsInput | string
+  googlePlaceName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  nickname?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   formattedAddress?: Prisma.StringFieldUpdateOperationsInput | string
   latitude?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   longitude?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
@@ -1166,6 +1240,8 @@ export type PlaceSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = 
   publicId?: boolean
   googlePlaceId?: boolean
   name?: boolean
+  googlePlaceName?: boolean
+  nickname?: boolean
   formattedAddress?: boolean
   latitude?: boolean
   longitude?: boolean
@@ -1190,6 +1266,8 @@ export type PlaceSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Extensi
   publicId?: boolean
   googlePlaceId?: boolean
   name?: boolean
+  googlePlaceName?: boolean
+  nickname?: boolean
   formattedAddress?: boolean
   latitude?: boolean
   longitude?: boolean
@@ -1211,6 +1289,8 @@ export type PlaceSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensi
   publicId?: boolean
   googlePlaceId?: boolean
   name?: boolean
+  googlePlaceName?: boolean
+  nickname?: boolean
   formattedAddress?: boolean
   latitude?: boolean
   longitude?: boolean
@@ -1232,6 +1312,8 @@ export type PlaceSelectScalar = {
   publicId?: boolean
   googlePlaceId?: boolean
   name?: boolean
+  googlePlaceName?: boolean
+  nickname?: boolean
   formattedAddress?: boolean
   latitude?: boolean
   longitude?: boolean
@@ -1247,7 +1329,7 @@ export type PlaceSelectScalar = {
   updatedAt?: boolean
 }
 
-export type PlaceOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "publicId" | "googlePlaceId" | "name" | "formattedAddress" | "latitude" | "longitude" | "city" | "state" | "country" | "photoUrl" | "websiteUrl" | "mapsUrl" | "isActive" | "createdById" | "createdAt" | "updatedAt", ExtArgs["result"]["place"]>
+export type PlaceOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "publicId" | "googlePlaceId" | "name" | "googlePlaceName" | "nickname" | "formattedAddress" | "latitude" | "longitude" | "city" | "state" | "country" | "photoUrl" | "websiteUrl" | "mapsUrl" | "isActive" | "createdById" | "createdAt" | "updatedAt", ExtArgs["result"]["place"]>
 export type PlaceInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   createdBy?: boolean | Prisma.Place$createdByArgs<ExtArgs>
   votes?: boolean | Prisma.Place$votesArgs<ExtArgs>
@@ -1273,6 +1355,8 @@ export type $PlacePayload<ExtArgs extends runtime.Types.Extensions.InternalArgs 
     publicId: string
     googlePlaceId: string
     name: string
+    googlePlaceName: string | null
+    nickname: string | null
     formattedAddress: string
     latitude: runtime.Decimal
     longitude: runtime.Decimal
@@ -1716,6 +1800,8 @@ export interface PlaceFieldRefs {
   readonly publicId: Prisma.FieldRef<"Place", 'String'>
   readonly googlePlaceId: Prisma.FieldRef<"Place", 'String'>
   readonly name: Prisma.FieldRef<"Place", 'String'>
+  readonly googlePlaceName: Prisma.FieldRef<"Place", 'String'>
+  readonly nickname: Prisma.FieldRef<"Place", 'String'>
   readonly formattedAddress: Prisma.FieldRef<"Place", 'String'>
   readonly latitude: Prisma.FieldRef<"Place", 'Decimal'>
   readonly longitude: Prisma.FieldRef<"Place", 'Decimal'>

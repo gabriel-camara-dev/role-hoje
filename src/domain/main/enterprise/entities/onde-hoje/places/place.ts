@@ -3,6 +3,8 @@ export interface Place {
   publicId: string;
   googlePlaceId: string;
   name: string;
+  googlePlaceName: string | null;
+  nickname: string | null;
   formattedAddress: string;
   latitude: number;
   longitude: number;
@@ -20,6 +22,8 @@ export interface Place {
 export interface CreatePlaceData {
   googlePlaceId: string;
   name: string;
+  googlePlaceName?: string;
+  nickname?: string;
   formattedAddress: string;
   latitude: number;
   longitude: number;
