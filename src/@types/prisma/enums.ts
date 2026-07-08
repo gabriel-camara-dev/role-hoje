@@ -27,7 +27,8 @@ export const NotificationType = {
   GROUP_JOIN_REQUEST: 'GROUP_JOIN_REQUEST',
   GROUP_MEMBER_ACCEPTED: 'GROUP_MEMBER_ACCEPTED',
   FRIEND_REQUEST: 'FRIEND_REQUEST',
-  FRIEND_ACCEPTED: 'FRIEND_ACCEPTED'
+  FRIEND_ACCEPTED: 'FRIEND_ACCEPTED',
+  PLACE_VOTE: 'PLACE_VOTE'
 } as const
 
 export type NotificationType = (typeof NotificationType)[keyof typeof NotificationType]

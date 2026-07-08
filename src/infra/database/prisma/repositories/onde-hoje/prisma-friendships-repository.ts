@@ -128,6 +128,20 @@ export class PrismaFriendshipsRepository implements FriendshipsRepository {
 
     return deleted.count > 0;
   }
+
+  async removeFriendship(data: { userId: number; otherUsername: string }): Promise<boolean> {
+    const other = await this.prisma.user.findUnique({ where: { username: data.otherUsername } });
+
+    if (!other) {
+      return false;
+    }
+
+    const deleted = await this.prisma.friendship.deleteMany({
+      where: { pairKey: friendshipPairKey(data.userId, other.id) },
+    });
+
+    return deleted.count > 0;
+  }
 }
 
 function friendshipPairKey(firstUserId: number, secondUserId: number) {

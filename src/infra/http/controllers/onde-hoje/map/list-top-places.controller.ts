@@ -45,6 +45,8 @@ export class ListTopPlacesController {
     const result = await this.listTopPlacesTodayUseCase.execute({
       ...query,
       day: parseDateOnly(query.day) ?? todayDate(),
+      from: parseDateOnly(query.from) ?? undefined,
+      to: parseDateOnly(query.to) ?? undefined,
       viewerPublicId,
     });
 

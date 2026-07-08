@@ -22,6 +22,8 @@ export const todayMapQuerySchema = z.object({
   city: z.string().min(1).optional(),
   groupPublicId: z.string().uuid().optional(),
   day: votingWindowDateSchema.optional(),
+  from: dateOnlySchema.optional(),
+  to: dateOnlySchema.optional(),
 });
 
 export const topPlacesQuerySchema = z.object({
@@ -29,6 +31,8 @@ export const topPlacesQuerySchema = z.object({
   state: z.string().min(1).optional(),
   groupPublicId: z.string().uuid().optional(),
   day: votingWindowDateSchema.optional(),
+  from: dateOnlySchema.optional(),
+  to: dateOnlySchema.optional(),
   limit: z.coerce.number().int().positive().max(50).optional(),
 });
 

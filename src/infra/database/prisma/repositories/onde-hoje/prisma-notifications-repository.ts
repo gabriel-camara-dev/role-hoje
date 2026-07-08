@@ -7,6 +7,7 @@ import type {
 import type {
   CreateNotificationData,
   NotificationsRepository,
+  UpsertAggregatedNotificationData,
 } from '@/domain/main/application/repositories/onde-hoje/notifications-repository';
 import { PrismaService } from '../../prisma.service';
 
@@ -42,11 +43,12 @@ export class PrismaNotificationsRepository implements NotificationsRepository {
     return PrismaNotificationsRepository.toDomain(notification);
   }
 
-  async listForUser(userId: number, limit = 30): Promise<Notification[]> {
+  async listForUser(userId: number, limit = 30, offset = 0): Promise<Notification[]> {
     const notifications = await this.prisma.notification.findMany({
       where: { userId },
       orderBy: { createdAt: 'desc' },
       take: limit,
+      skip: offset,
       include: { actor: PrismaNotificationsRepository.actorSelect },
     });
 
@@ -73,6 +75,50 @@ export class PrismaNotificationsRepository implements NotificationsRepository {
     });
 
     return result.count;
+  }
+
+  async findLatestByGroupKey(userId: number, groupKey: string): Promise<Notification | null> {
+    const notification = await this.prisma.notification.findFirst({
+      where: { userId, groupKey },
+      orderBy: { createdAt: 'desc' },
+      include: { actor: PrismaNotificationsRepository.actorSelect },
+    });
+
+    return notification ? PrismaNotificationsRepository.toDomain(notification) : null;
+  }
+
+  async upsertAggregated(data: UpsertAggregatedNotificationData): Promise<Notification> {
+    const existing = await this.prisma.notification.findFirst({
+      where: { userId: data.recipientId, groupKey: data.groupKey },
+      orderBy: { createdAt: 'desc' },
+      select: { id: true },
+    });
+
+    // Bumping createdAt + clearing readAt resurfaces the aggregated notification
+    // to the top and marks it unread again, like a Twitter "N people liked" toast.
+    const notification = existing
+      ? await this.prisma.notification.update({
+          where: { id: existing.id },
+          data: {
+            title: data.title,
+            data: (data.data ?? undefined) as Prisma.InputJsonValue | undefined,
+            readAt: null,
+            createdAt: new Date(),
+          },
+          include: { actor: PrismaNotificationsRepository.actorSelect },
+        })
+      : await this.prisma.notification.create({
+          data: {
+            userId: data.recipientId,
+            type: data.type,
+            groupKey: data.groupKey,
+            title: data.title,
+            data: (data.data ?? undefined) as Prisma.InputJsonValue | undefined,
+          },
+          include: { actor: PrismaNotificationsRepository.actorSelect },
+        });
+
+    return PrismaNotificationsRepository.toDomain(notification);
   }
 
   private static toDomain(notification: NotificationWithActor): Notification {

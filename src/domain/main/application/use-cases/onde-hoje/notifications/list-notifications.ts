@@ -8,11 +8,13 @@ import { ResourceNotFoundError } from '../../errors/resource-not-found-error';
 
 interface ListNotificationsUseCaseRequest {
   currentUserPublicId: string;
+  limit?: number;
+  offset?: number;
 }
 
 type ListNotificationsUseCaseResponse = Result<
   ResourceNotFoundError,
-  { notifications: Notification[]; unreadCount: number }
+  { notifications: Notification[]; unreadCount: number; hasMore: boolean }
 >;
 
 @Injectable()
@@ -29,11 +31,18 @@ export class ListNotificationsUseCase {
       return fail(new ResourceNotFoundError('Authenticated user not found'));
     }
 
-    const [notifications, unreadCount] = await Promise.all([
-      this.notificationsRepository.listForUser(user.id),
+    const limit = Math.min(Math.max(request.limit ?? 5, 1), 30);
+    const offset = Math.max(request.offset ?? 0, 0);
+
+    const [page, unreadCount] = await Promise.all([
+      // Fetch one extra row to know whether there is a next page.
+      this.notificationsRepository.listForUser(user.id, limit + 1, offset),
       this.notificationsRepository.countUnread(user.id),
     ]);
 
-    return success({ notifications, unreadCount });
+    const hasMore = page.length > limit;
+    const notifications = hasMore ? page.slice(0, limit) : page;
+
+    return success({ notifications, unreadCount, hasMore });
   }
 }

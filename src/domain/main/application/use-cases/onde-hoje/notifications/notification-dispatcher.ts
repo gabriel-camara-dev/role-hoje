@@ -63,6 +63,64 @@ export class NotificationDispatcher {
     }
   }
 
+  /**
+   * Accumulates "someone voted here" notifications into a single row per place
+   * (Twitter-likes style): each new vote bumps the count and appends the voter.
+   * Works with the recipient's internal id to avoid a lookup per fan-out target.
+   */
+  async dispatchAggregatedVote(input: {
+    recipientId: number;
+    recipientPublicId: string;
+    groupKey: string;
+    placeName: string;
+    placePublicId: string;
+    actor: { publicId: string; name: string; username: string; avatarUrl: string | null } | null;
+  }): Promise<void> {
+    try {
+      const existing = await this.notificationsRepository.findLatestByGroupKey(input.recipientId, input.groupKey);
+      const previous = (existing?.data ?? {}) as {
+        count?: number;
+        voters?: Array<{ publicId: string; name: string; username: string; avatarUrl: string | null }>;
+      };
+
+      const count = (previous.count ?? 0) + 1;
+      const previousVoters = previous.voters ?? [];
+      const voters = input.actor
+        ? [input.actor, ...previousVoters.filter((voter) => voter.publicId !== input.actor?.publicId)].slice(0, 20)
+        : previousVoters;
+
+      const title =
+        count === 1 ? `1 pessoa votou em ${input.placeName}` : `${count} pessoas votaram em ${input.placeName}`;
+
+      const data = {
+        count,
+        placeName: input.placeName,
+        placePublicId: input.placePublicId,
+        voters,
+      };
+
+      const notification = await this.notificationsRepository.upsertAggregated({
+        recipientId: input.recipientId,
+        groupKey: input.groupKey,
+        type: 'PLACE_VOTE',
+        title,
+        data,
+      });
+
+      await this.eventBus.publish(
+        createDomainEvent({
+          eventName: 'notification.created',
+          aggregateId: notification.publicId,
+          actorId: input.actor?.publicId,
+          payload: NotificationDispatcher.toPayload(notification),
+          recipientIds: [input.recipientPublicId],
+        }),
+      );
+    } catch {
+      // Best-effort side effect.
+    }
+  }
+
   private static toPayload(notification: Notification) {
     return {
       id: notification.publicId,

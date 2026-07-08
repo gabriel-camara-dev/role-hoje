@@ -4,7 +4,8 @@ export type NotificationType =
   | 'GROUP_JOIN_REQUEST'
   | 'GROUP_MEMBER_ACCEPTED'
   | 'FRIEND_REQUEST'
-  | 'FRIEND_ACCEPTED';
+  | 'FRIEND_ACCEPTED'
+  | 'PLACE_VOTE';
 
 export interface NotificationActor {
   publicId: string;

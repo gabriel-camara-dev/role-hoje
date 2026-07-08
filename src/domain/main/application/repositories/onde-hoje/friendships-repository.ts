@@ -21,4 +21,5 @@ export abstract class FriendshipsRepository {
     requesterUsername: string;
   }): Promise<AcceptFriendshipResult | null>;
   abstract rejectFriendship(data: { addresseeId: number; requesterUsername: string }): Promise<boolean>;
+  abstract removeFriendship(data: { userId: number; otherUsername: string }): Promise<boolean>;
 }

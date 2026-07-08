@@ -5,6 +5,7 @@ enum NotificationType {
   GROUP_MEMBER_ACCEPTED
   FRIEND_REQUEST
   FRIEND_ACCEPTED
+  PLACE_VOTE
 
   @@schema("social")
 }
@@ -15,6 +16,7 @@ model Notification {
   userId    Int              @map("user_id")
   actorId   Int?             @map("actor_id")
   type      NotificationType
+  groupKey  String?          @map("group_key")
   title     String
   body      String?
   data      Json?
@@ -25,6 +27,7 @@ model Notification {
   actor User? @relation("NotificationActor", fields: [actorId], references: [id], onDelete: SetNull, onUpdate: Cascade)
 
   @@index([userId, readAt, createdAt], name: "idx_notification_user_read")
+  @@index([userId, groupKey], name: "idx_notification_group_key")
   @@map("notifications")
   @@schema("social")
 }

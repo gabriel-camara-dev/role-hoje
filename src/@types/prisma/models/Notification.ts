@@ -44,6 +44,7 @@ export type NotificationMinAggregateOutputType = {
   userId: number | null
   actorId: number | null
   type: $Enums.NotificationType | null
+  groupKey: string | null
   title: string | null
   body: string | null
   readAt: Date | null
@@ -56,6 +57,7 @@ export type NotificationMaxAggregateOutputType = {
   userId: number | null
   actorId: number | null
   type: $Enums.NotificationType | null
+  groupKey: string | null
   title: string | null
   body: string | null
   readAt: Date | null
@@ -68,6 +70,7 @@ export type NotificationCountAggregateOutputType = {
   userId: number
   actorId: number
   type: number
+  groupKey: number
   title: number
   body: number
   data: number
@@ -95,6 +98,7 @@ export type NotificationMinAggregateInputType = {
   userId?: true
   actorId?: true
   type?: true
+  groupKey?: true
   title?: true
   body?: true
   readAt?: true
@@ -107,6 +111,7 @@ export type NotificationMaxAggregateInputType = {
   userId?: true
   actorId?: true
   type?: true
+  groupKey?: true
   title?: true
   body?: true
   readAt?: true
@@ -119,6 +124,7 @@ export type NotificationCountAggregateInputType = {
   userId?: true
   actorId?: true
   type?: true
+  groupKey?: true
   title?: true
   body?: true
   data?: true
@@ -219,6 +225,7 @@ export type NotificationGroupByOutputType = {
   userId: number
   actorId: number | null
   type: $Enums.NotificationType
+  groupKey: string | null
   title: string
   body: string | null
   data: runtime.JsonValue | null
@@ -255,6 +262,7 @@ export type NotificationWhereInput = {
   userId?: Prisma.IntFilter<"Notification"> | number
   actorId?: Prisma.IntNullableFilter<"Notification"> | number | null
   type?: Prisma.EnumNotificationTypeFilter<"Notification"> | $Enums.NotificationType
+  groupKey?: Prisma.StringNullableFilter<"Notification"> | string | null
   title?: Prisma.StringFilter<"Notification"> | string
   body?: Prisma.StringNullableFilter<"Notification"> | string | null
   data?: Prisma.JsonNullableFilter<"Notification">
@@ -270,6 +278,7 @@ export type NotificationOrderByWithRelationInput = {
   userId?: Prisma.SortOrder
   actorId?: Prisma.SortOrderInput | Prisma.SortOrder
   type?: Prisma.SortOrder
+  groupKey?: Prisma.SortOrderInput | Prisma.SortOrder
   title?: Prisma.SortOrder
   body?: Prisma.SortOrderInput | Prisma.SortOrder
   data?: Prisma.SortOrderInput | Prisma.SortOrder
@@ -288,6 +297,7 @@ export type NotificationWhereUniqueInput = Prisma.AtLeast<{
   userId?: Prisma.IntFilter<"Notification"> | number
   actorId?: Prisma.IntNullableFilter<"Notification"> | number | null
   type?: Prisma.EnumNotificationTypeFilter<"Notification"> | $Enums.NotificationType
+  groupKey?: Prisma.StringNullableFilter<"Notification"> | string | null
   title?: Prisma.StringFilter<"Notification"> | string
   body?: Prisma.StringNullableFilter<"Notification"> | string | null
   data?: Prisma.JsonNullableFilter<"Notification">
@@ -303,6 +313,7 @@ export type NotificationOrderByWithAggregationInput = {
   userId?: Prisma.SortOrder
   actorId?: Prisma.SortOrderInput | Prisma.SortOrder
   type?: Prisma.SortOrder
+  groupKey?: Prisma.SortOrderInput | Prisma.SortOrder
   title?: Prisma.SortOrder
   body?: Prisma.SortOrderInput | Prisma.SortOrder
   data?: Prisma.SortOrderInput | Prisma.SortOrder
@@ -324,6 +335,7 @@ export type NotificationScalarWhereWithAggregatesInput = {
   userId?: Prisma.IntWithAggregatesFilter<"Notification"> | number
   actorId?: Prisma.IntNullableWithAggregatesFilter<"Notification"> | number | null
   type?: Prisma.EnumNotificationTypeWithAggregatesFilter<"Notification"> | $Enums.NotificationType
+  groupKey?: Prisma.StringNullableWithAggregatesFilter<"Notification"> | string | null
   title?: Prisma.StringWithAggregatesFilter<"Notification"> | string
   body?: Prisma.StringNullableWithAggregatesFilter<"Notification"> | string | null
   data?: Prisma.JsonNullableWithAggregatesFilter<"Notification">
@@ -334,6 +346,7 @@ export type NotificationScalarWhereWithAggregatesInput = {
 export type NotificationCreateInput = {
   publicId?: string
   type: $Enums.NotificationType
+  groupKey?: string | null
   title: string
   body?: string | null
   data?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
@@ -349,6 +362,7 @@ export type NotificationUncheckedCreateInput = {
   userId: number
   actorId?: number | null
   type: $Enums.NotificationType
+  groupKey?: string | null
   title: string
   body?: string | null
   data?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
@@ -359,6 +373,7 @@ export type NotificationUncheckedCreateInput = {
 export type NotificationUpdateInput = {
   publicId?: Prisma.StringFieldUpdateOperationsInput | string
   type?: Prisma.EnumNotificationTypeFieldUpdateOperationsInput | $Enums.NotificationType
+  groupKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   title?: Prisma.StringFieldUpdateOperationsInput | string
   body?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   data?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
@@ -374,6 +389,7 @@ export type NotificationUncheckedUpdateInput = {
   userId?: Prisma.IntFieldUpdateOperationsInput | number
   actorId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   type?: Prisma.EnumNotificationTypeFieldUpdateOperationsInput | $Enums.NotificationType
+  groupKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   title?: Prisma.StringFieldUpdateOperationsInput | string
   body?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   data?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
@@ -387,6 +403,7 @@ export type NotificationCreateManyInput = {
   userId: number
   actorId?: number | null
   type: $Enums.NotificationType
+  groupKey?: string | null
   title: string
   body?: string | null
   data?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
@@ -397,6 +414,7 @@ export type NotificationCreateManyInput = {
 export type NotificationUpdateManyMutationInput = {
   publicId?: Prisma.StringFieldUpdateOperationsInput | string
   type?: Prisma.EnumNotificationTypeFieldUpdateOperationsInput | $Enums.NotificationType
+  groupKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   title?: Prisma.StringFieldUpdateOperationsInput | string
   body?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   data?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
@@ -410,6 +428,7 @@ export type NotificationUncheckedUpdateManyInput = {
   userId?: Prisma.IntFieldUpdateOperationsInput | number
   actorId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   type?: Prisma.EnumNotificationTypeFieldUpdateOperationsInput | $Enums.NotificationType
+  groupKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   title?: Prisma.StringFieldUpdateOperationsInput | string
   body?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   data?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
@@ -423,6 +442,7 @@ export type NotificationCountOrderByAggregateInput = {
   userId?: Prisma.SortOrder
   actorId?: Prisma.SortOrder
   type?: Prisma.SortOrder
+  groupKey?: Prisma.SortOrder
   title?: Prisma.SortOrder
   body?: Prisma.SortOrder
   data?: Prisma.SortOrder
@@ -442,6 +462,7 @@ export type NotificationMaxOrderByAggregateInput = {
   userId?: Prisma.SortOrder
   actorId?: Prisma.SortOrder
   type?: Prisma.SortOrder
+  groupKey?: Prisma.SortOrder
   title?: Prisma.SortOrder
   body?: Prisma.SortOrder
   readAt?: Prisma.SortOrder
@@ -454,6 +475,7 @@ export type NotificationMinOrderByAggregateInput = {
   userId?: Prisma.SortOrder
   actorId?: Prisma.SortOrder
   type?: Prisma.SortOrder
+  groupKey?: Prisma.SortOrder
   title?: Prisma.SortOrder
   body?: Prisma.SortOrder
   readAt?: Prisma.SortOrder
@@ -579,6 +601,7 @@ export type NotificationUncheckedUpdateManyWithoutActorNestedInput = {
 export type NotificationCreateWithoutUserInput = {
   publicId?: string
   type: $Enums.NotificationType
+  groupKey?: string | null
   title: string
   body?: string | null
   data?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
@@ -592,6 +615,7 @@ export type NotificationUncheckedCreateWithoutUserInput = {
   publicId?: string
   actorId?: number | null
   type: $Enums.NotificationType
+  groupKey?: string | null
   title: string
   body?: string | null
   data?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
@@ -612,6 +636,7 @@ export type NotificationCreateManyUserInputEnvelope = {
 export type NotificationCreateWithoutActorInput = {
   publicId?: string
   type: $Enums.NotificationType
+  groupKey?: string | null
   title: string
   body?: string | null
   data?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
@@ -625,6 +650,7 @@ export type NotificationUncheckedCreateWithoutActorInput = {
   publicId?: string
   userId: number
   type: $Enums.NotificationType
+  groupKey?: string | null
   title: string
   body?: string | null
   data?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
@@ -667,6 +693,7 @@ export type NotificationScalarWhereInput = {
   userId?: Prisma.IntFilter<"Notification"> | number
   actorId?: Prisma.IntNullableFilter<"Notification"> | number | null
   type?: Prisma.EnumNotificationTypeFilter<"Notification"> | $Enums.NotificationType
+  groupKey?: Prisma.StringNullableFilter<"Notification"> | string | null
   title?: Prisma.StringFilter<"Notification"> | string
   body?: Prisma.StringNullableFilter<"Notification"> | string | null
   data?: Prisma.JsonNullableFilter<"Notification">
@@ -695,6 +722,7 @@ export type NotificationCreateManyUserInput = {
   publicId?: string
   actorId?: number | null
   type: $Enums.NotificationType
+  groupKey?: string | null
   title: string
   body?: string | null
   data?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
@@ -707,6 +735,7 @@ export type NotificationCreateManyActorInput = {
   publicId?: string
   userId: number
   type: $Enums.NotificationType
+  groupKey?: string | null
   title: string
   body?: string | null
   data?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
@@ -717,6 +746,7 @@ export type NotificationCreateManyActorInput = {
 export type NotificationUpdateWithoutUserInput = {
   publicId?: Prisma.StringFieldUpdateOperationsInput | string
   type?: Prisma.EnumNotificationTypeFieldUpdateOperationsInput | $Enums.NotificationType
+  groupKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   title?: Prisma.StringFieldUpdateOperationsInput | string
   body?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   data?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
@@ -730,6 +760,7 @@ export type NotificationUncheckedUpdateWithoutUserInput = {
   publicId?: Prisma.StringFieldUpdateOperationsInput | string
   actorId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   type?: Prisma.EnumNotificationTypeFieldUpdateOperationsInput | $Enums.NotificationType
+  groupKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   title?: Prisma.StringFieldUpdateOperationsInput | string
   body?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   data?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
@@ -742,6 +773,7 @@ export type NotificationUncheckedUpdateManyWithoutUserInput = {
   publicId?: Prisma.StringFieldUpdateOperationsInput | string
   actorId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   type?: Prisma.EnumNotificationTypeFieldUpdateOperationsInput | $Enums.NotificationType
+  groupKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   title?: Prisma.StringFieldUpdateOperationsInput | string
   body?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   data?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
@@ -752,6 +784,7 @@ export type NotificationUncheckedUpdateManyWithoutUserInput = {
 export type NotificationUpdateWithoutActorInput = {
   publicId?: Prisma.StringFieldUpdateOperationsInput | string
   type?: Prisma.EnumNotificationTypeFieldUpdateOperationsInput | $Enums.NotificationType
+  groupKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   title?: Prisma.StringFieldUpdateOperationsInput | string
   body?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   data?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
@@ -765,6 +798,7 @@ export type NotificationUncheckedUpdateWithoutActorInput = {
   publicId?: Prisma.StringFieldUpdateOperationsInput | string
   userId?: Prisma.IntFieldUpdateOperationsInput | number
   type?: Prisma.EnumNotificationTypeFieldUpdateOperationsInput | $Enums.NotificationType
+  groupKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   title?: Prisma.StringFieldUpdateOperationsInput | string
   body?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   data?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
@@ -777,6 +811,7 @@ export type NotificationUncheckedUpdateManyWithoutActorInput = {
   publicId?: Prisma.StringFieldUpdateOperationsInput | string
   userId?: Prisma.IntFieldUpdateOperationsInput | number
   type?: Prisma.EnumNotificationTypeFieldUpdateOperationsInput | $Enums.NotificationType
+  groupKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   title?: Prisma.StringFieldUpdateOperationsInput | string
   body?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   data?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
@@ -792,6 +827,7 @@ export type NotificationSelect<ExtArgs extends runtime.Types.Extensions.Internal
   userId?: boolean
   actorId?: boolean
   type?: boolean
+  groupKey?: boolean
   title?: boolean
   body?: boolean
   data?: boolean
@@ -807,6 +843,7 @@ export type NotificationSelectCreateManyAndReturn<ExtArgs extends runtime.Types.
   userId?: boolean
   actorId?: boolean
   type?: boolean
+  groupKey?: boolean
   title?: boolean
   body?: boolean
   data?: boolean
@@ -822,6 +859,7 @@ export type NotificationSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.
   userId?: boolean
   actorId?: boolean
   type?: boolean
+  groupKey?: boolean
   title?: boolean
   body?: boolean
   data?: boolean
@@ -837,6 +875,7 @@ export type NotificationSelectScalar = {
   userId?: boolean
   actorId?: boolean
   type?: boolean
+  groupKey?: boolean
   title?: boolean
   body?: boolean
   data?: boolean
@@ -844,7 +883,7 @@ export type NotificationSelectScalar = {
   createdAt?: boolean
 }
 
-export type NotificationOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "publicId" | "userId" | "actorId" | "type" | "title" | "body" | "data" | "readAt" | "createdAt", ExtArgs["result"]["notification"]>
+export type NotificationOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "publicId" | "userId" | "actorId" | "type" | "groupKey" | "title" | "body" | "data" | "readAt" | "createdAt", ExtArgs["result"]["notification"]>
 export type NotificationInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   user?: boolean | Prisma.UserDefaultArgs<ExtArgs>
   actor?: boolean | Prisma.Notification$actorArgs<ExtArgs>
@@ -870,6 +909,7 @@ export type $NotificationPayload<ExtArgs extends runtime.Types.Extensions.Intern
     userId: number
     actorId: number | null
     type: $Enums.NotificationType
+    groupKey: string | null
     title: string
     body: string | null
     data: runtime.JsonValue | null
@@ -1305,6 +1345,7 @@ export interface NotificationFieldRefs {
   readonly userId: Prisma.FieldRef<"Notification", 'Int'>
   readonly actorId: Prisma.FieldRef<"Notification", 'Int'>
   readonly type: Prisma.FieldRef<"Notification", 'NotificationType'>
+  readonly groupKey: Prisma.FieldRef<"Notification", 'String'>
   readonly title: Prisma.FieldRef<"Notification", 'String'>
   readonly body: Prisma.FieldRef<"Notification", 'String'>
   readonly data: Prisma.FieldRef<"Notification", 'Json'>
