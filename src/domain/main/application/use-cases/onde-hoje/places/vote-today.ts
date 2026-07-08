@@ -53,7 +53,8 @@ export class VoteTodayUseCase {
       return fail(new ResourceNotFoundError('Place or group not found'));
     }
 
-    if (activeVotesBeforeThisTarget >= MAX_ACTIVE_VOTES_PER_DAY) {
+    // Admins have no daily vote limit.
+    if (user.role !== 'ADMIN' && activeVotesBeforeThisTarget >= MAX_ACTIVE_VOTES_PER_DAY) {
       return fail(new VoteLimitExceededError(MAX_ACTIVE_VOTES_PER_DAY));
     }
 

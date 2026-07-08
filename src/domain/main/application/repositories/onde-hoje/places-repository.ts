@@ -100,6 +100,12 @@ export abstract class PlacesRepository {
     day: Date;
     groupPublicId?: string;
   }): Promise<VoteNotificationTargets | null>;
+  abstract mapPlaceByPublicId(data: {
+    placePublicId: string;
+    day?: Date;
+    groupPublicId?: string;
+    viewerPublicId?: string;
+  }): Promise<TodayMapPlace | null>;
   abstract cancelVote(data: {
     userId: number;
     placePublicId: string;

@@ -42,7 +42,7 @@ export class InviteGroupMemberUseCase {
     });
 
     if (result.type === 'not_found') return fail(new ResourceNotFoundError('Group or user not found'));
-    if (result.type === 'forbidden') return fail(new ForbiddenError('Only the group owner can invite members'));
+    if (result.type === 'forbidden') return fail(new ForbiddenError('Only active group members can invite'));
     if (result.type === 'already_member') return fail(new ConflictError('User is already part of this group'));
 
     await this.notificationDispatcher.dispatch({

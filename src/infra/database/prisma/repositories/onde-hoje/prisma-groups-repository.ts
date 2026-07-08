@@ -310,17 +310,29 @@ export class PrismaGroupsRepository implements GroupsRepository {
     groupPublicId: string;
     memberUsername: string;
   }): Promise<InviteGroupMemberResult> {
-    const access = await this.findOwnerAccess(data.leaderId, data.groupPublicId, data.memberUsername);
+    const [group, memberUser] = await Promise.all([
+      this.prisma.group.findUnique({ where: { publicId: data.groupPublicId } }),
+      this.prisma.user.findUnique({ where: { username: data.memberUsername } }),
+    ]);
 
-    if (access.type !== 'ok') {
-      return access;
+    if (!group || !memberUser) {
+      return { type: 'not_found' };
+    }
+
+    // Any active member can invite friends; the invite still needs acceptance.
+    const inviterMembership = await this.prisma.groupMember.findUnique({
+      where: { uq_group_member: { groupId: group.id, userId: data.leaderId } },
+    });
+
+    if (inviterMembership?.status !== 'ACTIVE') {
+      return { type: 'forbidden' };
     }
 
     const existing = await this.prisma.groupMember.findUnique({
       where: {
         uq_group_member: {
-          groupId: access.group.id,
-          userId: access.memberUser.id,
+          groupId: group.id,
+          userId: memberUser.id,
         },
       },
     });
@@ -333,29 +345,29 @@ export class PrismaGroupsRepository implements GroupsRepository {
       return { type: 'forbidden' };
     }
 
-    // Owner invites the user: the membership stays as INVITED until the
-    // invited person accepts. It never grants access on its own.
+    // The membership stays as INVITED until the invited person accepts.
+    // It never grants access on its own.
     const member = await this.prisma.groupMember.upsert({
       where: {
         uq_group_member: {
-          groupId: access.group.id,
-          userId: access.memberUser.id,
+          groupId: group.id,
+          userId: memberUser.id,
         },
       },
       update: { status: 'INVITED' },
       create: {
-        groupId: access.group.id,
-        userId: access.memberUser.id,
+        groupId: group.id,
+        userId: memberUser.id,
         status: 'INVITED',
       },
     });
 
     return {
       type: 'invited',
-      membership: { groupPublicId: access.group.publicId, status: member.status },
-      invitedUserPublicId: access.memberUser.publicId,
-      invitedUserName: access.memberUser.name,
-      groupName: access.group.name,
+      membership: { groupPublicId: group.publicId, status: member.status },
+      invitedUserPublicId: memberUser.publicId,
+      invitedUserName: memberUser.name,
+      groupName: group.name,
     };
   }
 

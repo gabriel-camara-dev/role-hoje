@@ -696,6 +696,71 @@ export class PrismaPlacesRepository implements PlacesRepository {
     };
   }
 
+  async mapPlaceByPublicId(data: {
+    placePublicId: string;
+    day?: Date;
+    groupPublicId?: string;
+    viewerPublicId?: string;
+  }): Promise<TodayMapPlace | null> {
+    const day = data.day ?? todayDate();
+    const group = data.groupPublicId
+      ? await this.prisma.group.findUnique({ where: { publicId: data.groupPublicId } })
+      : null;
+
+    if (data.groupPublicId && !group) {
+      return null;
+    }
+
+    if (group?.privacy === 'PRIVATE') {
+      const hasAccess = await this.isActiveGroupMember(group.id, data.viewerPublicId);
+
+      if (!hasAccess) {
+        return null;
+      }
+    }
+
+    const place = await this.prisma.place.findUnique({
+      where: { publicId: data.placePublicId },
+      include: {
+        votes: {
+          where: {
+            day,
+            status: 'ACTIVE',
+            ...(group ? { groupId: group.id } : { groupId: null }),
+          },
+          include: {
+            user: { select: { publicId: true, name: true, username: true, avatarUpdatedAt: true } },
+          },
+          orderBy: { createdAt: 'desc' },
+        },
+      },
+    });
+
+    if (!place) {
+      return null;
+    }
+
+    const mapped = {
+      ...PrismaOndeHojeMapper.placeToDomain(place),
+      voteCount: place.votes.length,
+      dominantVoteType: dominantVoteType(place.votes),
+      voters: place.votes
+        .filter((vote) => vote.showIdentity)
+        .slice(0, 8)
+        .map((vote) => ({
+          publicId: vote.user.publicId,
+          name: vote.user.name,
+          username: vote.user.username,
+          avatarUrl: this.avatarUrl(vote.user),
+          note: vote.note,
+          voteType: vote.voteType,
+        })),
+    };
+
+    const [withFriendship] = await this.withFriendshipStatuses([mapped], data.viewerPublicId);
+    return withFriendship ?? mapped;
+  }
+
   async cancelVote(data: {
     userId: number;
     placePublicId: string;
