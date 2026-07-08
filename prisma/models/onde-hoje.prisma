@@ -16,6 +16,7 @@ enum GroupMemberRole {
 enum GroupMemberStatus {
   ACTIVE
   PENDING
+  INVITED
   BLOCKED
 
   @@schema("groups")
@@ -92,6 +93,7 @@ model PlaceVote {
   note      String?
   status    VoteStatus @default(ACTIVE)
   voteType  VoteType   @default(GENERAL) @map("vote_type")
+  showIdentity Boolean  @default(true) @map("show_identity")
   scopeKey  String     @default("global") @map("scope_key")
   userId    Int        @map("user_id")
   placeId   Int        @map("place_id")

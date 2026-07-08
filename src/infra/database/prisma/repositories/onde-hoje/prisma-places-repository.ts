@@ -14,6 +14,7 @@ import type {
   PlacesRepository,
   TodayMapQuery,
   TopPlacesTodayQuery,
+  VoteNotificationTargets,
 } from '@/domain/main/application/repositories/onde-hoje/places-repository';
 import type { CreatePlaceData, Place } from '@/domain/main/enterprise/entities/onde-hoje/places/place';
 import { toDateOnly } from '@/core/date/date-only';
@@ -110,7 +111,8 @@ export class PrismaPlacesRepository implements PlacesRepository {
   }
 
   async todayMap(query: TodayMapQuery): Promise<TodayMapPlace[] | null> {
-    const day = query.day ?? todayDate();
+    const day =
+      query.from && query.to ? { gte: query.from, lte: query.to } : (query.day ?? todayDate());
     const group = query.groupPublicId
       ? await this.prisma.group.findUnique({ where: { publicId: query.groupPublicId } })
       : null;
@@ -166,14 +168,17 @@ export class PrismaPlacesRepository implements PlacesRepository {
         ...PrismaOndeHojeMapper.placeToDomain(place),
         voteCount: place.votes.length,
         dominantVoteType: dominantVoteType(place.votes),
-        voters: place.votes.slice(0, 8).map((vote) => ({
-          publicId: vote.user.publicId,
-          name: vote.user.name,
-          username: vote.user.username,
-          avatarUrl: this.avatarUrl(vote.user),
-          note: vote.note,
-          voteType: vote.voteType,
-        })),
+        voters: place.votes
+          .filter((vote) => vote.showIdentity)
+          .slice(0, 8)
+          .map((vote) => ({
+            publicId: vote.user.publicId,
+            name: vote.user.name,
+            username: vote.user.username,
+            avatarUrl: this.avatarUrl(vote.user),
+            note: vote.note,
+            voteType: vote.voteType,
+          })),
       }))
       .sort((a, b) => b.voteCount - a.voteCount);
 
@@ -181,7 +186,8 @@ export class PrismaPlacesRepository implements PlacesRepository {
   }
 
   async topPlacesToday(query: TopPlacesTodayQuery): Promise<TodayMapPlace[] | null> {
-    const day = query.day ?? todayDate();
+    const day =
+      query.from && query.to ? { gte: query.from, lte: query.to } : (query.day ?? todayDate());
     const group = query.groupPublicId
       ? await this.prisma.group.findUnique({ where: { publicId: query.groupPublicId } })
       : null;
@@ -240,14 +246,17 @@ export class PrismaPlacesRepository implements PlacesRepository {
         ...PrismaOndeHojeMapper.placeToDomain(place),
         voteCount: place.votes.length,
         dominantVoteType: dominantVoteType(place.votes),
-        voters: place.votes.slice(0, 8).map((vote) => ({
-          publicId: vote.user.publicId,
-          name: vote.user.name,
-          username: vote.user.username,
-          avatarUrl: this.avatarUrl(vote.user),
-          note: vote.note,
-          voteType: vote.voteType,
-        })),
+        voters: place.votes
+          .filter((vote) => vote.showIdentity)
+          .slice(0, 8)
+          .map((vote) => ({
+            publicId: vote.user.publicId,
+            name: vote.user.name,
+            username: vote.user.username,
+            avatarUrl: this.avatarUrl(vote.user),
+            note: vote.note,
+            voteType: vote.voteType,
+          })),
       }))
       .sort((a, b) => b.voteCount - a.voteCount)
       .slice(0, query.limit ?? 3);
@@ -294,14 +303,17 @@ export class PrismaPlacesRepository implements PlacesRepository {
         ...PrismaOndeHojeMapper.placeToDomain(place),
         voteCount: place.votes.length,
         dominantVoteType: dominantVoteType(place.votes),
-        voters: place.votes.slice(0, 8).map((vote) => ({
-          publicId: vote.user.publicId,
-          name: vote.user.name,
-          username: vote.user.username,
-          avatarUrl: this.avatarUrl(vote.user),
-          note: vote.note,
-          voteType: vote.voteType,
-        })),
+        voters: place.votes
+          .filter((vote) => vote.showIdentity)
+          .slice(0, 8)
+          .map((vote) => ({
+            publicId: vote.user.publicId,
+            name: vote.user.name,
+            username: vote.user.username,
+            avatarUrl: this.avatarUrl(vote.user),
+            note: vote.note,
+            voteType: vote.voteType,
+          })),
       }))
       .sort((a, b) => b.voteCount - a.voteCount)
       .slice(0, query.limit ?? 50);
@@ -568,6 +580,7 @@ export class PrismaPlacesRepository implements PlacesRepository {
     groupPublicId?: string;
     note?: string;
     voteType?: PlaceVote['voteType'];
+    showIdentity?: boolean;
   }): Promise<PlaceVote | null> {
     const [place, group] = await Promise.all([
       this.prisma.place.findUnique({ where: { publicId: data.placePublicId } }),
@@ -617,6 +630,7 @@ export class PrismaPlacesRepository implements PlacesRepository {
         note: data.note,
         status: 'ACTIVE',
         voteType,
+        showIdentity: data.showIdentity ?? true,
       },
       create: {
         userId: data.userId,
@@ -626,6 +640,7 @@ export class PrismaPlacesRepository implements PlacesRepository {
         day: data.day,
         note: data.note,
         voteType,
+        showIdentity: data.showIdentity ?? true,
       },
     });
 
@@ -634,6 +649,50 @@ export class PrismaPlacesRepository implements PlacesRepository {
       day: vote.day,
       status: vote.status,
       voteType: vote.voteType,
+    };
+  }
+
+  async findVoteNotificationTargets(data: {
+    actorUserId: number;
+    placePublicId: string;
+    day: Date;
+    groupPublicId?: string;
+  }): Promise<VoteNotificationTargets | null> {
+    const [place, group, actor] = await Promise.all([
+      this.prisma.place.findUnique({ where: { publicId: data.placePublicId } }),
+      data.groupPublicId ? this.prisma.group.findUnique({ where: { publicId: data.groupPublicId } }) : null,
+      this.prisma.user.findUnique({
+        where: { id: data.actorUserId },
+        select: { publicId: true, name: true, username: true, avatarUpdatedAt: true },
+      }),
+    ]);
+
+    if (!place || !actor || (data.groupPublicId && !group)) {
+      return null;
+    }
+
+    const otherVotes = await this.prisma.placeVote.findMany({
+      where: {
+        placeId: place.id,
+        scopeKey: group?.publicId ?? 'global',
+        day: data.day,
+        status: 'ACTIVE',
+        userId: { not: data.actorUserId },
+      },
+      select: { user: { select: { id: true, publicId: true } } },
+      distinct: ['userId'],
+    });
+
+    return {
+      placePublicId: place.publicId,
+      placeName: place.nickname ?? place.name,
+      actor: {
+        publicId: actor.publicId,
+        name: actor.name,
+        username: actor.username,
+        avatarUrl: this.avatarUrl(actor),
+      },
+      recipients: otherVotes.map((vote) => ({ id: vote.user.id, publicId: vote.user.publicId })),
     };
   }
 

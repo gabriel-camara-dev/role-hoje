@@ -96,6 +96,7 @@ export class VotePlaceController {
       groupPublicId: body.groupPublicId,
       note: body.note,
       voteType: body.voteType,
+      showIdentity: body.showIdentity,
     });
 
     if (result.isFail()) {

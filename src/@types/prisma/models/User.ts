@@ -380,6 +380,8 @@ export type UserWhereInput = {
   requestedFriendships?: Prisma.FriendshipListRelationFilter
   receivedFriendships?: Prisma.FriendshipListRelationFilter
   moderationReports?: Prisma.ModerationReportListRelationFilter
+  notifications?: Prisma.NotificationListRelationFilter
+  actorNotifications?: Prisma.NotificationListRelationFilter
 }
 
 export type UserOrderByWithRelationInput = {
@@ -415,6 +417,8 @@ export type UserOrderByWithRelationInput = {
   requestedFriendships?: Prisma.FriendshipOrderByRelationAggregateInput
   receivedFriendships?: Prisma.FriendshipOrderByRelationAggregateInput
   moderationReports?: Prisma.ModerationReportOrderByRelationAggregateInput
+  notifications?: Prisma.NotificationOrderByRelationAggregateInput
+  actorNotifications?: Prisma.NotificationOrderByRelationAggregateInput
 }
 
 export type UserWhereUniqueInput = Prisma.AtLeast<{
@@ -453,6 +457,8 @@ export type UserWhereUniqueInput = Prisma.AtLeast<{
   requestedFriendships?: Prisma.FriendshipListRelationFilter
   receivedFriendships?: Prisma.FriendshipListRelationFilter
   moderationReports?: Prisma.ModerationReportListRelationFilter
+  notifications?: Prisma.NotificationListRelationFilter
+  actorNotifications?: Prisma.NotificationListRelationFilter
 }, "id" | "publicId" | "username" | "email" | "googleId" | "token" | "emailVerificationTokenHash">
 
 export type UserOrderByWithAggregationInput = {
@@ -549,6 +555,8 @@ export type UserCreateInput = {
   requestedFriendships?: Prisma.FriendshipCreateNestedManyWithoutRequesterInput
   receivedFriendships?: Prisma.FriendshipCreateNestedManyWithoutAddresseeInput
   moderationReports?: Prisma.ModerationReportCreateNestedManyWithoutReporterInput
+  notifications?: Prisma.NotificationCreateNestedManyWithoutUserInput
+  actorNotifications?: Prisma.NotificationCreateNestedManyWithoutActorInput
 }
 
 export type UserUncheckedCreateInput = {
@@ -584,6 +592,8 @@ export type UserUncheckedCreateInput = {
   requestedFriendships?: Prisma.FriendshipUncheckedCreateNestedManyWithoutRequesterInput
   receivedFriendships?: Prisma.FriendshipUncheckedCreateNestedManyWithoutAddresseeInput
   moderationReports?: Prisma.ModerationReportUncheckedCreateNestedManyWithoutReporterInput
+  notifications?: Prisma.NotificationUncheckedCreateNestedManyWithoutUserInput
+  actorNotifications?: Prisma.NotificationUncheckedCreateNestedManyWithoutActorInput
 }
 
 export type UserUpdateInput = {
@@ -618,6 +628,8 @@ export type UserUpdateInput = {
   requestedFriendships?: Prisma.FriendshipUpdateManyWithoutRequesterNestedInput
   receivedFriendships?: Prisma.FriendshipUpdateManyWithoutAddresseeNestedInput
   moderationReports?: Prisma.ModerationReportUpdateManyWithoutReporterNestedInput
+  notifications?: Prisma.NotificationUpdateManyWithoutUserNestedInput
+  actorNotifications?: Prisma.NotificationUpdateManyWithoutActorNestedInput
 }
 
 export type UserUncheckedUpdateInput = {
@@ -653,6 +665,8 @@ export type UserUncheckedUpdateInput = {
   requestedFriendships?: Prisma.FriendshipUncheckedUpdateManyWithoutRequesterNestedInput
   receivedFriendships?: Prisma.FriendshipUncheckedUpdateManyWithoutAddresseeNestedInput
   moderationReports?: Prisma.ModerationReportUncheckedUpdateManyWithoutReporterNestedInput
+  notifications?: Prisma.NotificationUncheckedUpdateManyWithoutUserNestedInput
+  actorNotifications?: Prisma.NotificationUncheckedUpdateManyWithoutActorNestedInput
 }
 
 export type UserCreateManyInput = {
@@ -852,6 +866,36 @@ export type UserUpdateOneWithoutAuthenticationAuditsNestedInput = {
   update?: Prisma.XOR<Prisma.XOR<Prisma.UserUpdateToOneWithWhereWithoutAuthenticationAuditsInput, Prisma.UserUpdateWithoutAuthenticationAuditsInput>, Prisma.UserUncheckedUpdateWithoutAuthenticationAuditsInput>
 }
 
+export type UserCreateNestedOneWithoutNotificationsInput = {
+  create?: Prisma.XOR<Prisma.UserCreateWithoutNotificationsInput, Prisma.UserUncheckedCreateWithoutNotificationsInput>
+  connectOrCreate?: Prisma.UserCreateOrConnectWithoutNotificationsInput
+  connect?: Prisma.UserWhereUniqueInput
+}
+
+export type UserCreateNestedOneWithoutActorNotificationsInput = {
+  create?: Prisma.XOR<Prisma.UserCreateWithoutActorNotificationsInput, Prisma.UserUncheckedCreateWithoutActorNotificationsInput>
+  connectOrCreate?: Prisma.UserCreateOrConnectWithoutActorNotificationsInput
+  connect?: Prisma.UserWhereUniqueInput
+}
+
+export type UserUpdateOneRequiredWithoutNotificationsNestedInput = {
+  create?: Prisma.XOR<Prisma.UserCreateWithoutNotificationsInput, Prisma.UserUncheckedCreateWithoutNotificationsInput>
+  connectOrCreate?: Prisma.UserCreateOrConnectWithoutNotificationsInput
+  upsert?: Prisma.UserUpsertWithoutNotificationsInput
+  connect?: Prisma.UserWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.UserUpdateToOneWithWhereWithoutNotificationsInput, Prisma.UserUpdateWithoutNotificationsInput>, Prisma.UserUncheckedUpdateWithoutNotificationsInput>
+}
+
+export type UserUpdateOneWithoutActorNotificationsNestedInput = {
+  create?: Prisma.XOR<Prisma.UserCreateWithoutActorNotificationsInput, Prisma.UserUncheckedCreateWithoutActorNotificationsInput>
+  connectOrCreate?: Prisma.UserCreateOrConnectWithoutActorNotificationsInput
+  upsert?: Prisma.UserUpsertWithoutActorNotificationsInput
+  disconnect?: Prisma.UserWhereInput | boolean
+  delete?: Prisma.UserWhereInput | boolean
+  connect?: Prisma.UserWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.UserUpdateToOneWithWhereWithoutActorNotificationsInput, Prisma.UserUpdateWithoutActorNotificationsInput>, Prisma.UserUncheckedUpdateWithoutActorNotificationsInput>
+}
+
 export type UserCreateNestedOneWithoutCreatedPlacesInput = {
   create?: Prisma.XOR<Prisma.UserCreateWithoutCreatedPlacesInput, Prisma.UserUncheckedCreateWithoutCreatedPlacesInput>
   connectOrCreate?: Prisma.UserCreateOrConnectWithoutCreatedPlacesInput
@@ -952,10 +996,6 @@ export type UserUpdateOneRequiredWithoutModerationReportsNestedInput = {
   update?: Prisma.XOR<Prisma.XOR<Prisma.UserUpdateToOneWithWhereWithoutModerationReportsInput, Prisma.UserUpdateWithoutModerationReportsInput>, Prisma.UserUncheckedUpdateWithoutModerationReportsInput>
 }
 
-export type NullableDateTimeFieldUpdateOperationsInput = {
-  set?: Date | string | null
-}
-
 export type EnumUserRoleFieldUpdateOperationsInput = {
   set?: $Enums.UserRole
 }
@@ -991,6 +1031,8 @@ export type UserCreateWithoutAuthenticationAuditsInput = {
   requestedFriendships?: Prisma.FriendshipCreateNestedManyWithoutRequesterInput
   receivedFriendships?: Prisma.FriendshipCreateNestedManyWithoutAddresseeInput
   moderationReports?: Prisma.ModerationReportCreateNestedManyWithoutReporterInput
+  notifications?: Prisma.NotificationCreateNestedManyWithoutUserInput
+  actorNotifications?: Prisma.NotificationCreateNestedManyWithoutActorInput
 }
 
 export type UserUncheckedCreateWithoutAuthenticationAuditsInput = {
@@ -1025,6 +1067,8 @@ export type UserUncheckedCreateWithoutAuthenticationAuditsInput = {
   requestedFriendships?: Prisma.FriendshipUncheckedCreateNestedManyWithoutRequesterInput
   receivedFriendships?: Prisma.FriendshipUncheckedCreateNestedManyWithoutAddresseeInput
   moderationReports?: Prisma.ModerationReportUncheckedCreateNestedManyWithoutReporterInput
+  notifications?: Prisma.NotificationUncheckedCreateNestedManyWithoutUserInput
+  actorNotifications?: Prisma.NotificationUncheckedCreateNestedManyWithoutActorInput
 }
 
 export type UserCreateOrConnectWithoutAuthenticationAuditsInput = {
@@ -1074,6 +1118,8 @@ export type UserUpdateWithoutAuthenticationAuditsInput = {
   requestedFriendships?: Prisma.FriendshipUpdateManyWithoutRequesterNestedInput
   receivedFriendships?: Prisma.FriendshipUpdateManyWithoutAddresseeNestedInput
   moderationReports?: Prisma.ModerationReportUpdateManyWithoutReporterNestedInput
+  notifications?: Prisma.NotificationUpdateManyWithoutUserNestedInput
+  actorNotifications?: Prisma.NotificationUpdateManyWithoutActorNestedInput
 }
 
 export type UserUncheckedUpdateWithoutAuthenticationAuditsInput = {
@@ -1108,6 +1154,324 @@ export type UserUncheckedUpdateWithoutAuthenticationAuditsInput = {
   requestedFriendships?: Prisma.FriendshipUncheckedUpdateManyWithoutRequesterNestedInput
   receivedFriendships?: Prisma.FriendshipUncheckedUpdateManyWithoutAddresseeNestedInput
   moderationReports?: Prisma.ModerationReportUncheckedUpdateManyWithoutReporterNestedInput
+  notifications?: Prisma.NotificationUncheckedUpdateManyWithoutUserNestedInput
+  actorNotifications?: Prisma.NotificationUncheckedUpdateManyWithoutActorNestedInput
+}
+
+export type UserCreateWithoutNotificationsInput = {
+  publicId?: string
+  name: string
+  username: string
+  email: string
+  passwordHash?: string | null
+  googleId?: string | null
+  avatarEncryptedPath?: string | null
+  avatarIv?: string | null
+  avatarAuthTag?: string | null
+  avatarMimeType?: string | null
+  avatarOriginalName?: string | null
+  avatarUpdatedAt?: Date | string | null
+  loginAttempts?: number
+  lastLogin?: Date | string | null
+  role?: $Enums.UserRole
+  token?: string | null
+  tokenExpiresAt?: Date | string | null
+  emailVerifiedAt?: Date | string | null
+  emailVerificationTokenHash?: string | null
+  emailVerificationTokenExpiresAt?: Date | string | null
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  passwordChangedAt?: Date | string | null
+  authenticationAudits?: Prisma.AuthenticationAuditCreateNestedManyWithoutUserInput
+  createdPlaces?: Prisma.PlaceCreateNestedManyWithoutCreatedByInput
+  placeVotes?: Prisma.PlaceVoteCreateNestedManyWithoutUserInput
+  createdGroups?: Prisma.GroupCreateNestedManyWithoutCreatedByInput
+  groupMembers?: Prisma.GroupMemberCreateNestedManyWithoutUserInput
+  requestedFriendships?: Prisma.FriendshipCreateNestedManyWithoutRequesterInput
+  receivedFriendships?: Prisma.FriendshipCreateNestedManyWithoutAddresseeInput
+  moderationReports?: Prisma.ModerationReportCreateNestedManyWithoutReporterInput
+  actorNotifications?: Prisma.NotificationCreateNestedManyWithoutActorInput
+}
+
+export type UserUncheckedCreateWithoutNotificationsInput = {
+  id?: number
+  publicId?: string
+  name: string
+  username: string
+  email: string
+  passwordHash?: string | null
+  googleId?: string | null
+  avatarEncryptedPath?: string | null
+  avatarIv?: string | null
+  avatarAuthTag?: string | null
+  avatarMimeType?: string | null
+  avatarOriginalName?: string | null
+  avatarUpdatedAt?: Date | string | null
+  loginAttempts?: number
+  lastLogin?: Date | string | null
+  role?: $Enums.UserRole
+  token?: string | null
+  tokenExpiresAt?: Date | string | null
+  emailVerifiedAt?: Date | string | null
+  emailVerificationTokenHash?: string | null
+  emailVerificationTokenExpiresAt?: Date | string | null
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  passwordChangedAt?: Date | string | null
+  authenticationAudits?: Prisma.AuthenticationAuditUncheckedCreateNestedManyWithoutUserInput
+  createdPlaces?: Prisma.PlaceUncheckedCreateNestedManyWithoutCreatedByInput
+  placeVotes?: Prisma.PlaceVoteUncheckedCreateNestedManyWithoutUserInput
+  createdGroups?: Prisma.GroupUncheckedCreateNestedManyWithoutCreatedByInput
+  groupMembers?: Prisma.GroupMemberUncheckedCreateNestedManyWithoutUserInput
+  requestedFriendships?: Prisma.FriendshipUncheckedCreateNestedManyWithoutRequesterInput
+  receivedFriendships?: Prisma.FriendshipUncheckedCreateNestedManyWithoutAddresseeInput
+  moderationReports?: Prisma.ModerationReportUncheckedCreateNestedManyWithoutReporterInput
+  actorNotifications?: Prisma.NotificationUncheckedCreateNestedManyWithoutActorInput
+}
+
+export type UserCreateOrConnectWithoutNotificationsInput = {
+  where: Prisma.UserWhereUniqueInput
+  create: Prisma.XOR<Prisma.UserCreateWithoutNotificationsInput, Prisma.UserUncheckedCreateWithoutNotificationsInput>
+}
+
+export type UserCreateWithoutActorNotificationsInput = {
+  publicId?: string
+  name: string
+  username: string
+  email: string
+  passwordHash?: string | null
+  googleId?: string | null
+  avatarEncryptedPath?: string | null
+  avatarIv?: string | null
+  avatarAuthTag?: string | null
+  avatarMimeType?: string | null
+  avatarOriginalName?: string | null
+  avatarUpdatedAt?: Date | string | null
+  loginAttempts?: number
+  lastLogin?: Date | string | null
+  role?: $Enums.UserRole
+  token?: string | null
+  tokenExpiresAt?: Date | string | null
+  emailVerifiedAt?: Date | string | null
+  emailVerificationTokenHash?: string | null
+  emailVerificationTokenExpiresAt?: Date | string | null
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  passwordChangedAt?: Date | string | null
+  authenticationAudits?: Prisma.AuthenticationAuditCreateNestedManyWithoutUserInput
+  createdPlaces?: Prisma.PlaceCreateNestedManyWithoutCreatedByInput
+  placeVotes?: Prisma.PlaceVoteCreateNestedManyWithoutUserInput
+  createdGroups?: Prisma.GroupCreateNestedManyWithoutCreatedByInput
+  groupMembers?: Prisma.GroupMemberCreateNestedManyWithoutUserInput
+  requestedFriendships?: Prisma.FriendshipCreateNestedManyWithoutRequesterInput
+  receivedFriendships?: Prisma.FriendshipCreateNestedManyWithoutAddresseeInput
+  moderationReports?: Prisma.ModerationReportCreateNestedManyWithoutReporterInput
+  notifications?: Prisma.NotificationCreateNestedManyWithoutUserInput
+}
+
+export type UserUncheckedCreateWithoutActorNotificationsInput = {
+  id?: number
+  publicId?: string
+  name: string
+  username: string
+  email: string
+  passwordHash?: string | null
+  googleId?: string | null
+  avatarEncryptedPath?: string | null
+  avatarIv?: string | null
+  avatarAuthTag?: string | null
+  avatarMimeType?: string | null
+  avatarOriginalName?: string | null
+  avatarUpdatedAt?: Date | string | null
+  loginAttempts?: number
+  lastLogin?: Date | string | null
+  role?: $Enums.UserRole
+  token?: string | null
+  tokenExpiresAt?: Date | string | null
+  emailVerifiedAt?: Date | string | null
+  emailVerificationTokenHash?: string | null
+  emailVerificationTokenExpiresAt?: Date | string | null
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  passwordChangedAt?: Date | string | null
+  authenticationAudits?: Prisma.AuthenticationAuditUncheckedCreateNestedManyWithoutUserInput
+  createdPlaces?: Prisma.PlaceUncheckedCreateNestedManyWithoutCreatedByInput
+  placeVotes?: Prisma.PlaceVoteUncheckedCreateNestedManyWithoutUserInput
+  createdGroups?: Prisma.GroupUncheckedCreateNestedManyWithoutCreatedByInput
+  groupMembers?: Prisma.GroupMemberUncheckedCreateNestedManyWithoutUserInput
+  requestedFriendships?: Prisma.FriendshipUncheckedCreateNestedManyWithoutRequesterInput
+  receivedFriendships?: Prisma.FriendshipUncheckedCreateNestedManyWithoutAddresseeInput
+  moderationReports?: Prisma.ModerationReportUncheckedCreateNestedManyWithoutReporterInput
+  notifications?: Prisma.NotificationUncheckedCreateNestedManyWithoutUserInput
+}
+
+export type UserCreateOrConnectWithoutActorNotificationsInput = {
+  where: Prisma.UserWhereUniqueInput
+  create: Prisma.XOR<Prisma.UserCreateWithoutActorNotificationsInput, Prisma.UserUncheckedCreateWithoutActorNotificationsInput>
+}
+
+export type UserUpsertWithoutNotificationsInput = {
+  update: Prisma.XOR<Prisma.UserUpdateWithoutNotificationsInput, Prisma.UserUncheckedUpdateWithoutNotificationsInput>
+  create: Prisma.XOR<Prisma.UserCreateWithoutNotificationsInput, Prisma.UserUncheckedCreateWithoutNotificationsInput>
+  where?: Prisma.UserWhereInput
+}
+
+export type UserUpdateToOneWithWhereWithoutNotificationsInput = {
+  where?: Prisma.UserWhereInput
+  data: Prisma.XOR<Prisma.UserUpdateWithoutNotificationsInput, Prisma.UserUncheckedUpdateWithoutNotificationsInput>
+}
+
+export type UserUpdateWithoutNotificationsInput = {
+  publicId?: Prisma.StringFieldUpdateOperationsInput | string
+  name?: Prisma.StringFieldUpdateOperationsInput | string
+  username?: Prisma.StringFieldUpdateOperationsInput | string
+  email?: Prisma.StringFieldUpdateOperationsInput | string
+  passwordHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  googleId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  avatarEncryptedPath?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  avatarIv?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  avatarAuthTag?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  avatarMimeType?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  avatarOriginalName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  avatarUpdatedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  loginAttempts?: Prisma.IntFieldUpdateOperationsInput | number
+  lastLogin?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  role?: Prisma.EnumUserRoleFieldUpdateOperationsInput | $Enums.UserRole
+  token?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  tokenExpiresAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  emailVerifiedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  emailVerificationTokenHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  emailVerificationTokenExpiresAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  passwordChangedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  authenticationAudits?: Prisma.AuthenticationAuditUpdateManyWithoutUserNestedInput
+  createdPlaces?: Prisma.PlaceUpdateManyWithoutCreatedByNestedInput
+  placeVotes?: Prisma.PlaceVoteUpdateManyWithoutUserNestedInput
+  createdGroups?: Prisma.GroupUpdateManyWithoutCreatedByNestedInput
+  groupMembers?: Prisma.GroupMemberUpdateManyWithoutUserNestedInput
+  requestedFriendships?: Prisma.FriendshipUpdateManyWithoutRequesterNestedInput
+  receivedFriendships?: Prisma.FriendshipUpdateManyWithoutAddresseeNestedInput
+  moderationReports?: Prisma.ModerationReportUpdateManyWithoutReporterNestedInput
+  actorNotifications?: Prisma.NotificationUpdateManyWithoutActorNestedInput
+}
+
+export type UserUncheckedUpdateWithoutNotificationsInput = {
+  id?: Prisma.IntFieldUpdateOperationsInput | number
+  publicId?: Prisma.StringFieldUpdateOperationsInput | string
+  name?: Prisma.StringFieldUpdateOperationsInput | string
+  username?: Prisma.StringFieldUpdateOperationsInput | string
+  email?: Prisma.StringFieldUpdateOperationsInput | string
+  passwordHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  googleId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  avatarEncryptedPath?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  avatarIv?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  avatarAuthTag?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  avatarMimeType?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  avatarOriginalName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  avatarUpdatedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  loginAttempts?: Prisma.IntFieldUpdateOperationsInput | number
+  lastLogin?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  role?: Prisma.EnumUserRoleFieldUpdateOperationsInput | $Enums.UserRole
+  token?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  tokenExpiresAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  emailVerifiedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  emailVerificationTokenHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  emailVerificationTokenExpiresAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  passwordChangedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  authenticationAudits?: Prisma.AuthenticationAuditUncheckedUpdateManyWithoutUserNestedInput
+  createdPlaces?: Prisma.PlaceUncheckedUpdateManyWithoutCreatedByNestedInput
+  placeVotes?: Prisma.PlaceVoteUncheckedUpdateManyWithoutUserNestedInput
+  createdGroups?: Prisma.GroupUncheckedUpdateManyWithoutCreatedByNestedInput
+  groupMembers?: Prisma.GroupMemberUncheckedUpdateManyWithoutUserNestedInput
+  requestedFriendships?: Prisma.FriendshipUncheckedUpdateManyWithoutRequesterNestedInput
+  receivedFriendships?: Prisma.FriendshipUncheckedUpdateManyWithoutAddresseeNestedInput
+  moderationReports?: Prisma.ModerationReportUncheckedUpdateManyWithoutReporterNestedInput
+  actorNotifications?: Prisma.NotificationUncheckedUpdateManyWithoutActorNestedInput
+}
+
+export type UserUpsertWithoutActorNotificationsInput = {
+  update: Prisma.XOR<Prisma.UserUpdateWithoutActorNotificationsInput, Prisma.UserUncheckedUpdateWithoutActorNotificationsInput>
+  create: Prisma.XOR<Prisma.UserCreateWithoutActorNotificationsInput, Prisma.UserUncheckedCreateWithoutActorNotificationsInput>
+  where?: Prisma.UserWhereInput
+}
+
+export type UserUpdateToOneWithWhereWithoutActorNotificationsInput = {
+  where?: Prisma.UserWhereInput
+  data: Prisma.XOR<Prisma.UserUpdateWithoutActorNotificationsInput, Prisma.UserUncheckedUpdateWithoutActorNotificationsInput>
+}
+
+export type UserUpdateWithoutActorNotificationsInput = {
+  publicId?: Prisma.StringFieldUpdateOperationsInput | string
+  name?: Prisma.StringFieldUpdateOperationsInput | string
+  username?: Prisma.StringFieldUpdateOperationsInput | string
+  email?: Prisma.StringFieldUpdateOperationsInput | string
+  passwordHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  googleId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  avatarEncryptedPath?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  avatarIv?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  avatarAuthTag?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  avatarMimeType?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  avatarOriginalName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  avatarUpdatedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  loginAttempts?: Prisma.IntFieldUpdateOperationsInput | number
+  lastLogin?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  role?: Prisma.EnumUserRoleFieldUpdateOperationsInput | $Enums.UserRole
+  token?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  tokenExpiresAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  emailVerifiedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  emailVerificationTokenHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  emailVerificationTokenExpiresAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  passwordChangedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  authenticationAudits?: Prisma.AuthenticationAuditUpdateManyWithoutUserNestedInput
+  createdPlaces?: Prisma.PlaceUpdateManyWithoutCreatedByNestedInput
+  placeVotes?: Prisma.PlaceVoteUpdateManyWithoutUserNestedInput
+  createdGroups?: Prisma.GroupUpdateManyWithoutCreatedByNestedInput
+  groupMembers?: Prisma.GroupMemberUpdateManyWithoutUserNestedInput
+  requestedFriendships?: Prisma.FriendshipUpdateManyWithoutRequesterNestedInput
+  receivedFriendships?: Prisma.FriendshipUpdateManyWithoutAddresseeNestedInput
+  moderationReports?: Prisma.ModerationReportUpdateManyWithoutReporterNestedInput
+  notifications?: Prisma.NotificationUpdateManyWithoutUserNestedInput
+}
+
+export type UserUncheckedUpdateWithoutActorNotificationsInput = {
+  id?: Prisma.IntFieldUpdateOperationsInput | number
+  publicId?: Prisma.StringFieldUpdateOperationsInput | string
+  name?: Prisma.StringFieldUpdateOperationsInput | string
+  username?: Prisma.StringFieldUpdateOperationsInput | string
+  email?: Prisma.StringFieldUpdateOperationsInput | string
+  passwordHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  googleId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  avatarEncryptedPath?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  avatarIv?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  avatarAuthTag?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  avatarMimeType?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  avatarOriginalName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  avatarUpdatedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  loginAttempts?: Prisma.IntFieldUpdateOperationsInput | number
+  lastLogin?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  role?: Prisma.EnumUserRoleFieldUpdateOperationsInput | $Enums.UserRole
+  token?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  tokenExpiresAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  emailVerifiedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  emailVerificationTokenHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  emailVerificationTokenExpiresAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  passwordChangedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  authenticationAudits?: Prisma.AuthenticationAuditUncheckedUpdateManyWithoutUserNestedInput
+  createdPlaces?: Prisma.PlaceUncheckedUpdateManyWithoutCreatedByNestedInput
+  placeVotes?: Prisma.PlaceVoteUncheckedUpdateManyWithoutUserNestedInput
+  createdGroups?: Prisma.GroupUncheckedUpdateManyWithoutCreatedByNestedInput
+  groupMembers?: Prisma.GroupMemberUncheckedUpdateManyWithoutUserNestedInput
+  requestedFriendships?: Prisma.FriendshipUncheckedUpdateManyWithoutRequesterNestedInput
+  receivedFriendships?: Prisma.FriendshipUncheckedUpdateManyWithoutAddresseeNestedInput
+  moderationReports?: Prisma.ModerationReportUncheckedUpdateManyWithoutReporterNestedInput
+  notifications?: Prisma.NotificationUncheckedUpdateManyWithoutUserNestedInput
 }
 
 export type UserCreateWithoutCreatedPlacesInput = {
@@ -1141,6 +1505,8 @@ export type UserCreateWithoutCreatedPlacesInput = {
   requestedFriendships?: Prisma.FriendshipCreateNestedManyWithoutRequesterInput
   receivedFriendships?: Prisma.FriendshipCreateNestedManyWithoutAddresseeInput
   moderationReports?: Prisma.ModerationReportCreateNestedManyWithoutReporterInput
+  notifications?: Prisma.NotificationCreateNestedManyWithoutUserInput
+  actorNotifications?: Prisma.NotificationCreateNestedManyWithoutActorInput
 }
 
 export type UserUncheckedCreateWithoutCreatedPlacesInput = {
@@ -1175,6 +1541,8 @@ export type UserUncheckedCreateWithoutCreatedPlacesInput = {
   requestedFriendships?: Prisma.FriendshipUncheckedCreateNestedManyWithoutRequesterInput
   receivedFriendships?: Prisma.FriendshipUncheckedCreateNestedManyWithoutAddresseeInput
   moderationReports?: Prisma.ModerationReportUncheckedCreateNestedManyWithoutReporterInput
+  notifications?: Prisma.NotificationUncheckedCreateNestedManyWithoutUserInput
+  actorNotifications?: Prisma.NotificationUncheckedCreateNestedManyWithoutActorInput
 }
 
 export type UserCreateOrConnectWithoutCreatedPlacesInput = {
@@ -1224,6 +1592,8 @@ export type UserUpdateWithoutCreatedPlacesInput = {
   requestedFriendships?: Prisma.FriendshipUpdateManyWithoutRequesterNestedInput
   receivedFriendships?: Prisma.FriendshipUpdateManyWithoutAddresseeNestedInput
   moderationReports?: Prisma.ModerationReportUpdateManyWithoutReporterNestedInput
+  notifications?: Prisma.NotificationUpdateManyWithoutUserNestedInput
+  actorNotifications?: Prisma.NotificationUpdateManyWithoutActorNestedInput
 }
 
 export type UserUncheckedUpdateWithoutCreatedPlacesInput = {
@@ -1258,6 +1628,8 @@ export type UserUncheckedUpdateWithoutCreatedPlacesInput = {
   requestedFriendships?: Prisma.FriendshipUncheckedUpdateManyWithoutRequesterNestedInput
   receivedFriendships?: Prisma.FriendshipUncheckedUpdateManyWithoutAddresseeNestedInput
   moderationReports?: Prisma.ModerationReportUncheckedUpdateManyWithoutReporterNestedInput
+  notifications?: Prisma.NotificationUncheckedUpdateManyWithoutUserNestedInput
+  actorNotifications?: Prisma.NotificationUncheckedUpdateManyWithoutActorNestedInput
 }
 
 export type UserCreateWithoutPlaceVotesInput = {
@@ -1291,6 +1663,8 @@ export type UserCreateWithoutPlaceVotesInput = {
   requestedFriendships?: Prisma.FriendshipCreateNestedManyWithoutRequesterInput
   receivedFriendships?: Prisma.FriendshipCreateNestedManyWithoutAddresseeInput
   moderationReports?: Prisma.ModerationReportCreateNestedManyWithoutReporterInput
+  notifications?: Prisma.NotificationCreateNestedManyWithoutUserInput
+  actorNotifications?: Prisma.NotificationCreateNestedManyWithoutActorInput
 }
 
 export type UserUncheckedCreateWithoutPlaceVotesInput = {
@@ -1325,6 +1699,8 @@ export type UserUncheckedCreateWithoutPlaceVotesInput = {
   requestedFriendships?: Prisma.FriendshipUncheckedCreateNestedManyWithoutRequesterInput
   receivedFriendships?: Prisma.FriendshipUncheckedCreateNestedManyWithoutAddresseeInput
   moderationReports?: Prisma.ModerationReportUncheckedCreateNestedManyWithoutReporterInput
+  notifications?: Prisma.NotificationUncheckedCreateNestedManyWithoutUserInput
+  actorNotifications?: Prisma.NotificationUncheckedCreateNestedManyWithoutActorInput
 }
 
 export type UserCreateOrConnectWithoutPlaceVotesInput = {
@@ -1374,6 +1750,8 @@ export type UserUpdateWithoutPlaceVotesInput = {
   requestedFriendships?: Prisma.FriendshipUpdateManyWithoutRequesterNestedInput
   receivedFriendships?: Prisma.FriendshipUpdateManyWithoutAddresseeNestedInput
   moderationReports?: Prisma.ModerationReportUpdateManyWithoutReporterNestedInput
+  notifications?: Prisma.NotificationUpdateManyWithoutUserNestedInput
+  actorNotifications?: Prisma.NotificationUpdateManyWithoutActorNestedInput
 }
 
 export type UserUncheckedUpdateWithoutPlaceVotesInput = {
@@ -1408,6 +1786,8 @@ export type UserUncheckedUpdateWithoutPlaceVotesInput = {
   requestedFriendships?: Prisma.FriendshipUncheckedUpdateManyWithoutRequesterNestedInput
   receivedFriendships?: Prisma.FriendshipUncheckedUpdateManyWithoutAddresseeNestedInput
   moderationReports?: Prisma.ModerationReportUncheckedUpdateManyWithoutReporterNestedInput
+  notifications?: Prisma.NotificationUncheckedUpdateManyWithoutUserNestedInput
+  actorNotifications?: Prisma.NotificationUncheckedUpdateManyWithoutActorNestedInput
 }
 
 export type UserCreateWithoutCreatedGroupsInput = {
@@ -1441,6 +1821,8 @@ export type UserCreateWithoutCreatedGroupsInput = {
   requestedFriendships?: Prisma.FriendshipCreateNestedManyWithoutRequesterInput
   receivedFriendships?: Prisma.FriendshipCreateNestedManyWithoutAddresseeInput
   moderationReports?: Prisma.ModerationReportCreateNestedManyWithoutReporterInput
+  notifications?: Prisma.NotificationCreateNestedManyWithoutUserInput
+  actorNotifications?: Prisma.NotificationCreateNestedManyWithoutActorInput
 }
 
 export type UserUncheckedCreateWithoutCreatedGroupsInput = {
@@ -1475,6 +1857,8 @@ export type UserUncheckedCreateWithoutCreatedGroupsInput = {
   requestedFriendships?: Prisma.FriendshipUncheckedCreateNestedManyWithoutRequesterInput
   receivedFriendships?: Prisma.FriendshipUncheckedCreateNestedManyWithoutAddresseeInput
   moderationReports?: Prisma.ModerationReportUncheckedCreateNestedManyWithoutReporterInput
+  notifications?: Prisma.NotificationUncheckedCreateNestedManyWithoutUserInput
+  actorNotifications?: Prisma.NotificationUncheckedCreateNestedManyWithoutActorInput
 }
 
 export type UserCreateOrConnectWithoutCreatedGroupsInput = {
@@ -1524,6 +1908,8 @@ export type UserUpdateWithoutCreatedGroupsInput = {
   requestedFriendships?: Prisma.FriendshipUpdateManyWithoutRequesterNestedInput
   receivedFriendships?: Prisma.FriendshipUpdateManyWithoutAddresseeNestedInput
   moderationReports?: Prisma.ModerationReportUpdateManyWithoutReporterNestedInput
+  notifications?: Prisma.NotificationUpdateManyWithoutUserNestedInput
+  actorNotifications?: Prisma.NotificationUpdateManyWithoutActorNestedInput
 }
 
 export type UserUncheckedUpdateWithoutCreatedGroupsInput = {
@@ -1558,6 +1944,8 @@ export type UserUncheckedUpdateWithoutCreatedGroupsInput = {
   requestedFriendships?: Prisma.FriendshipUncheckedUpdateManyWithoutRequesterNestedInput
   receivedFriendships?: Prisma.FriendshipUncheckedUpdateManyWithoutAddresseeNestedInput
   moderationReports?: Prisma.ModerationReportUncheckedUpdateManyWithoutReporterNestedInput
+  notifications?: Prisma.NotificationUncheckedUpdateManyWithoutUserNestedInput
+  actorNotifications?: Prisma.NotificationUncheckedUpdateManyWithoutActorNestedInput
 }
 
 export type UserCreateWithoutGroupMembersInput = {
@@ -1591,6 +1979,8 @@ export type UserCreateWithoutGroupMembersInput = {
   requestedFriendships?: Prisma.FriendshipCreateNestedManyWithoutRequesterInput
   receivedFriendships?: Prisma.FriendshipCreateNestedManyWithoutAddresseeInput
   moderationReports?: Prisma.ModerationReportCreateNestedManyWithoutReporterInput
+  notifications?: Prisma.NotificationCreateNestedManyWithoutUserInput
+  actorNotifications?: Prisma.NotificationCreateNestedManyWithoutActorInput
 }
 
 export type UserUncheckedCreateWithoutGroupMembersInput = {
@@ -1625,6 +2015,8 @@ export type UserUncheckedCreateWithoutGroupMembersInput = {
   requestedFriendships?: Prisma.FriendshipUncheckedCreateNestedManyWithoutRequesterInput
   receivedFriendships?: Prisma.FriendshipUncheckedCreateNestedManyWithoutAddresseeInput
   moderationReports?: Prisma.ModerationReportUncheckedCreateNestedManyWithoutReporterInput
+  notifications?: Prisma.NotificationUncheckedCreateNestedManyWithoutUserInput
+  actorNotifications?: Prisma.NotificationUncheckedCreateNestedManyWithoutActorInput
 }
 
 export type UserCreateOrConnectWithoutGroupMembersInput = {
@@ -1674,6 +2066,8 @@ export type UserUpdateWithoutGroupMembersInput = {
   requestedFriendships?: Prisma.FriendshipUpdateManyWithoutRequesterNestedInput
   receivedFriendships?: Prisma.FriendshipUpdateManyWithoutAddresseeNestedInput
   moderationReports?: Prisma.ModerationReportUpdateManyWithoutReporterNestedInput
+  notifications?: Prisma.NotificationUpdateManyWithoutUserNestedInput
+  actorNotifications?: Prisma.NotificationUpdateManyWithoutActorNestedInput
 }
 
 export type UserUncheckedUpdateWithoutGroupMembersInput = {
@@ -1708,6 +2102,8 @@ export type UserUncheckedUpdateWithoutGroupMembersInput = {
   requestedFriendships?: Prisma.FriendshipUncheckedUpdateManyWithoutRequesterNestedInput
   receivedFriendships?: Prisma.FriendshipUncheckedUpdateManyWithoutAddresseeNestedInput
   moderationReports?: Prisma.ModerationReportUncheckedUpdateManyWithoutReporterNestedInput
+  notifications?: Prisma.NotificationUncheckedUpdateManyWithoutUserNestedInput
+  actorNotifications?: Prisma.NotificationUncheckedUpdateManyWithoutActorNestedInput
 }
 
 export type UserCreateWithoutRequestedFriendshipsInput = {
@@ -1741,6 +2137,8 @@ export type UserCreateWithoutRequestedFriendshipsInput = {
   groupMembers?: Prisma.GroupMemberCreateNestedManyWithoutUserInput
   receivedFriendships?: Prisma.FriendshipCreateNestedManyWithoutAddresseeInput
   moderationReports?: Prisma.ModerationReportCreateNestedManyWithoutReporterInput
+  notifications?: Prisma.NotificationCreateNestedManyWithoutUserInput
+  actorNotifications?: Prisma.NotificationCreateNestedManyWithoutActorInput
 }
 
 export type UserUncheckedCreateWithoutRequestedFriendshipsInput = {
@@ -1775,6 +2173,8 @@ export type UserUncheckedCreateWithoutRequestedFriendshipsInput = {
   groupMembers?: Prisma.GroupMemberUncheckedCreateNestedManyWithoutUserInput
   receivedFriendships?: Prisma.FriendshipUncheckedCreateNestedManyWithoutAddresseeInput
   moderationReports?: Prisma.ModerationReportUncheckedCreateNestedManyWithoutReporterInput
+  notifications?: Prisma.NotificationUncheckedCreateNestedManyWithoutUserInput
+  actorNotifications?: Prisma.NotificationUncheckedCreateNestedManyWithoutActorInput
 }
 
 export type UserCreateOrConnectWithoutRequestedFriendshipsInput = {
@@ -1813,6 +2213,8 @@ export type UserCreateWithoutReceivedFriendshipsInput = {
   groupMembers?: Prisma.GroupMemberCreateNestedManyWithoutUserInput
   requestedFriendships?: Prisma.FriendshipCreateNestedManyWithoutRequesterInput
   moderationReports?: Prisma.ModerationReportCreateNestedManyWithoutReporterInput
+  notifications?: Prisma.NotificationCreateNestedManyWithoutUserInput
+  actorNotifications?: Prisma.NotificationCreateNestedManyWithoutActorInput
 }
 
 export type UserUncheckedCreateWithoutReceivedFriendshipsInput = {
@@ -1847,6 +2249,8 @@ export type UserUncheckedCreateWithoutReceivedFriendshipsInput = {
   groupMembers?: Prisma.GroupMemberUncheckedCreateNestedManyWithoutUserInput
   requestedFriendships?: Prisma.FriendshipUncheckedCreateNestedManyWithoutRequesterInput
   moderationReports?: Prisma.ModerationReportUncheckedCreateNestedManyWithoutReporterInput
+  notifications?: Prisma.NotificationUncheckedCreateNestedManyWithoutUserInput
+  actorNotifications?: Prisma.NotificationUncheckedCreateNestedManyWithoutActorInput
 }
 
 export type UserCreateOrConnectWithoutReceivedFriendshipsInput = {
@@ -1896,6 +2300,8 @@ export type UserUpdateWithoutRequestedFriendshipsInput = {
   groupMembers?: Prisma.GroupMemberUpdateManyWithoutUserNestedInput
   receivedFriendships?: Prisma.FriendshipUpdateManyWithoutAddresseeNestedInput
   moderationReports?: Prisma.ModerationReportUpdateManyWithoutReporterNestedInput
+  notifications?: Prisma.NotificationUpdateManyWithoutUserNestedInput
+  actorNotifications?: Prisma.NotificationUpdateManyWithoutActorNestedInput
 }
 
 export type UserUncheckedUpdateWithoutRequestedFriendshipsInput = {
@@ -1930,6 +2336,8 @@ export type UserUncheckedUpdateWithoutRequestedFriendshipsInput = {
   groupMembers?: Prisma.GroupMemberUncheckedUpdateManyWithoutUserNestedInput
   receivedFriendships?: Prisma.FriendshipUncheckedUpdateManyWithoutAddresseeNestedInput
   moderationReports?: Prisma.ModerationReportUncheckedUpdateManyWithoutReporterNestedInput
+  notifications?: Prisma.NotificationUncheckedUpdateManyWithoutUserNestedInput
+  actorNotifications?: Prisma.NotificationUncheckedUpdateManyWithoutActorNestedInput
 }
 
 export type UserUpsertWithoutReceivedFriendshipsInput = {
@@ -1974,6 +2382,8 @@ export type UserUpdateWithoutReceivedFriendshipsInput = {
   groupMembers?: Prisma.GroupMemberUpdateManyWithoutUserNestedInput
   requestedFriendships?: Prisma.FriendshipUpdateManyWithoutRequesterNestedInput
   moderationReports?: Prisma.ModerationReportUpdateManyWithoutReporterNestedInput
+  notifications?: Prisma.NotificationUpdateManyWithoutUserNestedInput
+  actorNotifications?: Prisma.NotificationUpdateManyWithoutActorNestedInput
 }
 
 export type UserUncheckedUpdateWithoutReceivedFriendshipsInput = {
@@ -2008,6 +2418,8 @@ export type UserUncheckedUpdateWithoutReceivedFriendshipsInput = {
   groupMembers?: Prisma.GroupMemberUncheckedUpdateManyWithoutUserNestedInput
   requestedFriendships?: Prisma.FriendshipUncheckedUpdateManyWithoutRequesterNestedInput
   moderationReports?: Prisma.ModerationReportUncheckedUpdateManyWithoutReporterNestedInput
+  notifications?: Prisma.NotificationUncheckedUpdateManyWithoutUserNestedInput
+  actorNotifications?: Prisma.NotificationUncheckedUpdateManyWithoutActorNestedInput
 }
 
 export type UserCreateWithoutModerationReportsInput = {
@@ -2041,6 +2453,8 @@ export type UserCreateWithoutModerationReportsInput = {
   groupMembers?: Prisma.GroupMemberCreateNestedManyWithoutUserInput
   requestedFriendships?: Prisma.FriendshipCreateNestedManyWithoutRequesterInput
   receivedFriendships?: Prisma.FriendshipCreateNestedManyWithoutAddresseeInput
+  notifications?: Prisma.NotificationCreateNestedManyWithoutUserInput
+  actorNotifications?: Prisma.NotificationCreateNestedManyWithoutActorInput
 }
 
 export type UserUncheckedCreateWithoutModerationReportsInput = {
@@ -2075,6 +2489,8 @@ export type UserUncheckedCreateWithoutModerationReportsInput = {
   groupMembers?: Prisma.GroupMemberUncheckedCreateNestedManyWithoutUserInput
   requestedFriendships?: Prisma.FriendshipUncheckedCreateNestedManyWithoutRequesterInput
   receivedFriendships?: Prisma.FriendshipUncheckedCreateNestedManyWithoutAddresseeInput
+  notifications?: Prisma.NotificationUncheckedCreateNestedManyWithoutUserInput
+  actorNotifications?: Prisma.NotificationUncheckedCreateNestedManyWithoutActorInput
 }
 
 export type UserCreateOrConnectWithoutModerationReportsInput = {
@@ -2124,6 +2540,8 @@ export type UserUpdateWithoutModerationReportsInput = {
   groupMembers?: Prisma.GroupMemberUpdateManyWithoutUserNestedInput
   requestedFriendships?: Prisma.FriendshipUpdateManyWithoutRequesterNestedInput
   receivedFriendships?: Prisma.FriendshipUpdateManyWithoutAddresseeNestedInput
+  notifications?: Prisma.NotificationUpdateManyWithoutUserNestedInput
+  actorNotifications?: Prisma.NotificationUpdateManyWithoutActorNestedInput
 }
 
 export type UserUncheckedUpdateWithoutModerationReportsInput = {
@@ -2158,6 +2576,8 @@ export type UserUncheckedUpdateWithoutModerationReportsInput = {
   groupMembers?: Prisma.GroupMemberUncheckedUpdateManyWithoutUserNestedInput
   requestedFriendships?: Prisma.FriendshipUncheckedUpdateManyWithoutRequesterNestedInput
   receivedFriendships?: Prisma.FriendshipUncheckedUpdateManyWithoutAddresseeNestedInput
+  notifications?: Prisma.NotificationUncheckedUpdateManyWithoutUserNestedInput
+  actorNotifications?: Prisma.NotificationUncheckedUpdateManyWithoutActorNestedInput
 }
 
 
@@ -2174,6 +2594,8 @@ export type UserCountOutputType = {
   requestedFriendships: number
   receivedFriendships: number
   moderationReports: number
+  notifications: number
+  actorNotifications: number
 }
 
 export type UserCountOutputTypeSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
@@ -2185,6 +2607,8 @@ export type UserCountOutputTypeSelect<ExtArgs extends runtime.Types.Extensions.I
   requestedFriendships?: boolean | UserCountOutputTypeCountRequestedFriendshipsArgs
   receivedFriendships?: boolean | UserCountOutputTypeCountReceivedFriendshipsArgs
   moderationReports?: boolean | UserCountOutputTypeCountModerationReportsArgs
+  notifications?: boolean | UserCountOutputTypeCountNotificationsArgs
+  actorNotifications?: boolean | UserCountOutputTypeCountActorNotificationsArgs
 }
 
 /**
@@ -2253,6 +2677,20 @@ export type UserCountOutputTypeCountModerationReportsArgs<ExtArgs extends runtim
   where?: Prisma.ModerationReportWhereInput
 }
 
+/**
+ * UserCountOutputType without action
+ */
+export type UserCountOutputTypeCountNotificationsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.NotificationWhereInput
+}
+
+/**
+ * UserCountOutputType without action
+ */
+export type UserCountOutputTypeCountActorNotificationsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.NotificationWhereInput
+}
+
 
 export type UserSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
   id?: boolean
@@ -2287,6 +2725,8 @@ export type UserSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = r
   requestedFriendships?: boolean | Prisma.User$requestedFriendshipsArgs<ExtArgs>
   receivedFriendships?: boolean | Prisma.User$receivedFriendshipsArgs<ExtArgs>
   moderationReports?: boolean | Prisma.User$moderationReportsArgs<ExtArgs>
+  notifications?: boolean | Prisma.User$notificationsArgs<ExtArgs>
+  actorNotifications?: boolean | Prisma.User$actorNotificationsArgs<ExtArgs>
   _count?: boolean | Prisma.UserCountOutputTypeDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["user"]>
 
@@ -2381,6 +2821,8 @@ export type UserInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = 
   requestedFriendships?: boolean | Prisma.User$requestedFriendshipsArgs<ExtArgs>
   receivedFriendships?: boolean | Prisma.User$receivedFriendshipsArgs<ExtArgs>
   moderationReports?: boolean | Prisma.User$moderationReportsArgs<ExtArgs>
+  notifications?: boolean | Prisma.User$notificationsArgs<ExtArgs>
+  actorNotifications?: boolean | Prisma.User$actorNotificationsArgs<ExtArgs>
   _count?: boolean | Prisma.UserCountOutputTypeDefaultArgs<ExtArgs>
 }
 export type UserIncludeCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {}
@@ -2397,6 +2839,8 @@ export type $UserPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs =
     requestedFriendships: Prisma.$FriendshipPayload<ExtArgs>[]
     receivedFriendships: Prisma.$FriendshipPayload<ExtArgs>[]
     moderationReports: Prisma.$ModerationReportPayload<ExtArgs>[]
+    notifications: Prisma.$NotificationPayload<ExtArgs>[]
+    actorNotifications: Prisma.$NotificationPayload<ExtArgs>[]
   }
   scalars: runtime.Types.Extensions.GetPayloadResult<{
     id: number
@@ -2825,6 +3269,8 @@ export interface Prisma__UserClient<T, Null = never, ExtArgs extends runtime.Typ
   requestedFriendships<T extends Prisma.User$requestedFriendshipsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$requestedFriendshipsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$FriendshipPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   receivedFriendships<T extends Prisma.User$receivedFriendshipsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$receivedFriendshipsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$FriendshipPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   moderationReports<T extends Prisma.User$moderationReportsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$moderationReportsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$ModerationReportPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+  notifications<T extends Prisma.User$notificationsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$notificationsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$NotificationPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+  actorNotifications<T extends Prisma.User$actorNotificationsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$actorNotificationsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$NotificationPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   /**
    * Attaches callbacks for the resolution and/or rejection of the Promise.
    * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -3460,6 +3906,54 @@ export type User$moderationReportsArgs<ExtArgs extends runtime.Types.Extensions.
   take?: number
   skip?: number
   distinct?: Prisma.ModerationReportScalarFieldEnum | Prisma.ModerationReportScalarFieldEnum[]
+}
+
+/**
+ * User.notifications
+ */
+export type User$notificationsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the Notification
+   */
+  select?: Prisma.NotificationSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the Notification
+   */
+  omit?: Prisma.NotificationOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.NotificationInclude<ExtArgs> | null
+  where?: Prisma.NotificationWhereInput
+  orderBy?: Prisma.NotificationOrderByWithRelationInput | Prisma.NotificationOrderByWithRelationInput[]
+  cursor?: Prisma.NotificationWhereUniqueInput
+  take?: number
+  skip?: number
+  distinct?: Prisma.NotificationScalarFieldEnum | Prisma.NotificationScalarFieldEnum[]
+}
+
+/**
+ * User.actorNotifications
+ */
+export type User$actorNotificationsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the Notification
+   */
+  select?: Prisma.NotificationSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the Notification
+   */
+  omit?: Prisma.NotificationOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.NotificationInclude<ExtArgs> | null
+  where?: Prisma.NotificationWhereInput
+  orderBy?: Prisma.NotificationOrderByWithRelationInput | Prisma.NotificationOrderByWithRelationInput[]
+  cursor?: Prisma.NotificationWhereUniqueInput
+  take?: number
+  skip?: number
+  distinct?: Prisma.NotificationScalarFieldEnum | Prisma.NotificationScalarFieldEnum[]
 }
 
 /**

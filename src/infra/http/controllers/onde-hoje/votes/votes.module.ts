@@ -7,9 +7,10 @@ import { DatabaseModule } from '@/infra/database/database.module';
 import { EventsModule } from '@/infra/events/events.module';
 import { ListMyVoteHistoryController } from './list-my-vote-history.controller';
 import { VotePlaceController } from './vote-place.controller';
+import { NotificationsModule } from '../notifications/notifications.module';
 
 @Module({
-  imports: [DatabaseModule, EventsModule, CacheModule],
+  imports: [DatabaseModule, EventsModule, CacheModule, NotificationsModule],
   controllers: [ListMyVoteHistoryController, VotePlaceController],
   providers: [CancelVoteUseCase, ListMyVoteHistoryUseCase, VoteTodayUseCase],
 })

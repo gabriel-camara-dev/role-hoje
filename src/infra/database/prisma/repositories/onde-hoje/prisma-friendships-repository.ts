@@ -1,9 +1,7 @@
 import { Inject, Injectable } from '@nestjs/common';
+import type { FriendListItem } from '@/domain/main/enterprise/entities/onde-hoje/friendships/friendship';
 import type {
-  FriendListItem,
-  FriendshipStatus,
-} from '@/domain/main/enterprise/entities/onde-hoje/friendships/friendship';
-import type {
+  AcceptFriendshipResult,
   FriendshipsRepository,
   RequestFriendshipResult,
 } from '@/domain/main/application/repositories/onde-hoje/friendships-repository';
@@ -73,10 +71,13 @@ export class PrismaFriendshipsRepository implements FriendshipsRepository {
       },
     });
 
-    return { type: 'requested', status: friendship.status };
+    return { type: 'requested', status: friendship.status, addresseePublicId: friend.publicId };
   }
 
-  async acceptFriendship(data: { addresseeId: number; requesterUsername: string }): Promise<FriendshipStatus | null> {
+  async acceptFriendship(data: {
+    addresseeId: number;
+    requesterUsername: string;
+  }): Promise<AcceptFriendshipResult | null> {
     const requester = await this.prisma.user.findUnique({ where: { username: data.requesterUsername } });
 
     if (!requester) {
@@ -107,7 +108,7 @@ export class PrismaFriendshipsRepository implements FriendshipsRepository {
       return null;
     }
 
-    return friendship.status;
+    return { status: friendship.status, requesterPublicId: requester.publicId };
   }
 
   async rejectFriendship(data: { addresseeId: number; requesterUsername: string }): Promise<boolean> {
@@ -123,6 +124,20 @@ export class PrismaFriendshipsRepository implements FriendshipsRepository {
         addresseeId: data.addresseeId,
         status: 'PENDING',
       },
+    });
+
+    return deleted.count > 0;
+  }
+
+  async removeFriendship(data: { userId: number; otherUsername: string }): Promise<boolean> {
+    const other = await this.prisma.user.findUnique({ where: { username: data.otherUsername } });
+
+    if (!other) {
+      return false;
+    }
+
+    const deleted = await this.prisma.friendship.deleteMany({
+      where: { pairKey: friendshipPairKey(data.userId, other.id) },
     });
 
     return deleted.count > 0;

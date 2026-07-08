@@ -47,6 +47,11 @@ export { Prisma }
  */
 export type AuthenticationAudit = Prisma.AuthenticationAuditModel
 /**
+ * Model Notification
+ * 
+ */
+export type Notification = Prisma.NotificationModel
+/**
  * Model Place
  * 
  */

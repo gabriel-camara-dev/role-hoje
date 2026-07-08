@@ -40,6 +40,8 @@ export class GetTodayMapController {
       city: query.city,
       groupPublicId: query.groupPublicId,
       day: parseDateOnly(query.day) ?? todayDate(),
+      from: parseDateOnly(query.from) ?? undefined,
+      to: parseDateOnly(query.to) ?? undefined,
       viewerPublicId,
     });
 

@@ -4,6 +4,20 @@ import type { PlaceHistoryDay, UserVoteHistoryItem } from '../../../enterprise/e
 import type { PlaceVote, PlaceVoteType } from '../../../enterprise/entities/onde-hoje/places/place-vote';
 import type { TodayMapPlace } from '../../../enterprise/entities/onde-hoje/places/today-map-place';
 
+export interface VoteActorInfo {
+  publicId: string;
+  name: string;
+  username: string;
+  avatarUrl: string | null;
+}
+
+export interface VoteNotificationTargets {
+  placePublicId: string;
+  placeName: string;
+  actor: VoteActorInfo;
+  recipients: Array<{ id: number; publicId: string }>;
+}
+
 export interface ListPlacesQuery {
   q?: string;
   city?: string;
@@ -16,6 +30,8 @@ export interface TodayMapQuery {
   city?: string;
   groupPublicId?: string;
   day?: Date;
+  from?: Date;
+  to?: Date;
   viewerPublicId?: string;
 }
 
@@ -24,6 +40,8 @@ export interface TopPlacesTodayQuery {
   state?: string;
   groupPublicId?: string;
   day?: Date;
+  from?: Date;
+  to?: Date;
   viewerPublicId?: string;
   limit?: number;
 }
@@ -74,7 +92,14 @@ export abstract class PlacesRepository {
     groupPublicId?: string;
     note?: string;
     voteType?: PlaceVoteType;
+    showIdentity?: boolean;
   }): Promise<PlaceVote | null>;
+  abstract findVoteNotificationTargets(data: {
+    actorUserId: number;
+    placePublicId: string;
+    day: Date;
+    groupPublicId?: string;
+  }): Promise<VoteNotificationTargets | null>;
   abstract cancelVote(data: {
     userId: number;
     placePublicId: string;

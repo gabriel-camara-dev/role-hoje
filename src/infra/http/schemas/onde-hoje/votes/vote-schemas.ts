@@ -8,6 +8,7 @@ export const voteSchema = z.object({
   groupPublicId: z.string().uuid().optional(),
   note: z.string().max(240).optional(),
   voteType: voteTypeSchema,
+  showIdentity: z.boolean().optional().default(true),
 });
 
 export const legacyTodayVoteSchema = z.object({
@@ -15,6 +16,7 @@ export const legacyTodayVoteSchema = z.object({
   groupPublicId: z.string().uuid().optional(),
   note: z.string().max(240).optional(),
   voteType: voteTypeSchema,
+  showIdentity: z.boolean().optional().default(true),
 });
 
 export const myVotesQuerySchema = z.object({

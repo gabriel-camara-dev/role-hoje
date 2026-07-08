@@ -9,6 +9,7 @@ import { PlacesRepository } from '../../../repositories/onde-hoje/places-reposit
 import type { PlaceVote, PlaceVoteType } from '../../../../enterprise/entities/onde-hoje/places/place-vote';
 import { VoteLimitExceededError } from '../../errors/vote-limit-exceeded-error';
 import { ResourceNotFoundError } from '../../errors/resource-not-found-error';
+import { NotificationDispatcher } from '../notifications/notification-dispatcher';
 
 interface VoteTodayUseCaseRequest {
   currentUserPublicId: string;
@@ -17,6 +18,7 @@ interface VoteTodayUseCaseRequest {
   groupPublicId?: string;
   note?: string;
   voteType?: PlaceVoteType;
+  showIdentity?: boolean;
 }
 
 const MAX_ACTIVE_VOTES_PER_DAY = 3;
@@ -29,6 +31,7 @@ export class VoteTodayUseCase {
     @Inject(PlacesRepository) private placesRepository: PlacesRepository,
     @Inject(OndeHojeUsersRepository) private usersRepository: OndeHojeUsersRepository,
     @Inject(EventBus) private eventBus: EventBus,
+    @Inject(NotificationDispatcher) private notificationDispatcher: NotificationDispatcher,
   ) {}
 
   async execute(request: VoteTodayUseCaseRequest): Promise<VoteTodayUseCaseResponse> {
@@ -61,11 +64,20 @@ export class VoteTodayUseCase {
       groupPublicId: request.groupPublicId,
       note: request.note,
       voteType: request.voteType,
+      showIdentity: request.showIdentity,
     });
 
     if (!vote) {
       return fail(new ResourceNotFoundError('Place or group not found'));
     }
+
+    await this.notifyOtherVoters({
+      actorUserId: user.id,
+      placePublicId: request.placePublicId,
+      day,
+      groupPublicId: request.groupPublicId,
+      showIdentity: request.showIdentity ?? true,
+    });
 
     const payload = {
       voteId: vote.publicId,
@@ -93,5 +105,41 @@ export class VoteTodayUseCase {
     );
 
     return success({ vote });
+  }
+
+  private async notifyOtherVoters(input: {
+    actorUserId: number;
+    placePublicId: string;
+    day: Date;
+    groupPublicId?: string;
+    showIdentity: boolean;
+  }): Promise<void> {
+    const targets = await this.placesRepository.findVoteNotificationTargets({
+      actorUserId: input.actorUserId,
+      placePublicId: input.placePublicId,
+      day: input.day,
+      groupPublicId: input.groupPublicId,
+    });
+
+    if (!targets || targets.recipients.length === 0) {
+      return;
+    }
+
+    const dayKey = input.day.toISOString().slice(0, 10);
+    const groupKey = `place-vote:${targets.placePublicId}:${dayKey}:${input.groupPublicId ?? 'global'}`;
+    const actor = input.showIdentity ? targets.actor : null;
+
+    await Promise.all(
+      targets.recipients.map((recipient) =>
+        this.notificationDispatcher.dispatchAggregatedVote({
+          recipientId: recipient.id,
+          recipientPublicId: recipient.publicId,
+          groupKey,
+          placeName: targets.placeName,
+          placePublicId: targets.placePublicId,
+          actor,
+        }),
+      ),
+    );
   }
 }

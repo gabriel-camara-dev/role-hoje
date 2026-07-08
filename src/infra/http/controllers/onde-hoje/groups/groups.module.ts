@@ -8,6 +8,7 @@ import { LeaveGroupUseCase } from '@/domain/main/application/use-cases/onde-hoje
 import { ListMyGroupsUseCase } from '@/domain/main/application/use-cases/onde-hoje/groups/list-my-groups';
 import { ListPublicGroupsUseCase } from '@/domain/main/application/use-cases/onde-hoje/groups/list-public-groups';
 import { RemoveGroupMemberUseCase } from '@/domain/main/application/use-cases/onde-hoje/groups/remove-group-member';
+import { RespondGroupInviteUseCase } from '@/domain/main/application/use-cases/onde-hoje/groups/respond-group-invite';
 import { PasswordHasher } from '@/domain/main/application/use-cases/users/password-hasher';
 import { BcryptPasswordHasher } from '@/infra/auth/bcrypt-password-hasher';
 import { CacheModule } from '@/infra/cache/cache.module';
@@ -23,10 +24,12 @@ import { LeaveGroupController } from './leave-group.controller';
 import { ListMyGroupsController } from './list-my-groups.controller';
 import { ListPublicGroupsController } from './list-public-groups.controller';
 import { RemoveGroupMemberController } from './remove-group-member.controller';
+import { RespondGroupInviteController } from './respond-group-invite.controller';
+import { NotificationsModule } from '../notifications/notifications.module';
 import { OptionalViewerResolver } from '../map/optional-viewer';
 
 @Module({
-  imports: [DatabaseModule, EventsModule, EnvModule, CacheModule],
+  imports: [DatabaseModule, EventsModule, EnvModule, CacheModule, NotificationsModule],
   controllers: [
     ListPublicGroupsController,
     ListMyGroupsController,
@@ -36,6 +39,7 @@ import { OptionalViewerResolver } from '../map/optional-viewer';
     LeaveGroupController,
     AcceptGroupMemberController,
     InviteGroupMemberController,
+    RespondGroupInviteController,
     RemoveGroupMemberController,
   ],
   providers: [
@@ -47,6 +51,7 @@ import { OptionalViewerResolver } from '../map/optional-viewer';
     LeaveGroupUseCase,
     AcceptGroupMemberUseCase,
     InviteGroupMemberUseCase,
+    RespondGroupInviteUseCase,
     RemoveGroupMemberUseCase,
     OptionalViewerResolver,
     { provide: PasswordHasher, useClass: BcryptPasswordHasher },

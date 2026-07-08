@@ -1,4 +1,4 @@
-export type GroupMemberStatus = 'ACTIVE' | 'PENDING' | 'BLOCKED';
+export type GroupMemberStatus = 'ACTIVE' | 'PENDING' | 'INVITED' | 'BLOCKED';
 
 export interface GroupMembership {
   groupPublicId: string;

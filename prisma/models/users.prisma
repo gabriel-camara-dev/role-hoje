@@ -41,6 +41,8 @@ model User {
   requestedFriendships Friendship[] @relation("FriendshipRequester")
   receivedFriendships  Friendship[] @relation("FriendshipAddressee")
   moderationReports    ModerationReport[]
+  notifications        Notification[] @relation("NotificationRecipient")
+  actorNotifications   Notification[] @relation("NotificationActor")
 
   @@index([name], name: "idx_user_name")
   @@index([token], name: "idx_user_token")
