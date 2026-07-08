@@ -94,6 +94,8 @@ model PlaceVote {
   status    VoteStatus @default(ACTIVE)
   voteType  VoteType   @default(GENERAL) @map("vote_type")
   showIdentity Boolean  @default(true) @map("show_identity")
+  going     Boolean    @default(true)
+  voteTime  String?    @map("vote_time")
   scopeKey  String     @default("global") @map("scope_key")
   userId    Int        @map("user_id")
   placeId   Int        @map("place_id")

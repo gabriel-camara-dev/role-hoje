@@ -140,6 +140,7 @@ export class PrismaPlacesRepository implements PlacesRepository {
           some: {
             day,
             status: 'ACTIVE',
+            going: true,
             ...voteScopeWhere,
           },
         },
@@ -169,7 +170,7 @@ export class PrismaPlacesRepository implements PlacesRepository {
     const mappedPlaces = places
       .map((place) => ({
         ...PrismaOndeHojeMapper.placeToDomain(place),
-        voteCount: place.votes.length,
+        voteCount: place.votes.filter((vote) => vote.going).length,
         dominantVoteType: dominantVoteType(place.votes),
         voters: place.votes
           .filter((vote) => vote.showIdentity)
@@ -181,6 +182,8 @@ export class PrismaPlacesRepository implements PlacesRepository {
             avatarUrl: this.avatarUrl(vote.user),
             note: vote.note,
             voteType: vote.voteType,
+            going: vote.going,
+            voteTime: vote.voteTime,
           })),
       }))
       .sort((a, b) => b.voteCount - a.voteCount);
@@ -220,6 +223,7 @@ export class PrismaPlacesRepository implements PlacesRepository {
           some: {
             day,
             status: 'ACTIVE',
+            going: true,
             ...voteScopeWhere,
           },
         },
@@ -249,7 +253,7 @@ export class PrismaPlacesRepository implements PlacesRepository {
     const mappedPlaces = places
       .map((place) => ({
         ...PrismaOndeHojeMapper.placeToDomain(place),
-        voteCount: place.votes.length,
+        voteCount: place.votes.filter((vote) => vote.going).length,
         dominantVoteType: dominantVoteType(place.votes),
         voters: place.votes
           .filter((vote) => vote.showIdentity)
@@ -261,6 +265,8 @@ export class PrismaPlacesRepository implements PlacesRepository {
             avatarUrl: this.avatarUrl(vote.user),
             note: vote.note,
             voteType: vote.voteType,
+            going: vote.going,
+            voteTime: vote.voteTime,
           })),
       }))
       .sort((a, b) => b.voteCount - a.voteCount)
@@ -306,7 +312,7 @@ export class PrismaPlacesRepository implements PlacesRepository {
     return places
       .map((place) => ({
         ...PrismaOndeHojeMapper.placeToDomain(place),
-        voteCount: place.votes.length,
+        voteCount: place.votes.filter((vote) => vote.going).length,
         dominantVoteType: dominantVoteType(place.votes),
         voters: place.votes
           .filter((vote) => vote.showIdentity)
@@ -318,6 +324,8 @@ export class PrismaPlacesRepository implements PlacesRepository {
             avatarUrl: this.avatarUrl(vote.user),
             note: vote.note,
             voteType: vote.voteType,
+            going: vote.going,
+            voteTime: vote.voteTime,
           })),
       }))
       .sort((a, b) => b.voteCount - a.voteCount)
@@ -407,6 +415,8 @@ export class PrismaPlacesRepository implements PlacesRepository {
             avatarUrl: this.avatarUrl(vote.user),
             note: vote.note,
             voteType: vote.voteType,
+            going: vote.going,
+            voteTime: vote.voteTime,
           });
         }
       } else {
@@ -422,6 +432,8 @@ export class PrismaPlacesRepository implements PlacesRepository {
               avatarUrl: this.avatarUrl(vote.user),
               note: vote.note,
               voteType: vote.voteType,
+              going: vote.going,
+              voteTime: vote.voteTime,
             },
           ],
         });
@@ -579,6 +591,7 @@ export class PrismaPlacesRepository implements PlacesRepository {
       where: {
         userId: data.userId,
         status: 'ACTIVE',
+        going: true,
         day: { gte: weekStart, lte: weekEnd },
         OR: [
           { placeId: { not: place.id } },
@@ -597,6 +610,8 @@ export class PrismaPlacesRepository implements PlacesRepository {
     note?: string;
     voteType?: PlaceVote['voteType'];
     showIdentity?: boolean;
+    going?: boolean;
+    voteTime?: string;
   }): Promise<PlaceVote | null> {
     const [place, group] = await Promise.all([
       this.prisma.place.findUnique({ where: { publicId: data.placePublicId } }),
@@ -647,6 +662,8 @@ export class PrismaPlacesRepository implements PlacesRepository {
         status: 'ACTIVE',
         voteType,
         showIdentity: data.showIdentity ?? true,
+        going: data.going ?? true,
+        voteTime: data.voteTime ?? null,
       },
       create: {
         userId: data.userId,
@@ -657,6 +674,8 @@ export class PrismaPlacesRepository implements PlacesRepository {
         note: data.note,
         voteType,
         showIdentity: data.showIdentity ?? true,
+        going: data.going ?? true,
+        voteTime: data.voteTime ?? null,
       },
     });
 
@@ -770,6 +789,8 @@ export class PrismaPlacesRepository implements PlacesRepository {
           avatarUrl: this.avatarUrl(vote.user),
           note: vote.note,
           voteType: vote.voteType,
+          going: vote.going,
+          voteTime: vote.voteTime,
         })),
     };
 

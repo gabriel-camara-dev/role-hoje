@@ -48,6 +48,8 @@ export type PlaceVoteMinAggregateOutputType = {
   status: $Enums.VoteStatus | null
   voteType: $Enums.VoteType | null
   showIdentity: boolean | null
+  going: boolean | null
+  voteTime: string | null
   scopeKey: string | null
   userId: number | null
   placeId: number | null
@@ -64,6 +66,8 @@ export type PlaceVoteMaxAggregateOutputType = {
   status: $Enums.VoteStatus | null
   voteType: $Enums.VoteType | null
   showIdentity: boolean | null
+  going: boolean | null
+  voteTime: string | null
   scopeKey: string | null
   userId: number | null
   placeId: number | null
@@ -80,6 +84,8 @@ export type PlaceVoteCountAggregateOutputType = {
   status: number
   voteType: number
   showIdentity: number
+  going: number
+  voteTime: number
   scopeKey: number
   userId: number
   placeId: number
@@ -112,6 +118,8 @@ export type PlaceVoteMinAggregateInputType = {
   status?: true
   voteType?: true
   showIdentity?: true
+  going?: true
+  voteTime?: true
   scopeKey?: true
   userId?: true
   placeId?: true
@@ -128,6 +136,8 @@ export type PlaceVoteMaxAggregateInputType = {
   status?: true
   voteType?: true
   showIdentity?: true
+  going?: true
+  voteTime?: true
   scopeKey?: true
   userId?: true
   placeId?: true
@@ -144,6 +154,8 @@ export type PlaceVoteCountAggregateInputType = {
   status?: true
   voteType?: true
   showIdentity?: true
+  going?: true
+  voteTime?: true
   scopeKey?: true
   userId?: true
   placeId?: true
@@ -247,6 +259,8 @@ export type PlaceVoteGroupByOutputType = {
   status: $Enums.VoteStatus
   voteType: $Enums.VoteType
   showIdentity: boolean
+  going: boolean
+  voteTime: string | null
   scopeKey: string
   userId: number
   placeId: number
@@ -286,6 +300,8 @@ export type PlaceVoteWhereInput = {
   status?: Prisma.EnumVoteStatusFilter<"PlaceVote"> | $Enums.VoteStatus
   voteType?: Prisma.EnumVoteTypeFilter<"PlaceVote"> | $Enums.VoteType
   showIdentity?: Prisma.BoolFilter<"PlaceVote"> | boolean
+  going?: Prisma.BoolFilter<"PlaceVote"> | boolean
+  voteTime?: Prisma.StringNullableFilter<"PlaceVote"> | string | null
   scopeKey?: Prisma.StringFilter<"PlaceVote"> | string
   userId?: Prisma.IntFilter<"PlaceVote"> | number
   placeId?: Prisma.IntFilter<"PlaceVote"> | number
@@ -305,6 +321,8 @@ export type PlaceVoteOrderByWithRelationInput = {
   status?: Prisma.SortOrder
   voteType?: Prisma.SortOrder
   showIdentity?: Prisma.SortOrder
+  going?: Prisma.SortOrder
+  voteTime?: Prisma.SortOrderInput | Prisma.SortOrder
   scopeKey?: Prisma.SortOrder
   userId?: Prisma.SortOrder
   placeId?: Prisma.SortOrder
@@ -328,6 +346,8 @@ export type PlaceVoteWhereUniqueInput = Prisma.AtLeast<{
   status?: Prisma.EnumVoteStatusFilter<"PlaceVote"> | $Enums.VoteStatus
   voteType?: Prisma.EnumVoteTypeFilter<"PlaceVote"> | $Enums.VoteType
   showIdentity?: Prisma.BoolFilter<"PlaceVote"> | boolean
+  going?: Prisma.BoolFilter<"PlaceVote"> | boolean
+  voteTime?: Prisma.StringNullableFilter<"PlaceVote"> | string | null
   scopeKey?: Prisma.StringFilter<"PlaceVote"> | string
   userId?: Prisma.IntFilter<"PlaceVote"> | number
   placeId?: Prisma.IntFilter<"PlaceVote"> | number
@@ -347,6 +367,8 @@ export type PlaceVoteOrderByWithAggregationInput = {
   status?: Prisma.SortOrder
   voteType?: Prisma.SortOrder
   showIdentity?: Prisma.SortOrder
+  going?: Prisma.SortOrder
+  voteTime?: Prisma.SortOrderInput | Prisma.SortOrder
   scopeKey?: Prisma.SortOrder
   userId?: Prisma.SortOrder
   placeId?: Prisma.SortOrder
@@ -371,6 +393,8 @@ export type PlaceVoteScalarWhereWithAggregatesInput = {
   status?: Prisma.EnumVoteStatusWithAggregatesFilter<"PlaceVote"> | $Enums.VoteStatus
   voteType?: Prisma.EnumVoteTypeWithAggregatesFilter<"PlaceVote"> | $Enums.VoteType
   showIdentity?: Prisma.BoolWithAggregatesFilter<"PlaceVote"> | boolean
+  going?: Prisma.BoolWithAggregatesFilter<"PlaceVote"> | boolean
+  voteTime?: Prisma.StringNullableWithAggregatesFilter<"PlaceVote"> | string | null
   scopeKey?: Prisma.StringWithAggregatesFilter<"PlaceVote"> | string
   userId?: Prisma.IntWithAggregatesFilter<"PlaceVote"> | number
   placeId?: Prisma.IntWithAggregatesFilter<"PlaceVote"> | number
@@ -386,6 +410,8 @@ export type PlaceVoteCreateInput = {
   status?: $Enums.VoteStatus
   voteType?: $Enums.VoteType
   showIdentity?: boolean
+  going?: boolean
+  voteTime?: string | null
   scopeKey?: string
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -402,6 +428,8 @@ export type PlaceVoteUncheckedCreateInput = {
   status?: $Enums.VoteStatus
   voteType?: $Enums.VoteType
   showIdentity?: boolean
+  going?: boolean
+  voteTime?: string | null
   scopeKey?: string
   userId: number
   placeId: number
@@ -417,6 +445,8 @@ export type PlaceVoteUpdateInput = {
   status?: Prisma.EnumVoteStatusFieldUpdateOperationsInput | $Enums.VoteStatus
   voteType?: Prisma.EnumVoteTypeFieldUpdateOperationsInput | $Enums.VoteType
   showIdentity?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  going?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  voteTime?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   scopeKey?: Prisma.StringFieldUpdateOperationsInput | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -433,6 +463,8 @@ export type PlaceVoteUncheckedUpdateInput = {
   status?: Prisma.EnumVoteStatusFieldUpdateOperationsInput | $Enums.VoteStatus
   voteType?: Prisma.EnumVoteTypeFieldUpdateOperationsInput | $Enums.VoteType
   showIdentity?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  going?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  voteTime?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   scopeKey?: Prisma.StringFieldUpdateOperationsInput | string
   userId?: Prisma.IntFieldUpdateOperationsInput | number
   placeId?: Prisma.IntFieldUpdateOperationsInput | number
@@ -449,6 +481,8 @@ export type PlaceVoteCreateManyInput = {
   status?: $Enums.VoteStatus
   voteType?: $Enums.VoteType
   showIdentity?: boolean
+  going?: boolean
+  voteTime?: string | null
   scopeKey?: string
   userId: number
   placeId: number
@@ -464,6 +498,8 @@ export type PlaceVoteUpdateManyMutationInput = {
   status?: Prisma.EnumVoteStatusFieldUpdateOperationsInput | $Enums.VoteStatus
   voteType?: Prisma.EnumVoteTypeFieldUpdateOperationsInput | $Enums.VoteType
   showIdentity?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  going?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  voteTime?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   scopeKey?: Prisma.StringFieldUpdateOperationsInput | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -477,6 +513,8 @@ export type PlaceVoteUncheckedUpdateManyInput = {
   status?: Prisma.EnumVoteStatusFieldUpdateOperationsInput | $Enums.VoteStatus
   voteType?: Prisma.EnumVoteTypeFieldUpdateOperationsInput | $Enums.VoteType
   showIdentity?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  going?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  voteTime?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   scopeKey?: Prisma.StringFieldUpdateOperationsInput | string
   userId?: Prisma.IntFieldUpdateOperationsInput | number
   placeId?: Prisma.IntFieldUpdateOperationsInput | number
@@ -510,6 +548,8 @@ export type PlaceVoteCountOrderByAggregateInput = {
   status?: Prisma.SortOrder
   voteType?: Prisma.SortOrder
   showIdentity?: Prisma.SortOrder
+  going?: Prisma.SortOrder
+  voteTime?: Prisma.SortOrder
   scopeKey?: Prisma.SortOrder
   userId?: Prisma.SortOrder
   placeId?: Prisma.SortOrder
@@ -533,6 +573,8 @@ export type PlaceVoteMaxOrderByAggregateInput = {
   status?: Prisma.SortOrder
   voteType?: Prisma.SortOrder
   showIdentity?: Prisma.SortOrder
+  going?: Prisma.SortOrder
+  voteTime?: Prisma.SortOrder
   scopeKey?: Prisma.SortOrder
   userId?: Prisma.SortOrder
   placeId?: Prisma.SortOrder
@@ -549,6 +591,8 @@ export type PlaceVoteMinOrderByAggregateInput = {
   status?: Prisma.SortOrder
   voteType?: Prisma.SortOrder
   showIdentity?: Prisma.SortOrder
+  going?: Prisma.SortOrder
+  voteTime?: Prisma.SortOrder
   scopeKey?: Prisma.SortOrder
   userId?: Prisma.SortOrder
   placeId?: Prisma.SortOrder
@@ -705,6 +749,8 @@ export type PlaceVoteCreateWithoutPlaceInput = {
   status?: $Enums.VoteStatus
   voteType?: $Enums.VoteType
   showIdentity?: boolean
+  going?: boolean
+  voteTime?: string | null
   scopeKey?: string
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -720,6 +766,8 @@ export type PlaceVoteUncheckedCreateWithoutPlaceInput = {
   status?: $Enums.VoteStatus
   voteType?: $Enums.VoteType
   showIdentity?: boolean
+  going?: boolean
+  voteTime?: string | null
   scopeKey?: string
   userId: number
   groupId?: number | null
@@ -764,6 +812,8 @@ export type PlaceVoteScalarWhereInput = {
   status?: Prisma.EnumVoteStatusFilter<"PlaceVote"> | $Enums.VoteStatus
   voteType?: Prisma.EnumVoteTypeFilter<"PlaceVote"> | $Enums.VoteType
   showIdentity?: Prisma.BoolFilter<"PlaceVote"> | boolean
+  going?: Prisma.BoolFilter<"PlaceVote"> | boolean
+  voteTime?: Prisma.StringNullableFilter<"PlaceVote"> | string | null
   scopeKey?: Prisma.StringFilter<"PlaceVote"> | string
   userId?: Prisma.IntFilter<"PlaceVote"> | number
   placeId?: Prisma.IntFilter<"PlaceVote"> | number
@@ -779,6 +829,8 @@ export type PlaceVoteCreateWithoutGroupInput = {
   status?: $Enums.VoteStatus
   voteType?: $Enums.VoteType
   showIdentity?: boolean
+  going?: boolean
+  voteTime?: string | null
   scopeKey?: string
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -794,6 +846,8 @@ export type PlaceVoteUncheckedCreateWithoutGroupInput = {
   status?: $Enums.VoteStatus
   voteType?: $Enums.VoteType
   showIdentity?: boolean
+  going?: boolean
+  voteTime?: string | null
   scopeKey?: string
   userId: number
   placeId: number
@@ -834,6 +888,8 @@ export type PlaceVoteCreateWithoutUserInput = {
   status?: $Enums.VoteStatus
   voteType?: $Enums.VoteType
   showIdentity?: boolean
+  going?: boolean
+  voteTime?: string | null
   scopeKey?: string
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -849,6 +905,8 @@ export type PlaceVoteUncheckedCreateWithoutUserInput = {
   status?: $Enums.VoteStatus
   voteType?: $Enums.VoteType
   showIdentity?: boolean
+  going?: boolean
+  voteTime?: string | null
   scopeKey?: string
   placeId: number
   groupId?: number | null
@@ -890,6 +948,8 @@ export type PlaceVoteCreateManyPlaceInput = {
   status?: $Enums.VoteStatus
   voteType?: $Enums.VoteType
   showIdentity?: boolean
+  going?: boolean
+  voteTime?: string | null
   scopeKey?: string
   userId: number
   groupId?: number | null
@@ -904,6 +964,8 @@ export type PlaceVoteUpdateWithoutPlaceInput = {
   status?: Prisma.EnumVoteStatusFieldUpdateOperationsInput | $Enums.VoteStatus
   voteType?: Prisma.EnumVoteTypeFieldUpdateOperationsInput | $Enums.VoteType
   showIdentity?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  going?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  voteTime?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   scopeKey?: Prisma.StringFieldUpdateOperationsInput | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -919,6 +981,8 @@ export type PlaceVoteUncheckedUpdateWithoutPlaceInput = {
   status?: Prisma.EnumVoteStatusFieldUpdateOperationsInput | $Enums.VoteStatus
   voteType?: Prisma.EnumVoteTypeFieldUpdateOperationsInput | $Enums.VoteType
   showIdentity?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  going?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  voteTime?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   scopeKey?: Prisma.StringFieldUpdateOperationsInput | string
   userId?: Prisma.IntFieldUpdateOperationsInput | number
   groupId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
@@ -934,6 +998,8 @@ export type PlaceVoteUncheckedUpdateManyWithoutPlaceInput = {
   status?: Prisma.EnumVoteStatusFieldUpdateOperationsInput | $Enums.VoteStatus
   voteType?: Prisma.EnumVoteTypeFieldUpdateOperationsInput | $Enums.VoteType
   showIdentity?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  going?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  voteTime?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   scopeKey?: Prisma.StringFieldUpdateOperationsInput | string
   userId?: Prisma.IntFieldUpdateOperationsInput | number
   groupId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
@@ -949,6 +1015,8 @@ export type PlaceVoteCreateManyGroupInput = {
   status?: $Enums.VoteStatus
   voteType?: $Enums.VoteType
   showIdentity?: boolean
+  going?: boolean
+  voteTime?: string | null
   scopeKey?: string
   userId: number
   placeId: number
@@ -963,6 +1031,8 @@ export type PlaceVoteUpdateWithoutGroupInput = {
   status?: Prisma.EnumVoteStatusFieldUpdateOperationsInput | $Enums.VoteStatus
   voteType?: Prisma.EnumVoteTypeFieldUpdateOperationsInput | $Enums.VoteType
   showIdentity?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  going?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  voteTime?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   scopeKey?: Prisma.StringFieldUpdateOperationsInput | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -978,6 +1048,8 @@ export type PlaceVoteUncheckedUpdateWithoutGroupInput = {
   status?: Prisma.EnumVoteStatusFieldUpdateOperationsInput | $Enums.VoteStatus
   voteType?: Prisma.EnumVoteTypeFieldUpdateOperationsInput | $Enums.VoteType
   showIdentity?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  going?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  voteTime?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   scopeKey?: Prisma.StringFieldUpdateOperationsInput | string
   userId?: Prisma.IntFieldUpdateOperationsInput | number
   placeId?: Prisma.IntFieldUpdateOperationsInput | number
@@ -993,6 +1065,8 @@ export type PlaceVoteUncheckedUpdateManyWithoutGroupInput = {
   status?: Prisma.EnumVoteStatusFieldUpdateOperationsInput | $Enums.VoteStatus
   voteType?: Prisma.EnumVoteTypeFieldUpdateOperationsInput | $Enums.VoteType
   showIdentity?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  going?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  voteTime?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   scopeKey?: Prisma.StringFieldUpdateOperationsInput | string
   userId?: Prisma.IntFieldUpdateOperationsInput | number
   placeId?: Prisma.IntFieldUpdateOperationsInput | number
@@ -1008,6 +1082,8 @@ export type PlaceVoteCreateManyUserInput = {
   status?: $Enums.VoteStatus
   voteType?: $Enums.VoteType
   showIdentity?: boolean
+  going?: boolean
+  voteTime?: string | null
   scopeKey?: string
   placeId: number
   groupId?: number | null
@@ -1022,6 +1098,8 @@ export type PlaceVoteUpdateWithoutUserInput = {
   status?: Prisma.EnumVoteStatusFieldUpdateOperationsInput | $Enums.VoteStatus
   voteType?: Prisma.EnumVoteTypeFieldUpdateOperationsInput | $Enums.VoteType
   showIdentity?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  going?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  voteTime?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   scopeKey?: Prisma.StringFieldUpdateOperationsInput | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -1037,6 +1115,8 @@ export type PlaceVoteUncheckedUpdateWithoutUserInput = {
   status?: Prisma.EnumVoteStatusFieldUpdateOperationsInput | $Enums.VoteStatus
   voteType?: Prisma.EnumVoteTypeFieldUpdateOperationsInput | $Enums.VoteType
   showIdentity?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  going?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  voteTime?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   scopeKey?: Prisma.StringFieldUpdateOperationsInput | string
   placeId?: Prisma.IntFieldUpdateOperationsInput | number
   groupId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
@@ -1052,6 +1132,8 @@ export type PlaceVoteUncheckedUpdateManyWithoutUserInput = {
   status?: Prisma.EnumVoteStatusFieldUpdateOperationsInput | $Enums.VoteStatus
   voteType?: Prisma.EnumVoteTypeFieldUpdateOperationsInput | $Enums.VoteType
   showIdentity?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  going?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  voteTime?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   scopeKey?: Prisma.StringFieldUpdateOperationsInput | string
   placeId?: Prisma.IntFieldUpdateOperationsInput | number
   groupId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
@@ -1069,6 +1151,8 @@ export type PlaceVoteSelect<ExtArgs extends runtime.Types.Extensions.InternalArg
   status?: boolean
   voteType?: boolean
   showIdentity?: boolean
+  going?: boolean
+  voteTime?: boolean
   scopeKey?: boolean
   userId?: boolean
   placeId?: boolean
@@ -1088,6 +1172,8 @@ export type PlaceVoteSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Ext
   status?: boolean
   voteType?: boolean
   showIdentity?: boolean
+  going?: boolean
+  voteTime?: boolean
   scopeKey?: boolean
   userId?: boolean
   placeId?: boolean
@@ -1107,6 +1193,8 @@ export type PlaceVoteSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Ext
   status?: boolean
   voteType?: boolean
   showIdentity?: boolean
+  going?: boolean
+  voteTime?: boolean
   scopeKey?: boolean
   userId?: boolean
   placeId?: boolean
@@ -1126,6 +1214,8 @@ export type PlaceVoteSelectScalar = {
   status?: boolean
   voteType?: boolean
   showIdentity?: boolean
+  going?: boolean
+  voteTime?: boolean
   scopeKey?: boolean
   userId?: boolean
   placeId?: boolean
@@ -1134,7 +1224,7 @@ export type PlaceVoteSelectScalar = {
   updatedAt?: boolean
 }
 
-export type PlaceVoteOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "publicId" | "day" | "note" | "status" | "voteType" | "showIdentity" | "scopeKey" | "userId" | "placeId" | "groupId" | "createdAt" | "updatedAt", ExtArgs["result"]["placeVote"]>
+export type PlaceVoteOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "publicId" | "day" | "note" | "status" | "voteType" | "showIdentity" | "going" | "voteTime" | "scopeKey" | "userId" | "placeId" | "groupId" | "createdAt" | "updatedAt", ExtArgs["result"]["placeVote"]>
 export type PlaceVoteInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   user?: boolean | Prisma.UserDefaultArgs<ExtArgs>
   place?: boolean | Prisma.PlaceDefaultArgs<ExtArgs>
@@ -1166,6 +1256,8 @@ export type $PlaceVotePayload<ExtArgs extends runtime.Types.Extensions.InternalA
     status: $Enums.VoteStatus
     voteType: $Enums.VoteType
     showIdentity: boolean
+    going: boolean
+    voteTime: string | null
     scopeKey: string
     userId: number
     placeId: number
@@ -1605,6 +1697,8 @@ export interface PlaceVoteFieldRefs {
   readonly status: Prisma.FieldRef<"PlaceVote", 'VoteStatus'>
   readonly voteType: Prisma.FieldRef<"PlaceVote", 'VoteType'>
   readonly showIdentity: Prisma.FieldRef<"PlaceVote", 'Boolean'>
+  readonly going: Prisma.FieldRef<"PlaceVote", 'Boolean'>
+  readonly voteTime: Prisma.FieldRef<"PlaceVote", 'String'>
   readonly scopeKey: Prisma.FieldRef<"PlaceVote", 'String'>
   readonly userId: Prisma.FieldRef<"PlaceVote", 'Int'>
   readonly placeId: Prisma.FieldRef<"PlaceVote", 'Int'>

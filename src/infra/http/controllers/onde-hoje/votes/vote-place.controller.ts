@@ -97,6 +97,8 @@ export class VotePlaceController {
       note: body.note,
       voteType: body.voteType,
       showIdentity: body.showIdentity,
+      going: body.going,
+      voteTime: body.voteTime,
     });
 
     if (result.isFail()) {

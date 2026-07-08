@@ -19,6 +19,8 @@ interface VoteTodayUseCaseRequest {
   note?: string;
   voteType?: PlaceVoteType;
   showIdentity?: boolean;
+  going?: boolean;
+  voteTime?: string;
 }
 
 const MAX_ACTIVE_VOTES_PER_WEEK = 6;
@@ -37,6 +39,7 @@ export class VoteTodayUseCase {
   async execute(request: VoteTodayUseCaseRequest): Promise<VoteTodayUseCaseResponse> {
     const user = await this.usersRepository.findByPublicId(request.currentUserPublicId);
     const day = request.day ?? todayDateOnly();
+    const going = request.going ?? true;
 
     if (!user) {
       return fail(new ResourceNotFoundError('Authenticated user not found'));
@@ -53,8 +56,8 @@ export class VoteTodayUseCase {
       return fail(new ResourceNotFoundError('Place or group not found'));
     }
 
-    // Admins have no weekly vote limit.
-    if (user.role !== 'ADMIN' && activeVotesThisWeek >= MAX_ACTIVE_VOTES_PER_WEEK) {
+    // Admins have no weekly limit; "not going" votes are declines and are free.
+    if (going && user.role !== 'ADMIN' && activeVotesThisWeek >= MAX_ACTIVE_VOTES_PER_WEEK) {
       return fail(new VoteLimitExceededError(MAX_ACTIVE_VOTES_PER_WEEK));
     }
 
@@ -66,19 +69,24 @@ export class VoteTodayUseCase {
       note: request.note,
       voteType: request.voteType,
       showIdentity: request.showIdentity,
+      going,
+      voteTime: request.voteTime,
     });
 
     if (!vote) {
       return fail(new ResourceNotFoundError('Place or group not found'));
     }
 
-    await this.notifyOtherVoters({
-      actorUserId: user.id,
-      placePublicId: request.placePublicId,
-      day,
-      groupPublicId: request.groupPublicId,
-      showIdentity: request.showIdentity ?? true,
-    });
+    // A "not going" vote is a decline: it doesn't notify others.
+    if (going) {
+      await this.notifyOtherVoters({
+        actorUserId: user.id,
+        placePublicId: request.placePublicId,
+        day,
+        groupPublicId: request.groupPublicId,
+        showIdentity: request.showIdentity ?? true,
+      });
+    }
 
     const payload = {
       voteId: vote.publicId,

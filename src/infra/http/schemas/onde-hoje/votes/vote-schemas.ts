@@ -3,12 +3,19 @@ import { votingWindowDateSchema } from '@/infra/http/schemas/onde-hoje/map/map-q
 
 export const voteTypeSchema = z.enum(['GENERAL', 'MUSIC', 'FOOD', 'DRINK', 'SPORTS']).default('GENERAL');
 
+const voteTimeSchema = z
+  .string()
+  .regex(/^([01]\d|2[0-3]):[0-5]\d$/, 'Time must be in HH:MM format')
+  .optional();
+
 export const voteSchema = z.object({
   day: votingWindowDateSchema,
   groupPublicId: z.string().uuid().optional(),
   note: z.string().max(240).optional(),
   voteType: voteTypeSchema,
   showIdentity: z.boolean().optional().default(true),
+  going: z.boolean().optional().default(true),
+  voteTime: voteTimeSchema,
 });
 
 export const legacyTodayVoteSchema = z.object({
@@ -17,6 +24,8 @@ export const legacyTodayVoteSchema = z.object({
   note: z.string().max(240).optional(),
   voteType: voteTypeSchema,
   showIdentity: z.boolean().optional().default(true),
+  going: z.boolean().optional().default(true),
+  voteTime: voteTimeSchema,
 });
 
 export const myVotesQuerySchema = z.object({

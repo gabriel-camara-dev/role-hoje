@@ -11,6 +11,8 @@ export interface TodayMapPlace extends Place {
     avatarUrl: string | null;
     note: string | null;
     voteType: PlaceVoteType;
+    going: boolean;
+    voteTime: string | null;
     friendship?: {
       status: 'PENDING' | 'ACCEPTED' | 'BLOCKED';
       direction: 'sent' | 'received';

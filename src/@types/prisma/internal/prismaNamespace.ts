@@ -1181,6 +1181,8 @@ export const PlaceVoteScalarFieldEnum = {
   status: 'status',
   voteType: 'voteType',
   showIdentity: 'showIdentity',
+  going: 'going',
+  voteTime: 'voteTime',
   scopeKey: 'scopeKey',
   userId: 'userId',
   placeId: 'placeId',

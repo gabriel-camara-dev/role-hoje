@@ -97,6 +97,8 @@ export abstract class PlacesRepository {
     note?: string;
     voteType?: PlaceVoteType;
     showIdentity?: boolean;
+    going?: boolean;
+    voteTime?: string;
   }): Promise<PlaceVote | null>;
   abstract findVoteNotificationTargets(data: {
     actorUserId: number;
