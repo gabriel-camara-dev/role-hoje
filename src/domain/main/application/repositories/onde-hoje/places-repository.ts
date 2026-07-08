@@ -33,6 +33,9 @@ export interface TodayMapQuery {
   from?: Date;
   to?: Date;
   viewerPublicId?: string;
+  // When true (and no specific group is set), aggregates public votes with the
+  // votes of every group the authenticated viewer actively belongs to.
+  includeViewerGroups?: boolean;
 }
 
 export interface TopPlacesTodayQuery {
@@ -44,6 +47,7 @@ export interface TopPlacesTodayQuery {
   to?: Date;
   viewerPublicId?: string;
   limit?: number;
+  includeViewerGroups?: boolean;
 }
 
 export interface GlobalTopPlacesQuery {
@@ -79,7 +83,7 @@ export abstract class PlacesRepository {
   abstract history(query: PlaceHistoryQuery): Promise<PlaceHistoryDay[] | null>;
   abstract userVoteHistory(userId: number, limit: number): Promise<UserVoteHistoryItem[]>;
   abstract attendanceEstimate(query: PlaceAttendanceEstimateQuery): Promise<PlaceAttendanceEstimate | null>;
-  abstract countActiveVotesForDayExcludingTarget(data: {
+  abstract countActiveVotesForWeekExcludingTarget(data: {
     userId: number;
     placePublicId: string;
     day: Date;

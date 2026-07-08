@@ -24,6 +24,7 @@ export const todayMapQuerySchema = z.object({
   day: votingWindowDateSchema.optional(),
   from: dateOnlySchema.optional(),
   to: dateOnlySchema.optional(),
+  myGroups: z.string().optional(),
 });
 
 export const topPlacesQuerySchema = z.object({
@@ -34,6 +35,7 @@ export const topPlacesQuerySchema = z.object({
   from: dateOnlySchema.optional(),
   to: dateOnlySchema.optional(),
   limit: z.coerce.number().int().positive().max(50).optional(),
+  myGroups: z.string().optional(),
 });
 
 export const globalTopPlacesQuerySchema = z.object({

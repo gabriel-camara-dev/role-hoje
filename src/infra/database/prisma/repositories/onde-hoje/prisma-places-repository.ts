@@ -17,7 +17,8 @@ import type {
   VoteNotificationTargets,
 } from '@/domain/main/application/repositories/onde-hoje/places-repository';
 import type { CreatePlaceData, Place } from '@/domain/main/enterprise/entities/onde-hoje/places/place';
-import { toDateOnly } from '@/core/date/date-only';
+import type { Prisma } from '@/@types/prisma/client';
+import { addDaysToDateOnly, toDateOnly } from '@/core/date/date-only';
 import { PrismaOndeHojeMapper } from '../../mappers/prisma-onde-hoje-mapper';
 import { PrismaService } from '../../prisma.service';
 import { getCoordinateBounds, getDistanceKm, todayDate, toDateKey } from './onde-hoje-prisma-utils';
@@ -129,6 +130,8 @@ export class PrismaPlacesRepository implements PlacesRepository {
       }
     }
 
+    const voteScopeWhere = await this.resolveVoteScopeWhere(group, query);
+
     const places = await this.prisma.place.findMany({
       where: {
         isActive: true,
@@ -137,7 +140,7 @@ export class PrismaPlacesRepository implements PlacesRepository {
           some: {
             day,
             status: 'ACTIVE',
-            ...(group ? { groupId: group.id } : { groupId: null }),
+            ...voteScopeWhere,
           },
         },
       },
@@ -146,7 +149,7 @@ export class PrismaPlacesRepository implements PlacesRepository {
           where: {
             day,
             status: 'ACTIVE',
-            ...(group ? { groupId: group.id } : { groupId: null }),
+            ...voteScopeWhere,
           },
           include: {
             user: {
@@ -204,6 +207,8 @@ export class PrismaPlacesRepository implements PlacesRepository {
       }
     }
 
+    const voteScopeWhere = await this.resolveVoteScopeWhere(group, query);
+
     const places = await this.prisma.place.findMany({
       where: {
         isActive: true,
@@ -215,7 +220,7 @@ export class PrismaPlacesRepository implements PlacesRepository {
           some: {
             day,
             status: 'ACTIVE',
-            ...(group ? { groupId: group.id } : { groupId: null }),
+            ...voteScopeWhere,
           },
         },
       },
@@ -224,7 +229,7 @@ export class PrismaPlacesRepository implements PlacesRepository {
           where: {
             day,
             status: 'ACTIVE',
-            ...(group ? { groupId: group.id } : { groupId: null }),
+            ...voteScopeWhere,
           },
           include: {
             user: {
@@ -533,7 +538,7 @@ export class PrismaPlacesRepository implements PlacesRepository {
     };
   }
 
-  async countActiveVotesForDayExcludingTarget(data: {
+  async countActiveVotesForWeekExcludingTarget(data: {
     userId: number;
     placePublicId: string;
     day: Date;
@@ -563,12 +568,23 @@ export class PrismaPlacesRepository implements PlacesRepository {
       }
     }
 
+    // Weekly limit: count the user's active votes across the Mon-Sun week that
+    // contains the target day, excluding the exact target (place + scope + day).
+    const dayOfWeek = data.day.getUTCDay(); // 0 = Sunday ... 6 = Saturday
+    const offsetToMonday = (dayOfWeek + 6) % 7;
+    const weekStart = addDaysToDateOnly(data.day, -offsetToMonday);
+    const weekEnd = addDaysToDateOnly(weekStart, 6);
+
     return this.prisma.placeVote.count({
       where: {
         userId: data.userId,
         status: 'ACTIVE',
-        day: data.day,
-        OR: [{ placeId: { not: place.id } }, { scopeKey: { not: group?.publicId ?? 'global' } }],
+        day: { gte: weekStart, lte: weekEnd },
+        OR: [
+          { placeId: { not: place.id } },
+          { scopeKey: { not: group?.publicId ?? 'global' } },
+          { day: { not: data.day } },
+        ],
       },
     });
   }
@@ -813,6 +829,36 @@ export class PrismaPlacesRepository implements PlacesRepository {
       ...place,
       distanceKm: getDistanceKm(latitude, longitude, place.latitude, place.longitude),
     };
+  }
+
+  private async viewerActiveGroupIds(viewerPublicId: string): Promise<number[]> {
+    const memberships = await this.prisma.groupMember.findMany({
+      where: { status: 'ACTIVE', user: { publicId: viewerPublicId } },
+      select: { groupId: true },
+    });
+
+    return memberships.map((membership) => membership.groupId);
+  }
+
+  // Scope filter for map votes: a specific group, or (for "all my groups")
+  // public votes combined with every group the viewer actively belongs to.
+  private async resolveVoteScopeWhere(
+    group: { id: number } | null,
+    query: { includeViewerGroups?: boolean; viewerPublicId?: string },
+  ): Promise<Prisma.PlaceVoteWhereInput> {
+    if (group) {
+      return { groupId: group.id };
+    }
+
+    if (query.includeViewerGroups && query.viewerPublicId) {
+      const viewerGroupIds = await this.viewerActiveGroupIds(query.viewerPublicId);
+
+      if (viewerGroupIds.length > 0) {
+        return { OR: [{ groupId: null }, { groupId: { in: viewerGroupIds } }] };
+      }
+    }
+
+    return { groupId: null };
   }
 
   private async isActiveGroupMember(groupId: number, viewerPublicId?: string) {

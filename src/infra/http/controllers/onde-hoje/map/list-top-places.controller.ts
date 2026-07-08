@@ -47,6 +47,7 @@ export class ListTopPlacesController {
       day: parseDateOnly(query.day) ?? todayDate(),
       from: parseDateOnly(query.from) ?? undefined,
       to: parseDateOnly(query.to) ?? undefined,
+      includeViewerGroups: query.myGroups === '1' || query.myGroups === 'true',
       viewerPublicId,
     });
 

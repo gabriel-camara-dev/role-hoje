@@ -21,7 +21,7 @@ interface VoteTodayUseCaseRequest {
   showIdentity?: boolean;
 }
 
-const MAX_ACTIVE_VOTES_PER_DAY = 3;
+const MAX_ACTIVE_VOTES_PER_WEEK = 6;
 
 type VoteTodayUseCaseResponse = Result<ResourceNotFoundError | VoteLimitExceededError, { vote: PlaceVote }>;
 
@@ -42,20 +42,20 @@ export class VoteTodayUseCase {
       return fail(new ResourceNotFoundError('Authenticated user not found'));
     }
 
-    const activeVotesBeforeThisTarget = await this.placesRepository.countActiveVotesForDayExcludingTarget({
+    const activeVotesThisWeek = await this.placesRepository.countActiveVotesForWeekExcludingTarget({
       userId: user.id,
       placePublicId: request.placePublicId,
       day,
       groupPublicId: request.groupPublicId,
     });
 
-    if (activeVotesBeforeThisTarget === null) {
+    if (activeVotesThisWeek === null) {
       return fail(new ResourceNotFoundError('Place or group not found'));
     }
 
-    // Admins have no daily vote limit.
-    if (user.role !== 'ADMIN' && activeVotesBeforeThisTarget >= MAX_ACTIVE_VOTES_PER_DAY) {
-      return fail(new VoteLimitExceededError(MAX_ACTIVE_VOTES_PER_DAY));
+    // Admins have no weekly vote limit.
+    if (user.role !== 'ADMIN' && activeVotesThisWeek >= MAX_ACTIVE_VOTES_PER_WEEK) {
+      return fail(new VoteLimitExceededError(MAX_ACTIVE_VOTES_PER_WEEK));
     }
 
     const vote = await this.placesRepository.vote({
