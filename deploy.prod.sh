@@ -1,23 +1,43 @@
-#!/bin/bash
-# Deploy de produção (rodar no VPS, dentro do diretório do projeto).
-# NÃO roda `prisma db seed` (o seed cria um admin com senha pública + dados demo).
+#!/usr/bin/env bash
+#
+# Deploy/atualização de produção do backend (rodar no VPS).
+# Uso:  bash deploy.prod.sh
+#
+# O app roda via `tsx` (sem build). O script NÃO roda `prisma db seed`
+# (o seed cria um admin com senha pública + dados demo).
+
 set -euo pipefail
 
-echo "==> Atualizando código"
-git pull
+APP_NAME="role-hoje-api"
+ENTRY="src/main.ts"
 
-echo "==> Instalando dependências"
-corepack enable
-pnpm install --frozen-lockfile
+# Sempre executa a partir da pasta do projeto (onde está este script).
+cd "$(dirname "$0")"
 
-echo "==> Build"
-pnpm build
+echo "==> [1/5] Atualizando código (git pull)"
+git pull --ff-only
 
-echo "==> Migrations"
+echo "==> [2/5] Instalando dependências (inclui dev: prisma/tsx são necessários)"
+corepack enable >/dev/null 2>&1 || true
+pnpm install --frozen-lockfile --prod=false
+
+echo "==> [3/5] Gerando Prisma Client"
+pnpm exec prisma generate
+
+echo "==> [4/5] Aplicando migrations (seguro: não roda seed)"
 pnpm exec prisma migrate deploy
 
-echo "==> Reload PM2"
-pm2 reload ecosystem.config.js --update-env
+echo "==> [5/5] (Re)iniciando o PM2 (${APP_NAME})"
+if pm2 describe "${APP_NAME}" >/dev/null 2>&1; then
+  pm2 restart "${APP_NAME}" --update-env
+else
+  pm2 start "${ENTRY}" --interpreter ./node_modules/.bin/tsx --name "${APP_NAME}"
+fi
+pm2 save
 
-echo "==> OK. Status:"
+echo ""
+echo "==> OK. Status atual:"
 pm2 status
+echo ""
+echo "==> Últimos logs (Ctrl+C para sair):"
+pm2 logs "${APP_NAME}" --lines 20 --nostream
