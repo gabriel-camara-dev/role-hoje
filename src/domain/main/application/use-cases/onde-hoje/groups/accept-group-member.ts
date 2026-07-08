@@ -9,6 +9,7 @@ import { ResourceNotFoundError } from '../../errors/resource-not-found-error';
 import type { GroupMembership } from '../../../../enterprise/entities/onde-hoje/groups/group-membership';
 import { GroupsRepository } from '../../../repositories/onde-hoje/groups-repository';
 import { OndeHojeUsersRepository } from '../../../repositories/onde-hoje/onde-hoje-users-repository';
+import { NotificationDispatcher } from '../notifications/notification-dispatcher';
 
 interface AcceptGroupMemberUseCaseRequest {
   currentUserPublicId: string;
@@ -27,6 +28,7 @@ export class AcceptGroupMemberUseCase {
     @Inject(GroupsRepository) private groupsRepository: GroupsRepository,
     @Inject(OndeHojeUsersRepository) private usersRepository: OndeHojeUsersRepository,
     @Inject(EventBus) private eventBus: EventBus,
+    @Inject(NotificationDispatcher) private notificationDispatcher: NotificationDispatcher,
   ) {}
 
   async execute(request: AcceptGroupMemberUseCaseRequest): Promise<AcceptGroupMemberUseCaseResponse> {
@@ -66,6 +68,15 @@ export class AcceptGroupMemberUseCase {
         },
       }),
     );
+
+    await this.notificationDispatcher.dispatch({
+      recipientPublicId: result.memberPublicId,
+      actorPublicId: request.currentUserPublicId,
+      type: 'GROUP_MEMBER_ACCEPTED',
+      title: `Pedido aceito em ${result.groupName}`,
+      body: `Voce agora faz parte do grupo ${result.groupName}.`,
+      data: { groupPublicId: result.membership.groupPublicId, groupName: result.groupName },
+    });
 
     return success({ membership: result.membership });
   }

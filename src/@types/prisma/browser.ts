@@ -23,6 +23,11 @@ export * from './enums.js';
  */
 export type AuthenticationAudit = Prisma.AuthenticationAuditModel
 /**
+ * Model Notification
+ * 
+ */
+export type Notification = Prisma.NotificationModel
+/**
  * Model Place
  * 
  */

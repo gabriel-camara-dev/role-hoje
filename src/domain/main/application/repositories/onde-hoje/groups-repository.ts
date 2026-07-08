@@ -6,18 +6,42 @@ export interface ListPublicGroupsQuery {
 }
 
 export type AcceptGroupMemberResult =
-  | { type: 'accepted'; membership: GroupMembership }
+  | { type: 'accepted'; membership: GroupMembership; memberPublicId: string; groupName: string }
   | { type: 'not_found' }
   | { type: 'forbidden' }
   | { type: 'not_pending' };
 
 export type JoinGroupResult =
-  | { type: 'joined'; membership: GroupMembership }
+  | { type: 'joined'; membership: GroupMembership; groupName: string; ownerPublicId: string }
   | { type: 'blocked' }
   | { type: 'not_found' };
 
+export type InviteGroupMemberResult =
+  | {
+      type: 'invited';
+      membership: GroupMembership;
+      invitedUserPublicId: string;
+      invitedUserName: string;
+      groupName: string;
+    }
+  | { type: 'already_member' }
+  | { type: 'not_found' }
+  | { type: 'forbidden' };
+
+export type RespondGroupInviteResult =
+  | {
+      type: 'accepted';
+      membership: GroupMembership;
+      groupName: string;
+      ownerPublicId: string;
+      memberName: string;
+    }
+  | { type: 'declined'; groupPublicId: string }
+  | { type: 'not_invited' }
+  | { type: 'not_found' };
+
 export interface GroupMemberListItem {
-  status: 'ACTIVE' | 'PENDING' | 'BLOCKED';
+  status: 'ACTIVE' | 'PENDING' | 'INVITED' | 'BLOCKED';
   role: 'OWNER' | 'MODERATOR' | 'MEMBER';
   user: {
     publicId: string;
@@ -29,7 +53,7 @@ export interface GroupMemberListItem {
 
 export interface MyGroupItem extends Group {
   myRole: 'OWNER' | 'MODERATOR' | 'MEMBER';
-  myStatus: 'ACTIVE' | 'PENDING' | 'BLOCKED';
+  myStatus: 'ACTIVE' | 'PENDING' | 'INVITED' | 'BLOCKED';
   members: GroupMemberListItem[];
 }
 
@@ -66,7 +90,12 @@ export abstract class GroupsRepository {
     leaderId: number;
     groupPublicId: string;
     memberUsername: string;
-  }): Promise<MutateGroupMemberResult>;
+  }): Promise<InviteGroupMemberResult>;
+  abstract respondInvite(data: {
+    userId: number;
+    groupPublicId: string;
+    action: 'accept' | 'decline';
+  }): Promise<RespondGroupInviteResult>;
   abstract removeMember(data: {
     leaderId: number;
     groupPublicId: string;

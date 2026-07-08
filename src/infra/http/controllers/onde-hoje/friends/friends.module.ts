@@ -5,13 +5,14 @@ import { RejectFriendshipUseCase } from '@/domain/main/application/use-cases/ond
 import { RequestFriendshipUseCase } from '@/domain/main/application/use-cases/onde-hoje/friendships/request-friendship';
 import { DatabaseModule } from '@/infra/database/database.module';
 import { EventsModule } from '@/infra/events/events.module';
+import { NotificationsModule } from '../notifications/notifications.module';
 import { AcceptFriendshipController } from './accept-friendship.controller';
 import { ListFriendsController } from './list-friends.controller';
 import { RejectFriendshipController } from './reject-friendship.controller';
 import { RequestFriendshipController } from './request-friendship.controller';
 
 @Module({
-  imports: [DatabaseModule, EventsModule],
+  imports: [DatabaseModule, EventsModule, NotificationsModule],
   controllers: [
     ListFriendsController,
     RequestFriendshipController,

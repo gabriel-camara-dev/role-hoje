@@ -21,6 +21,18 @@ export const AuthenticationStatus = {
 export type AuthenticationStatus = (typeof AuthenticationStatus)[keyof typeof AuthenticationStatus]
 
 
+export const NotificationType = {
+  GROUP_INVITE: 'GROUP_INVITE',
+  GROUP_INVITE_ACCEPTED: 'GROUP_INVITE_ACCEPTED',
+  GROUP_JOIN_REQUEST: 'GROUP_JOIN_REQUEST',
+  GROUP_MEMBER_ACCEPTED: 'GROUP_MEMBER_ACCEPTED',
+  FRIEND_REQUEST: 'FRIEND_REQUEST',
+  FRIEND_ACCEPTED: 'FRIEND_ACCEPTED'
+} as const
+
+export type NotificationType = (typeof NotificationType)[keyof typeof NotificationType]
+
+
 export const GroupPrivacy = {
   PUBLIC: 'PUBLIC',
   PRIVATE: 'PRIVATE'
@@ -41,6 +53,7 @@ export type GroupMemberRole = (typeof GroupMemberRole)[keyof typeof GroupMemberR
 export const GroupMemberStatus = {
   ACTIVE: 'ACTIVE',
   PENDING: 'PENDING',
+  INVITED: 'INVITED',
   BLOCKED: 'BLOCKED'
 } as const
 

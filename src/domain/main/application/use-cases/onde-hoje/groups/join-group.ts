@@ -8,6 +8,7 @@ import { OndeHojeUsersRepository } from '../../../repositories/onde-hoje/onde-ho
 import type { GroupMembership } from '../../../../enterprise/entities/onde-hoje/groups/group-membership';
 import { ConflictError } from '../../errors/conflict-error';
 import { ResourceNotFoundError } from '../../errors/resource-not-found-error';
+import { NotificationDispatcher } from '../notifications/notification-dispatcher';
 
 interface JoinGroupUseCaseRequest {
   currentUserPublicId: string;
@@ -24,6 +25,7 @@ export class JoinGroupUseCase {
     @Inject(GroupsRepository) private groupsRepository: GroupsRepository,
     @Inject(OndeHojeUsersRepository) private usersRepository: OndeHojeUsersRepository,
     @Inject(EventBus) private eventBus: EventBus,
+    @Inject(NotificationDispatcher) private notificationDispatcher: NotificationDispatcher,
   ) {}
 
   async execute(request: JoinGroupUseCaseRequest): Promise<JoinGroupUseCaseResponse> {
@@ -63,6 +65,18 @@ export class JoinGroupUseCase {
         recipientIds: [request.currentUserPublicId],
       }),
     );
+
+    // Private-group join requests wait for the owner's approval: notify them.
+    if (membership.status === 'PENDING' && joinResult.ownerPublicId) {
+      await this.notificationDispatcher.dispatch({
+        recipientPublicId: joinResult.ownerPublicId,
+        actorPublicId: request.currentUserPublicId,
+        type: 'GROUP_JOIN_REQUEST',
+        title: `Novo pedido de entrada em ${joinResult.groupName}`,
+        body: 'Alguem pediu para entrar no seu grupo. Toque para revisar.',
+        data: { groupPublicId: membership.groupPublicId, groupName: joinResult.groupName },
+      });
+    }
 
     return success({ membership });
   }

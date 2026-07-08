@@ -9,6 +9,7 @@
  * 🟢 You can import this file directly.
  */
 export type * from './models/AuthenticationAudit.js'
+export type * from './models/Notification.js'
 export type * from './models/Place.js'
 export type * from './models/PlaceVote.js'
 export type * from './models/Group.js'

@@ -5,12 +5,14 @@ import type { CreateGroupData, Group } from '@/domain/main/enterprise/entities/o
 import type {
   AcceptGroupMemberResult,
   GroupsRepository,
+  InviteGroupMemberResult,
   JoinGroupResult,
   LeaveGroupResult,
   ListPublicGroupsQuery,
   MutateGroupMemberResult,
   MyGroupItem,
   PublicGroupItem,
+  RespondGroupInviteResult,
 } from '@/domain/main/application/repositories/onde-hoje/groups-repository';
 import { PrismaOndeHojeMapper } from '../../mappers/prisma-onde-hoje-mapper';
 import { PrismaService } from '../../prisma.service';
@@ -225,7 +227,17 @@ export class PrismaGroupsRepository implements GroupsRepository {
       },
     });
 
-    return { type: 'joined', membership: { groupPublicId: group.publicId, status: member.status } };
+    const owner = await this.prisma.groupMember.findFirst({
+      where: { groupId: group.id, role: 'OWNER' },
+      select: { user: { select: { publicId: true } } },
+    });
+
+    return {
+      type: 'joined',
+      membership: { groupPublicId: group.publicId, status: member.status },
+      groupName: group.name,
+      ownerPublicId: owner?.user.publicId ?? '',
+    };
   }
 
   async acceptMember(data: {
@@ -288,6 +300,8 @@ export class PrismaGroupsRepository implements GroupsRepository {
         groupPublicId: group.publicId,
         status: acceptedMember.status,
       },
+      memberPublicId: memberUser.publicId,
+      groupName: group.name,
     };
   }
 
@@ -295,13 +309,32 @@ export class PrismaGroupsRepository implements GroupsRepository {
     leaderId: number;
     groupPublicId: string;
     memberUsername: string;
-  }): Promise<MutateGroupMemberResult> {
+  }): Promise<InviteGroupMemberResult> {
     const access = await this.findOwnerAccess(data.leaderId, data.groupPublicId, data.memberUsername);
 
     if (access.type !== 'ok') {
       return access;
     }
 
+    const existing = await this.prisma.groupMember.findUnique({
+      where: {
+        uq_group_member: {
+          groupId: access.group.id,
+          userId: access.memberUser.id,
+        },
+      },
+    });
+
+    if (existing?.status === 'ACTIVE') {
+      return { type: 'already_member' };
+    }
+
+    if (existing?.status === 'BLOCKED') {
+      return { type: 'forbidden' };
+    }
+
+    // Owner invites the user: the membership stays as INVITED until the
+    // invited person accepts. It never grants access on its own.
     const member = await this.prisma.groupMember.upsert({
       where: {
         uq_group_member: {
@@ -309,15 +342,66 @@ export class PrismaGroupsRepository implements GroupsRepository {
           userId: access.memberUser.id,
         },
       },
-      update: { status: 'ACTIVE' },
+      update: { status: 'INVITED' },
       create: {
         groupId: access.group.id,
         userId: access.memberUser.id,
-        status: 'ACTIVE',
+        status: 'INVITED',
       },
     });
 
-    return { type: 'mutated', membership: { groupPublicId: access.group.publicId, status: member.status } };
+    return {
+      type: 'invited',
+      membership: { groupPublicId: access.group.publicId, status: member.status },
+      invitedUserPublicId: access.memberUser.publicId,
+      invitedUserName: access.memberUser.name,
+      groupName: access.group.name,
+    };
+  }
+
+  async respondInvite(data: {
+    userId: number;
+    groupPublicId: string;
+    action: 'accept' | 'decline';
+  }): Promise<RespondGroupInviteResult> {
+    const group = await this.prisma.group.findUnique({ where: { publicId: data.groupPublicId } });
+
+    if (!group) {
+      return { type: 'not_found' };
+    }
+
+    const membership = await this.prisma.groupMember.findUnique({
+      where: { uq_group_member: { groupId: group.id, userId: data.userId } },
+    });
+
+    if (membership?.status !== 'INVITED') {
+      return { type: 'not_invited' };
+    }
+
+    if (data.action === 'decline') {
+      await this.prisma.groupMember.delete({ where: { id: membership.id } });
+      return { type: 'declined', groupPublicId: group.publicId };
+    }
+
+    const [accepted, owner, memberUser] = await Promise.all([
+      this.prisma.groupMember.update({
+        where: { id: membership.id },
+        data: { status: 'ACTIVE' },
+      }),
+      this.prisma.groupMember.findFirst({
+        where: { groupId: group.id, role: 'OWNER' },
+        select: { user: { select: { publicId: true } } },
+      }),
+      this.prisma.user.findUnique({ where: { id: data.userId }, select: { name: true } }),
+    ]);
+
+    return {
+      type: 'accepted',
+      membership: { groupPublicId: group.publicId, status: accepted.status },
+      groupName: group.name,
+      ownerPublicId: owner?.user.publicId ?? '',
+      memberName: memberUser?.name ?? '',
+    };
   }
 
   async removeMember(data: {

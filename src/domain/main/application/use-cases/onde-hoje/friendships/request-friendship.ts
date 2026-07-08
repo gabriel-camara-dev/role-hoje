@@ -8,6 +8,7 @@ import { OndeHojeUsersRepository } from '../../../repositories/onde-hoje/onde-ho
 import type { FriendshipStatus } from '../../../../enterprise/entities/onde-hoje/friendships/friendship';
 import { ConflictError } from '../../errors/conflict-error';
 import { ResourceNotFoundError } from '../../errors/resource-not-found-error';
+import { NotificationDispatcher } from '../notifications/notification-dispatcher';
 
 interface RequestFriendshipUseCaseRequest {
   currentUserPublicId: string;
@@ -22,6 +23,7 @@ export class RequestFriendshipUseCase {
     @Inject(FriendshipsRepository) private friendshipsRepository: FriendshipsRepository,
     @Inject(OndeHojeUsersRepository) private usersRepository: OndeHojeUsersRepository,
     @Inject(EventBus) private eventBus: EventBus,
+    @Inject(NotificationDispatcher) private notificationDispatcher: NotificationDispatcher,
   ) {}
 
   async execute(request: RequestFriendshipUseCaseRequest): Promise<RequestFriendshipUseCaseResponse> {
@@ -56,6 +58,15 @@ export class RequestFriendshipUseCase {
         },
       }),
     );
+
+    await this.notificationDispatcher.dispatch({
+      recipientPublicId: friendship.addresseePublicId,
+      actorPublicId: request.currentUserPublicId,
+      type: 'FRIEND_REQUEST',
+      title: 'Novo pedido de amizade',
+      body: 'Voce recebeu um pedido de amizade. Toque para responder.',
+      data: {},
+    });
 
     return success({ status: friendship.status });
   }

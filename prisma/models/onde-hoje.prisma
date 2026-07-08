@@ -16,6 +16,7 @@ enum GroupMemberRole {
 enum GroupMemberStatus {
   ACTIVE
   PENDING
+  INVITED
   BLOCKED
 
   @@schema("groups")
