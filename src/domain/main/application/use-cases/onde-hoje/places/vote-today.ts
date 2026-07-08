@@ -8,6 +8,7 @@ import { OndeHojeUsersRepository } from '../../../repositories/onde-hoje/onde-ho
 import { PlacesRepository } from '../../../repositories/onde-hoje/places-repository';
 import type { PlaceVote, PlaceVoteType } from '../../../../enterprise/entities/onde-hoje/places/place-vote';
 import { VoteLimitExceededError } from '../../errors/vote-limit-exceeded-error';
+import { VoteDeclineNotAllowedError } from '../../errors/vote-decline-not-allowed-error';
 import { ResourceNotFoundError } from '../../errors/resource-not-found-error';
 import { NotificationDispatcher } from '../notifications/notification-dispatcher';
 
@@ -25,7 +26,10 @@ interface VoteTodayUseCaseRequest {
 
 const MAX_ACTIVE_VOTES_PER_WEEK = 6;
 
-type VoteTodayUseCaseResponse = Result<ResourceNotFoundError | VoteLimitExceededError, { vote: PlaceVote }>;
+type VoteTodayUseCaseResponse = Result<
+  ResourceNotFoundError | VoteLimitExceededError | VoteDeclineNotAllowedError,
+  { vote: PlaceVote }
+>;
 
 @Injectable()
 export class VoteTodayUseCase {
@@ -59,6 +63,19 @@ export class VoteTodayUseCase {
     // Admins have no weekly limit; "not going" votes are declines and are free.
     if (going && user.role !== 'ADMIN' && activeVotesThisWeek >= MAX_ACTIVE_VOTES_PER_WEEK) {
       return fail(new VoteLimitExceededError(MAX_ACTIVE_VOTES_PER_WEEK));
+    }
+
+    // "Not going" only makes sense as a reply to a place someone already proposed.
+    if (!going) {
+      const hasProposal = await this.placesRepository.hasActiveGoingVote({
+        placePublicId: request.placePublicId,
+        day,
+        groupPublicId: request.groupPublicId,
+      });
+
+      if (!hasProposal) {
+        return fail(new VoteDeclineNotAllowedError());
+      }
     }
 
     const vote = await this.placesRepository.vote({

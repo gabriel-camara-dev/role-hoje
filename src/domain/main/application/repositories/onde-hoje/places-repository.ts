@@ -106,6 +106,11 @@ export abstract class PlacesRepository {
     day: Date;
     groupPublicId?: string;
   }): Promise<VoteNotificationTargets | null>;
+  abstract hasActiveGoingVote(data: {
+    placePublicId: string;
+    day: Date;
+    groupPublicId?: string;
+  }): Promise<boolean>;
   abstract mapPlaceByPublicId(data: {
     placePublicId: string;
     day?: Date;

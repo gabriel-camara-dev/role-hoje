@@ -731,6 +731,33 @@ export class PrismaPlacesRepository implements PlacesRepository {
     };
   }
 
+  async hasActiveGoingVote(data: {
+    placePublicId: string;
+    day: Date;
+    groupPublicId?: string;
+  }): Promise<boolean> {
+    const [place, group] = await Promise.all([
+      this.prisma.place.findUnique({ where: { publicId: data.placePublicId } }),
+      data.groupPublicId ? this.prisma.group.findUnique({ where: { publicId: data.groupPublicId } }) : null,
+    ]);
+
+    if (!place || (data.groupPublicId && !group)) {
+      return false;
+    }
+
+    const count = await this.prisma.placeVote.count({
+      where: {
+        placeId: place.id,
+        scopeKey: group?.publicId ?? 'global',
+        day: data.day,
+        status: 'ACTIVE',
+        going: true,
+      },
+    });
+
+    return count > 0;
+  }
+
   async mapPlaceByPublicId(data: {
     placePublicId: string;
     day?: Date;
