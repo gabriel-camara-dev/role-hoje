@@ -35,7 +35,9 @@
     "ci:format": "run-p check:prisma:biome check:src:biome",
     "ci:build": "run-s ci:generate build:tsgo build:tsdown",
     "sentry:upload": "sentry-cli sourcemaps inject ./dist && sentry-cli sourcemaps upload ./dist",
-    "combo": "pnpm i && pnpm prepare:env && docker compose down -v && docker compose up -d --force-recreate && node -e \"setTimeout(() => console.log('✅ Banco pronto!'), 3000)\" && pnpm prisma migrate reset --force && pnpm prisma generate && pnpm prisma migrate dev && pnpm prisma db seed && pnpm start:dev"
+    "combo": "pnpm i && pnpm prepare:env && docker compose down -v && docker compose up -d --force-recreate && node -e \"setTimeout(() => console.log('✅ Banco pronto!'), 3000)\" && pnpm prisma migrate reset --force && pnpm prisma generate && pnpm prisma migrate dev && pnpm prisma db seed && pnpm start:dev",
+    "test": "vitest run",
+    "test:watch": "vitest"
   },
   "dependencies": {
     "@nestjs/common": "^11.0.1",
@@ -68,18 +70,30 @@
     "@nestjs/cli": "^11.0.0",
     "@nestjs/schematics": "^11.0.0",
     "@nestjs/testing": "^11.0.1",
+    "@swc/core": "^1.15.43",
     "@types/bcryptjs": "^3.0.0",
     "@types/express": "^5.0.0",
     "@types/node": "^24.0.0",
     "@types/passport": "^1.0.17",
     "@types/passport-jwt": "^4.0.1",
+    "@types/supertest": "^7.2.0",
     "globals": "^17.0.0",
     "npm-run-all": "^4.1.5",
     "prisma": "^7.8.0",
     "source-map-support": "^0.5.21",
+    "supertest": "^7.2.2",
     "ts-node": "^10.9.2",
     "tsconfig-paths": "^4.2.0",
     "tsx": "^4.22.4",
-    "typescript": "^6.0.3"
+    "typescript": "^6.0.3",
+    "unplugin-swc": "^1.5.9",
+    "vite-tsconfig-paths": "^6.1.1",
+    "vitest": "^3.2.7"
+  },
+  "pnpm": {
+    "onlyBuiltDependencies": [
+      "@swc/core",
+      "esbuild"
+    ]
   }
 }
