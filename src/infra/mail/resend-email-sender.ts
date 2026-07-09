@@ -72,7 +72,7 @@ function confirmationEmailHtml({ confirmationUrl, name }: { confirmationUrl: str
       a.oh-button:hover { background:#0d655e !important; }
     </style>
     <div style="display:none;max-height:0;overflow:hidden;opacity:0;color:transparent;">
-      Confirme seu email no Onde Hoje em ate 5 minutos.
+      Confirme seu email no Onde Hoje em até 5 minutos.
     </div>
     <div style="margin:0;padding:0;background:#eef4f1;font-family:${BODY_FONT};color:#16211d;-webkit-font-smoothing:antialiased;">
       <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="border-collapse:collapse;background:#eef4f1;">
@@ -95,7 +95,7 @@ function confirmationEmailHtml({ confirmationUrl, name }: { confirmationUrl: str
                     Confirme seu email
                   </h1>
                   <p style="margin:12px 0 0;font-size:15px;line-height:1.6;color:rgba(255,255,255,.88);">
-                    Falta so esse passo para ativar sua conta e comecar a votar nos roles de hoje.
+                    Falta só esse passo para ativar sua conta e começar a votar nos roles de hoje.
                   </p>
                 </td>
               </tr>
@@ -103,7 +103,7 @@ function confirmationEmailHtml({ confirmationUrl, name }: { confirmationUrl: str
                 <td style="padding:30px 32px;">
                   <p style="margin:0 0 14px;font-size:17px;line-height:1.6;">Oi, <strong>${safeName}</strong> &#128075;</p>
                   <p style="margin:0;color:#5d6c65;font-size:15px;line-height:1.7;">
-                    Clique no botao abaixo para confirmar seu email. Por seguranca, esse link expira em
+                    Clique no botão abaixo para confirmar seu email. Por segurança, esse link expira em
                     <strong style="color:#17211d;">5 minutos</strong>.
                   </p>
 
@@ -119,7 +119,7 @@ function confirmationEmailHtml({ confirmationUrl, name }: { confirmationUrl: str
 
                   <div style="border-radius:12px;background:#f4f8f6;border:1px solid #dbe5df;padding:14px 16px;">
                     <p style="margin:0;color:#5d6c65;font-size:13px;line-height:1.6;">
-                      Se o botao nao funcionar, copie e cole este link no navegador:
+                      Se o botão não funcionar, copie e cole este link no navegador:
                     </p>
                     <p style="margin:8px 0 0;word-break:break-all;font-size:12px;line-height:1.5;color:#0f766e;">
                       ${safeConfirmationUrl}
@@ -127,7 +127,7 @@ function confirmationEmailHtml({ confirmationUrl, name }: { confirmationUrl: str
                   </div>
 
                   <p style="margin:24px 0 0;color:#7a8781;font-size:12px;line-height:1.6;">
-                    Se voce nao criou uma conta no Onde Hoje, e so ignorar este email.
+                    Se você não criou uma conta no Onde Hoje, e só ignorar este email.
                   </p>
                 </td>
               </tr>
