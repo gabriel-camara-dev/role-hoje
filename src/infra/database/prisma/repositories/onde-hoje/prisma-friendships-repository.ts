@@ -1,18 +1,19 @@
 import { Inject, Injectable } from '@nestjs/common';
-import type { FriendListItem } from '@/domain/main/enterprise/entities/onde-hoje/friendships/friendship';
-import type {
-  AcceptFriendshipResult,
+import type { FriendListItem, FriendshipStatus } from '@/domain/main/enterprise/entities/onde-hoje/friendships/friendship';
+import {
   FriendshipsRepository,
-  RequestFriendshipResult,
+  type RequestFriendshipResult,
 } from '@/domain/main/application/repositories/onde-hoje/friendships-repository';
-import { PrismaService } from '../../prisma.service';
+import { DatabaseContext } from '../../database-context';
 
 @Injectable()
-export class PrismaFriendshipsRepository implements FriendshipsRepository {
-  constructor(@Inject(PrismaService) private prisma: PrismaService) {}
+export class PrismaFriendshipsRepository extends FriendshipsRepository {
+  constructor(@Inject(DatabaseContext) private readonly dbContext: DatabaseContext) {
+    super();
+  }
 
   async listFriends(userId: number): Promise<FriendListItem[]> {
-    const friendships = await this.prisma.friendship.findMany({
+    const friendships = await this.dbContext.client.friendship.findMany({
       where: {
         OR: [{ requesterId: userId }, { addresseeId: userId }],
       },
@@ -41,17 +42,11 @@ export class PrismaFriendshipsRepository implements FriendshipsRepository {
     });
   }
 
-  async requestFriendship(data: { requesterId: number; addresseeUsername: string }): Promise<RequestFriendshipResult> {
-    const friend = await this.prisma.user.findUnique({ where: { username: data.addresseeUsername } });
-
-    if (!friend || friend.id === data.requesterId) {
-      return { type: 'not_found' };
-    }
-
-    const pairKey = friendshipPairKey(data.requesterId, friend.id);
-    const existing = await this.prisma.friendship.findFirst({
+  async requestFriendship(data: { requesterId: number; addresseeId: number }): Promise<RequestFriendshipResult> {
+    const pairKey = friendshipPairKey(data.requesterId, data.addresseeId);
+    const existing = await this.dbContext.client.friendship.findFirst({
       where: {
-        OR: [{ pairKey }, { requesterId: friend.id, addresseeId: data.requesterId }],
+        OR: [{ pairKey }, { requesterId: data.addresseeId, addresseeId: data.requesterId }],
       },
     });
 
@@ -59,34 +54,25 @@ export class PrismaFriendshipsRepository implements FriendshipsRepository {
       return { type: 'already_exists', status: existing.status };
     }
 
-    const friendship = await this.prisma.friendship.upsert({
+    const friendship = await this.dbContext.client.friendship.upsert({
       where: {
         pairKey,
       },
       update: { status: 'PENDING' },
       create: {
         requesterId: data.requesterId,
-        addresseeId: friend.id,
+        addresseeId: data.addresseeId,
         pairKey,
       },
     });
 
-    return { type: 'requested', status: friendship.status, addresseePublicId: friend.publicId };
+    return { type: 'requested', status: friendship.status };
   }
 
-  async acceptFriendship(data: {
-    addresseeId: number;
-    requesterUsername: string;
-  }): Promise<AcceptFriendshipResult | null> {
-    const requester = await this.prisma.user.findUnique({ where: { username: data.requesterUsername } });
-
-    if (!requester) {
-      return null;
-    }
-
-    const updated = await this.prisma.friendship.updateMany({
+  async acceptFriendship(data: { addresseeId: number; requesterId: number }): Promise<FriendshipStatus | null> {
+    const updated = await this.dbContext.client.friendship.updateMany({
       where: {
-        requesterId: requester.id,
+        requesterId: data.requesterId,
         addresseeId: data.addresseeId,
         status: 'PENDING',
       },
@@ -97,30 +83,20 @@ export class PrismaFriendshipsRepository implements FriendshipsRepository {
       return null;
     }
 
-    const friendship = await this.prisma.friendship.findFirst({
+    const friendship = await this.dbContext.client.friendship.findFirst({
       where: {
-        requesterId: requester.id,
+        requesterId: data.requesterId,
         addresseeId: data.addresseeId,
       },
     });
 
-    if (!friendship) {
-      return null;
-    }
-
-    return { status: friendship.status, requesterPublicId: requester.publicId };
+    return friendship?.status ?? null;
   }
 
-  async rejectFriendship(data: { addresseeId: number; requesterUsername: string }): Promise<boolean> {
-    const requester = await this.prisma.user.findUnique({ where: { username: data.requesterUsername } });
-
-    if (!requester) {
-      return false;
-    }
-
-    const deleted = await this.prisma.friendship.deleteMany({
+  async rejectFriendship(data: { addresseeId: number; requesterId: number }): Promise<boolean> {
+    const deleted = await this.dbContext.client.friendship.deleteMany({
       where: {
-        requesterId: requester.id,
+        requesterId: data.requesterId,
         addresseeId: data.addresseeId,
         status: 'PENDING',
       },
@@ -129,15 +105,9 @@ export class PrismaFriendshipsRepository implements FriendshipsRepository {
     return deleted.count > 0;
   }
 
-  async removeFriendship(data: { userId: number; otherUsername: string }): Promise<boolean> {
-    const other = await this.prisma.user.findUnique({ where: { username: data.otherUsername } });
-
-    if (!other) {
-      return false;
-    }
-
-    const deleted = await this.prisma.friendship.deleteMany({
-      where: { pairKey: friendshipPairKey(data.userId, other.id) },
+  async removeFriendship(data: { userId: number; otherId: number }): Promise<boolean> {
+    const deleted = await this.dbContext.client.friendship.deleteMany({
+      where: { pairKey: friendshipPairKey(data.userId, data.otherId) },
     });
 
     return deleted.count > 0;

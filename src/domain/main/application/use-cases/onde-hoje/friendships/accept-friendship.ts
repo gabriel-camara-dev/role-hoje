@@ -32,12 +32,18 @@ export class AcceptFriendshipUseCase {
       return fail(new ResourceNotFoundError('Authenticated user not found'));
     }
 
-    const result = await this.friendshipsRepository.acceptFriendship({
+    const requester = await this.usersRepository.findByUsername(request.requesterUsername);
+
+    if (!requester) {
+      return fail(new ResourceNotFoundError('Friend request not found'));
+    }
+
+    const status = await this.friendshipsRepository.acceptFriendship({
       addresseeId: user.id,
-      requesterUsername: request.requesterUsername,
+      requesterId: requester.id,
     });
 
-    if (!result) {
+    if (!status) {
       return fail(new ResourceNotFoundError('Friend request not found'));
     }
 
@@ -49,14 +55,14 @@ export class AcceptFriendshipUseCase {
         payload: {
           requesterUsername: request.requesterUsername,
           addresseeId: request.currentUserPublicId,
-          status: result.status,
+          status,
         },
         recipientIds: [request.currentUserPublicId],
       }),
     );
 
     await this.notificationDispatcher.dispatch({
-      recipientPublicId: result.requesterPublicId,
+      recipientPublicId: requester.publicId,
       actorPublicId: request.currentUserPublicId,
       type: 'FRIEND_ACCEPTED',
       title: 'Pedido de amizade aceito',
@@ -64,6 +70,6 @@ export class AcceptFriendshipUseCase {
       data: {},
     });
 
-    return success({ status: result.status });
+    return success({ status });
   }
 }

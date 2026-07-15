@@ -26,9 +26,15 @@ export class RemoveFriendshipUseCase {
       return fail(new ResourceNotFoundError('Authenticated user not found'));
     }
 
+    const friend = await this.usersRepository.findByUsername(request.friendUsername);
+
+    if (!friend) {
+      return fail(new ResourceNotFoundError('Friendship not found'));
+    }
+
     const removed = await this.friendshipsRepository.removeFriendship({
       userId: user.id,
-      otherUsername: request.friendUsername,
+      otherId: friend.id,
     });
 
     if (!removed) {

@@ -37,7 +37,11 @@
     "sentry:upload": "sentry-cli sourcemaps inject ./dist && sentry-cli sourcemaps upload ./dist",
     "combo": "pnpm i && pnpm prepare:env && docker compose down -v && docker compose up -d --force-recreate && node -e \"setTimeout(() => console.log('✅ Banco pronto!'), 3000)\" && pnpm prisma migrate reset --force && pnpm prisma generate && pnpm prisma migrate dev && pnpm prisma db seed && pnpm start:dev",
     "test": "vitest run",
-    "test:watch": "vitest"
+    "test:watch": "vitest",
+    "test:cov": "vitest run --coverage",
+    "test:debug": "vitest --inspect-brk --inspect --logHeapUsage --no-file-parallelism",
+    "test:e2e": "vitest run --config ./vitest.config.e2e.ts",
+    "test:e2e:watch": "vitest --config ./vitest.config.e2e.ts"
   },
   "dependencies": {
     "@nestjs/common": "^11.0.1",
@@ -67,6 +71,7 @@
   },
   "devDependencies": {
     "@biomejs/biome": "^2.4.16",
+    "@faker-js/faker": "^10.5.0",
     "@nestjs/cli": "^11.0.0",
     "@nestjs/schematics": "^11.0.0",
     "@nestjs/testing": "^11.0.1",
@@ -76,7 +81,9 @@
     "@types/node": "^24.0.0",
     "@types/passport": "^1.0.17",
     "@types/passport-jwt": "^4.0.1",
+    "@types/pg": "^8.20.0",
     "@types/supertest": "^7.2.0",
+    "@vitest/coverage-v8": "^4.1.10",
     "globals": "^17.0.0",
     "npm-run-all": "^4.1.5",
     "prisma": "^7.8.0",

@@ -6,8 +6,11 @@ import { GroupsRepository } from '@/domain/main/application/repositories/onde-ho
 import { NotificationsRepository } from '@/domain/main/application/repositories/onde-hoje/notifications-repository';
 import { OndeHojeUsersRepository } from '@/domain/main/application/repositories/onde-hoje/onde-hoje-users-repository';
 import { PlacesRepository } from '@/domain/main/application/repositories/onde-hoje/places-repository';
+import { TransactionRepository } from '@/domain/main/application/repositories/transaction-repository';
 import { UsersRepository } from '@/domain/main/application/repositories/users-repository';
+import { DatabaseContext } from './prisma/database-context';
 import { PrismaService } from './prisma/prisma.service';
+import { PrismaTransactionRepository } from './prisma/repositories/prisma-transaction-repository';
 import { PrismaAuthenticationAuditRepository } from './prisma/repositories/prisma-authentication-audit-repository';
 import { PrismaAdminDashboardRepository } from './prisma/repositories/onde-hoje/prisma-admin-dashboard-repository';
 import { PrismaFriendshipsRepository } from './prisma/repositories/onde-hoje/prisma-friendships-repository';
@@ -20,6 +23,11 @@ import { PrismaUsersRepository } from './prisma/repositories/prisma-users-reposi
 @Module({
   providers: [
     PrismaService,
+    DatabaseContext,
+    {
+      provide: TransactionRepository,
+      useClass: PrismaTransactionRepository,
+    },
     {
       provide: UsersRepository,
       useClass: PrismaUsersRepository,
@@ -55,6 +63,8 @@ import { PrismaUsersRepository } from './prisma/repositories/prisma-users-reposi
   ],
   exports: [
     PrismaService,
+    DatabaseContext,
+    TransactionRepository,
     UsersRepository,
     PlacesRepository,
     GroupsRepository,

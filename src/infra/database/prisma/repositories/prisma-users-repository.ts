@@ -8,15 +8,15 @@ import type {
   UsersRepository,
 } from '@/domain/main/application/repositories/users-repository';
 import type { CreateUserData, UpdateUserData, User } from '@/domain/main/enterprise/entities/user';
-import { PrismaService } from '../prisma.service';
+import { DatabaseContext } from '../database-context';
 import { PrismaUserMapper } from '../mappers/prisma-user-mapper';
 
 @Injectable()
 export class PrismaUsersRepository implements UsersRepository {
-  constructor(@Inject(PrismaService) private prisma: PrismaService) {}
+  constructor(@Inject(DatabaseContext) private readonly dbContext: DatabaseContext) {}
 
   async create(data: CreateUserData): Promise<User> {
-    const user = await this.prisma.user.create({
+    const user = await this.dbContext.client.user.create({
       data: PrismaUserMapper.toPrisma(data),
     });
 
@@ -24,7 +24,7 @@ export class PrismaUsersRepository implements UsersRepository {
   }
 
   async findBy(findUserBy: FindUserBy): Promise<User | null> {
-    const user = await this.prisma.user.findUnique({
+    const user = await this.dbContext.client.user.findUnique({
       where: this.mapFindUserByToWhere(findUserBy),
     });
 
@@ -32,7 +32,7 @@ export class PrismaUsersRepository implements UsersRepository {
   }
 
   async findByLogin(login: string): Promise<User | null> {
-    const user = await this.prisma.user.findFirst({
+    const user = await this.dbContext.client.user.findFirst({
       where: {
         OR: [{ email: login }, { username: login }],
       },
@@ -50,7 +50,7 @@ export class PrismaUsersRepository implements UsersRepository {
       return null;
     }
 
-    const user = await this.prisma.user.findFirst({
+    const user = await this.dbContext.client.user.findFirst({
       where: {
         OR: conflicts,
         ...(ignoredPublicId ? { NOT: { publicId: ignoredPublicId } } : {}),
@@ -78,7 +78,7 @@ export class PrismaUsersRepository implements UsersRepository {
     }
 
     const [users, totalCount] = await Promise.all([
-      this.prisma.user.findMany({
+      this.dbContext.client.user.findMany({
         where,
         orderBy: {
           createdAt: 'desc',
@@ -86,7 +86,7 @@ export class PrismaUsersRepository implements UsersRepository {
         skip: (currentPage - 1) * perPage,
         take: perPage,
       }),
-      this.prisma.user.count({ where }),
+      this.dbContext.client.user.count({ where }),
     ]);
 
     return {
@@ -98,7 +98,7 @@ export class PrismaUsersRepository implements UsersRepository {
   }
 
   async updateById(id: number, data: UpdateUserData): Promise<User> {
-    const user = await this.prisma.user.update({
+    const user = await this.dbContext.client.user.update({
       where: { id },
       data: PrismaUserMapper.toUpdatePrisma(data),
     });
@@ -107,7 +107,7 @@ export class PrismaUsersRepository implements UsersRepository {
   }
 
   async deleteById(id: number): Promise<User> {
-    const user = await this.prisma.user.delete({
+    const user = await this.dbContext.client.user.delete({
       where: { id },
     });
 
@@ -115,7 +115,7 @@ export class PrismaUsersRepository implements UsersRepository {
   }
 
   async deleteExpiredUnverified(now: Date): Promise<number> {
-    const { count } = await this.prisma.user.deleteMany({
+    const { count } = await this.dbContext.client.user.deleteMany({
       where: {
         emailVerifiedAt: null,
         emailVerificationTokenExpiresAt: { lt: now },

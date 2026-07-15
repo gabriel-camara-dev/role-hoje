@@ -9,7 +9,6 @@
     "emitDecoratorMetadata": true,
     "esModuleInterop": true,
     "isolatedModules": true,
-    "rootDir": "./src",
     "outDir": "./dist",
     "baseUrl": ".",
     "paths": {
@@ -34,11 +33,12 @@
       "@prisma-types/*": ["./src/@types/prisma/*"],
       "@utils/*": ["./src/infra/messaging/*"],
       "@templates/*": ["./src/infra/messaging/templates/*"],
-      "@schemas/*": ["./src/infra/http/schemas/*"]
+      "@schemas/*": ["./src/infra/http/schemas/*"],
+      "@test/*": ["./test/*"]
     },
     "typeRoots": ["./node_modules/@types", "./src/types"],
     "types": ["node"]
   },
-  "include": ["src/**/*.ts"],
+  "include": ["src/**/*.ts", "test/**/*.ts"],
   "exclude": ["node_modules", "dist", "prisma"]
 }

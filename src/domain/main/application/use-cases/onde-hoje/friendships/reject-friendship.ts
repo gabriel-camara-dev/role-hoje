@@ -26,9 +26,15 @@ export class RejectFriendshipUseCase {
       return fail(new ResourceNotFoundError('Authenticated user not found'));
     }
 
+    const requester = await this.usersRepository.findByUsername(request.requesterUsername);
+
+    if (!requester) {
+      return fail(new ResourceNotFoundError('Friend request not found'));
+    }
+
     const rejected = await this.friendshipsRepository.rejectFriendship({
       addresseeId: user.id,
-      requesterUsername: request.requesterUsername,
+      requesterId: requester.id,
     });
 
     if (!rejected) {

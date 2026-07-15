@@ -8,24 +8,24 @@ import type {
   AdminOverview,
 } from '@/domain/main/enterprise/entities/onde-hoje/admin/admin-insights';
 import type { AdminDashboardRepository } from '@/domain/main/application/repositories/onde-hoje/admin-dashboard-repository';
-import { PrismaService } from '../../prisma.service';
+import { DatabaseContext } from '../../database-context';
 import { toDateKey, todayDate } from './onde-hoje-prisma-utils';
 
 const DAILY_WINDOW_DAYS = 14;
 
 @Injectable()
 export class PrismaAdminDashboardRepository implements AdminDashboardRepository {
-  constructor(@Inject(PrismaService) private prisma: PrismaService) {}
+  constructor(@Inject(DatabaseContext) private readonly dbContext: DatabaseContext) {}
 
   async getDashboard(): Promise<AdminDashboard> {
     const day = todayDate();
     const [usersCount, placesCount, groupsCount, todayVotesCount, openReportsCount, topPlaces] = await Promise.all([
-      this.prisma.user.count(),
-      this.prisma.place.count({ where: { isActive: true } }),
-      this.prisma.group.count(),
-      this.prisma.placeVote.count({ where: { day, status: 'ACTIVE' } }),
-      this.prisma.moderationReport.count({ where: { status: 'OPEN' } }),
-      this.prisma.place.findMany({
+      this.dbContext.client.user.count(),
+      this.dbContext.client.place.count({ where: { isActive: true } }),
+      this.dbContext.client.group.count(),
+      this.dbContext.client.placeVote.count({ where: { day, status: 'ACTIVE' } }),
+      this.dbContext.client.moderationReport.count({ where: { status: 'OPEN' } }),
+      this.dbContext.client.place.findMany({
         where: {
           votes: {
             some: { day, status: 'ACTIVE' },
@@ -92,41 +92,41 @@ export class PrismaAdminDashboardRepository implements AdminDashboardRepository 
       signupRows,
       votesTodayCities,
     ] = await Promise.all([
-      this.prisma.user.count(),
-      this.prisma.user.count({ where: { createdAt: { gte: today } } }),
-      this.prisma.user.count({ where: { createdAt: { gte: last7DaysStart } } }),
-      this.prisma.user.count({ where: { lastLogin: { gte: today } } }),
-      this.prisma.user.count({ where: { lastLogin: { gte: last7DaysStart } } }),
-      this.prisma.user.count({ where: { emailVerifiedAt: { not: null } } }),
-      this.prisma.user.count({ where: { googleId: { not: null } } }),
-      this.prisma.user.count({ where: { role: 'ADMIN' } }),
-      this.prisma.placeVote.count({ where: { status: 'ACTIVE' } }),
-      this.prisma.placeVote.count({ where: { status: 'ACTIVE', day: today } }),
-      this.prisma.placeVote.count({ where: { status: 'CANCELLED' } }),
-      this.prisma.placeVote.count({ where: { status: 'ACTIVE', day: { gte: last7DaysStart } } }),
-      this.prisma.place.count({ where: { isActive: true } }),
-      this.prisma.place.count({ where: { createdAt: { gte: today } } }),
-      this.prisma.group.count(),
-      this.prisma.group.count({ where: { createdAt: { gte: today } } }),
-      this.prisma.friendship.count({ where: { status: 'ACCEPTED' } }),
-      this.prisma.friendship.count({ where: { status: 'PENDING' } }),
-      this.prisma.moderationReport.count({ where: { status: 'OPEN' } }),
-      this.prisma.moderationReport.count(),
-      this.prisma.placeVote.groupBy({
+      this.dbContext.client.user.count(),
+      this.dbContext.client.user.count({ where: { createdAt: { gte: today } } }),
+      this.dbContext.client.user.count({ where: { createdAt: { gte: last7DaysStart } } }),
+      this.dbContext.client.user.count({ where: { lastLogin: { gte: today } } }),
+      this.dbContext.client.user.count({ where: { lastLogin: { gte: last7DaysStart } } }),
+      this.dbContext.client.user.count({ where: { emailVerifiedAt: { not: null } } }),
+      this.dbContext.client.user.count({ where: { googleId: { not: null } } }),
+      this.dbContext.client.user.count({ where: { role: 'ADMIN' } }),
+      this.dbContext.client.placeVote.count({ where: { status: 'ACTIVE' } }),
+      this.dbContext.client.placeVote.count({ where: { status: 'ACTIVE', day: today } }),
+      this.dbContext.client.placeVote.count({ where: { status: 'CANCELLED' } }),
+      this.dbContext.client.placeVote.count({ where: { status: 'ACTIVE', day: { gte: last7DaysStart } } }),
+      this.dbContext.client.place.count({ where: { isActive: true } }),
+      this.dbContext.client.place.count({ where: { createdAt: { gte: today } } }),
+      this.dbContext.client.group.count(),
+      this.dbContext.client.group.count({ where: { createdAt: { gte: today } } }),
+      this.dbContext.client.friendship.count({ where: { status: 'ACCEPTED' } }),
+      this.dbContext.client.friendship.count({ where: { status: 'PENDING' } }),
+      this.dbContext.client.moderationReport.count({ where: { status: 'OPEN' } }),
+      this.dbContext.client.moderationReport.count(),
+      this.dbContext.client.placeVote.groupBy({
         by: ['voteType'],
         where: { status: 'ACTIVE', day: today },
         _count: true,
       }),
-      this.prisma.placeVote.groupBy({
+      this.dbContext.client.placeVote.groupBy({
         by: ['day'],
         where: { status: 'ACTIVE', day: { gte: windowStart } },
         _count: true,
       }),
-      this.prisma.user.findMany({
+      this.dbContext.client.user.findMany({
         where: { createdAt: { gte: windowStart } },
         select: { createdAt: true },
       }),
-      this.prisma.placeVote.findMany({
+      this.dbContext.client.placeVote.findMany({
         where: { status: 'ACTIVE', day: today },
         select: { place: { select: { city: true } } },
       }),
@@ -206,41 +206,41 @@ export class PrismaAdminDashboardRepository implements AdminDashboardRepository 
 
     const [topVotersRaw, topCancellersRaw, heavyVotersRaw, suspiciousUsers, reportedRaw, recentReports] =
       await Promise.all([
-        this.prisma.placeVote.groupBy({
+        this.dbContext.client.placeVote.groupBy({
           by: ['userId'],
           where: { status: 'ACTIVE', day: today },
           _count: { userId: true },
           orderBy: { _count: { userId: 'desc' } },
           take: 10,
         }),
-        this.prisma.placeVote.groupBy({
+        this.dbContext.client.placeVote.groupBy({
           by: ['userId'],
           where: { status: 'CANCELLED', day: today },
           _count: { userId: true },
           orderBy: { _count: { userId: 'desc' } },
           take: 10,
         }),
-        this.prisma.placeVote.groupBy({
+        this.dbContext.client.placeVote.groupBy({
           by: ['userId'],
           where: { status: 'ACTIVE' },
           _count: { userId: true },
           orderBy: { _count: { userId: 'desc' } },
           take: 10,
         }),
-        this.prisma.user.findMany({
+        this.dbContext.client.user.findMany({
           where: { loginAttempts: { gt: 0 } },
           orderBy: { loginAttempts: 'desc' },
           take: 10,
           select: { publicId: true, name: true, username: true, loginAttempts: true, lastLogin: true },
         }),
-        this.prisma.moderationReport.groupBy({
+        this.dbContext.client.moderationReport.groupBy({
           by: ['placeId'],
           where: { status: 'OPEN', placeId: { not: null } },
           _count: { placeId: true },
           orderBy: { _count: { placeId: 'desc' } },
           take: 10,
         }),
-        this.prisma.moderationReport.findMany({
+        this.dbContext.client.moderationReport.findMany({
           orderBy: { createdAt: 'desc' },
           take: 10,
           select: {
@@ -257,14 +257,14 @@ export class PrismaAdminDashboardRepository implements AdminDashboardRepository 
     const voterUserIds = [
       ...new Set([...topVotersRaw, ...topCancellersRaw, ...heavyVotersRaw].map((row) => row.userId)),
     ];
-    const voterUsers = await this.prisma.user.findMany({
+    const voterUsers = await this.dbContext.client.user.findMany({
       where: { id: { in: voterUserIds } },
       select: { id: true, publicId: true, name: true, username: true },
     });
     const userById = new Map(voterUsers.map((user) => [user.id, user]));
 
     const placeIds = reportedRaw.map((row) => row.placeId).filter((id): id is number => id !== null);
-    const reportedPlacesData = await this.prisma.place.findMany({
+    const reportedPlacesData = await this.dbContext.client.place.findMany({
       where: { id: { in: placeIds } },
       select: { id: true, publicId: true, name: true, city: true },
     });
@@ -341,32 +341,32 @@ export class PrismaAdminDashboardRepository implements AdminDashboardRepository 
       topFailedIpsRaw,
       recentAttempts,
     ] = await Promise.all([
-      this.prisma.authenticationAudit.count({ where: { status: 'SUCCESS', createdAt: { gte: today } } }),
-      this.prisma.authenticationAudit.count({ where: { status: 'INCORRECT_PASSWORD', createdAt: { gte: today } } }),
-      this.prisma.authenticationAudit.count({ where: { status: 'USER_NOT_EXISTS', createdAt: { gte: today } } }),
-      this.prisma.authenticationAudit.count({ where: { status: 'BLOCKED', createdAt: { gte: today } } }),
-      this.prisma.authenticationAudit.findMany({
+      this.dbContext.client.authenticationAudit.count({ where: { status: 'SUCCESS', createdAt: { gte: today } } }),
+      this.dbContext.client.authenticationAudit.count({ where: { status: 'INCORRECT_PASSWORD', createdAt: { gte: today } } }),
+      this.dbContext.client.authenticationAudit.count({ where: { status: 'USER_NOT_EXISTS', createdAt: { gte: today } } }),
+      this.dbContext.client.authenticationAudit.count({ where: { status: 'BLOCKED', createdAt: { gte: today } } }),
+      this.dbContext.client.authenticationAudit.findMany({
         where: { status: 'SUCCESS', createdAt: { gte: today }, userId: { not: null } },
         distinct: ['userId'],
         select: { userId: true },
       }),
-      this.prisma.authenticationAudit.findMany({
+      this.dbContext.client.authenticationAudit.findMany({
         where: { status: 'SUCCESS', createdAt: { gte: windowStart } },
         select: { createdAt: true },
       }),
-      this.prisma.authenticationAudit.groupBy({
+      this.dbContext.client.authenticationAudit.groupBy({
         by: ['status'],
         where: { createdAt: { gte: last7DaysStart } },
         _count: true,
       }),
-      this.prisma.authenticationAudit.groupBy({
+      this.dbContext.client.authenticationAudit.groupBy({
         by: ['ipAddress'],
         where: { status: { not: 'SUCCESS' }, createdAt: { gte: last7DaysStart }, ipAddress: { not: null } },
         _count: { ipAddress: true },
         orderBy: { _count: { ipAddress: 'desc' } },
         take: 10,
       }),
-      this.prisma.authenticationAudit.findMany({
+      this.dbContext.client.authenticationAudit.findMany({
         orderBy: { createdAt: 'desc' },
         take: 20,
         select: {

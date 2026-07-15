@@ -9,7 +9,7 @@ import type {
   NotificationsRepository,
   UpsertAggregatedNotificationData,
 } from '@/domain/main/application/repositories/onde-hoje/notifications-repository';
-import { PrismaService } from '../../prisma.service';
+import { DatabaseContext } from '../../database-context';
 
 type NotificationWithActor = Prisma.NotificationGetPayload<{
   include: {
@@ -21,14 +21,14 @@ type NotificationWithActor = Prisma.NotificationGetPayload<{
 
 @Injectable()
 export class PrismaNotificationsRepository implements NotificationsRepository {
-  constructor(@Inject(PrismaService) private prisma: PrismaService) {}
+  constructor(@Inject(DatabaseContext) private readonly dbContext: DatabaseContext) {}
 
   private static actorSelect = {
     select: { publicId: true, name: true, username: true, avatarUpdatedAt: true },
   } as const;
 
   async create(data: CreateNotificationData): Promise<Notification> {
-    const notification = await this.prisma.notification.create({
+    const notification = await this.dbContext.client.notification.create({
       data: {
         userId: data.recipientId,
         actorId: data.actorId ?? null,
@@ -44,7 +44,7 @@ export class PrismaNotificationsRepository implements NotificationsRepository {
   }
 
   async listForUser(userId: number, limit = 30, offset = 0): Promise<Notification[]> {
-    const notifications = await this.prisma.notification.findMany({
+    const notifications = await this.dbContext.client.notification.findMany({
       where: { userId },
       orderBy: { createdAt: 'desc' },
       take: limit,
@@ -56,11 +56,11 @@ export class PrismaNotificationsRepository implements NotificationsRepository {
   }
 
   async countUnread(userId: number): Promise<number> {
-    return this.prisma.notification.count({ where: { userId, readAt: null } });
+    return this.dbContext.client.notification.count({ where: { userId, readAt: null } });
   }
 
   async markRead(userId: number, publicId: string): Promise<boolean> {
-    const result = await this.prisma.notification.updateMany({
+    const result = await this.dbContext.client.notification.updateMany({
       where: { userId, publicId, readAt: null },
       data: { readAt: new Date() },
     });
@@ -69,7 +69,7 @@ export class PrismaNotificationsRepository implements NotificationsRepository {
   }
 
   async markAllRead(userId: number): Promise<number> {
-    const result = await this.prisma.notification.updateMany({
+    const result = await this.dbContext.client.notification.updateMany({
       where: { userId, readAt: null },
       data: { readAt: new Date() },
     });
@@ -78,7 +78,7 @@ export class PrismaNotificationsRepository implements NotificationsRepository {
   }
 
   async findLatestByGroupKey(userId: number, groupKey: string): Promise<Notification | null> {
-    const notification = await this.prisma.notification.findFirst({
+    const notification = await this.dbContext.client.notification.findFirst({
       where: { userId, groupKey },
       orderBy: { createdAt: 'desc' },
       include: { actor: PrismaNotificationsRepository.actorSelect },
@@ -88,7 +88,7 @@ export class PrismaNotificationsRepository implements NotificationsRepository {
   }
 
   async upsertAggregated(data: UpsertAggregatedNotificationData): Promise<Notification> {
-    const existing = await this.prisma.notification.findFirst({
+    const existing = await this.dbContext.client.notification.findFirst({
       where: { userId: data.recipientId, groupKey: data.groupKey },
       orderBy: { createdAt: 'desc' },
       select: { id: true },
@@ -97,7 +97,7 @@ export class PrismaNotificationsRepository implements NotificationsRepository {
     // Bumping createdAt + clearing readAt resurfaces the aggregated notification
     // to the top and marks it unread again, like a Twitter "N people liked" toast.
     const notification = existing
-      ? await this.prisma.notification.update({
+      ? await this.dbContext.client.notification.update({
           where: { id: existing.id },
           data: {
             title: data.title,
@@ -107,7 +107,7 @@ export class PrismaNotificationsRepository implements NotificationsRepository {
           },
           include: { actor: PrismaNotificationsRepository.actorSelect },
         })
-      : await this.prisma.notification.create({
+      : await this.dbContext.client.notification.create({
           data: {
             userId: data.recipientId,
             type: data.type,

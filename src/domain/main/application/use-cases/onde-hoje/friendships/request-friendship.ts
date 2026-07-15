@@ -33,14 +33,16 @@ export class RequestFriendshipUseCase {
       return fail(new ResourceNotFoundError('Authenticated user not found'));
     }
 
-    const friendship = await this.friendshipsRepository.requestFriendship({
-      requesterId: user.id,
-      addresseeUsername: request.addresseeUsername,
-    });
+    const addressee = await this.usersRepository.findByUsername(request.addresseeUsername);
 
-    if (friendship.type === 'not_found') {
+    if (!addressee || addressee.id === user.id) {
       return fail(new ResourceNotFoundError('User not found'));
     }
+
+    const friendship = await this.friendshipsRepository.requestFriendship({
+      requesterId: user.id,
+      addresseeId: addressee.id,
+    });
 
     if (friendship.type === 'already_exists') {
       return fail(new ConflictError(`Friendship is already ${friendship.status.toLowerCase()}`));
@@ -60,7 +62,7 @@ export class RequestFriendshipUseCase {
     );
 
     await this.notificationDispatcher.dispatch({
-      recipientPublicId: friendship.addresseePublicId,
+      recipientPublicId: addressee.publicId,
       actorPublicId: request.currentUserPublicId,
       type: 'FRIEND_REQUEST',
       title: 'Novo pedido de amizade',
