@@ -42,6 +42,7 @@ export const globalTopPlacesQuerySchema = z.object({
   city: z.string().min(1).optional(),
   state: z.string().min(1).optional(),
   limit: z.coerce.number().int().positive().max(100).optional(),
+  myGroups: z.string().optional(),
 });
 
 export const historyQuerySchema = z
