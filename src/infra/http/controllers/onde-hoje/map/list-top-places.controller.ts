@@ -66,11 +66,23 @@ export class ListTopPlacesController {
   @ApiQuery({ name: 'city', required: false, type: String })
   @ApiQuery({ name: 'state', required: false, type: String })
   @ApiQuery({ name: 'limit', required: false, type: Number, example: 50 })
+  @ApiQuery({
+    name: 'myGroups',
+    required: false,
+    type: String,
+    description: "Also count votes from the caller's own groups. Other groups' votes are never counted.",
+  })
   @ApiOkResponse({ description: 'Global ranking retrieved successfully.', type: [TodayMapPlaceResponseDto] })
   async globalRanking(
+    @Req() request: Request,
     @Query(new ZodValidationPipe<GlobalTopPlacesQuery>(globalTopPlacesQuerySchema)) query: GlobalTopPlacesQuery,
   ) {
-    const result = await this.listGlobalTopPlacesUseCase.execute(query);
+    const viewerPublicId = await this.optionalViewerResolver.getPublicId(request);
+    const result = await this.listGlobalTopPlacesUseCase.execute({
+      ...query,
+      includeViewerGroups: query.myGroups === '1' || query.myGroups === 'true',
+      viewerPublicId,
+    });
 
     return result.value.places.map((place) => MapPresenter.todayPlaceToHTTP(place));
   }

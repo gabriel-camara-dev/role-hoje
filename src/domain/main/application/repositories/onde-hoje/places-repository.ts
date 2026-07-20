@@ -54,6 +54,12 @@ export interface GlobalTopPlacesQuery {
   city?: string;
   state?: string;
   limit?: number;
+  viewerPublicId?: string;
+  /**
+   * Without this the ranking counts public votes only. A vote cast inside a
+   * group — private ones above all — is never visible to someone outside it.
+   */
+  includeViewerGroups?: boolean;
 }
 
 export interface PlaceHistoryQuery {

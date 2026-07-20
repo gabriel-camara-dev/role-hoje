@@ -92,6 +92,44 @@ describe('Map & Places routes', () => {
       expect(anonymousDay.places[0].voters).toHaveLength(0);
     });
 
+    it('keeps private group votes out of the global ranking for outsiders', async () => {
+      const member = await createUser(app);
+      const outsider = await createUser(app);
+      const group = await createGroup(app, member.user.id, { privacy: 'PRIVATE' });
+      const place = await createPlace(app);
+
+      const vote = await http
+        .post(`/places/${place.publicId}/votes`)
+        .set(...bearer(member.token))
+        .send({ day: dayOffset(0), going: true, groupPublicId: group.publicId });
+
+      expect(vote.status).toBe(201);
+
+      const findPlace = (body: Array<{ id: string }>) => body.find((entry) => entry.id === place.publicId);
+
+      // Anonymous, and a logged-in non-member, must not see it at all.
+      const anonymous = await http.get('/map/global-ranking');
+      expect(findPlace(anonymous.body)).toBeUndefined();
+
+      const nonMember = await http
+        .get('/map/global-ranking')
+        .set(...bearer(outsider.token))
+        .query({ myGroups: '1' });
+
+      expect(findPlace(nonMember.body)).toBeUndefined();
+
+      // The member sees it only when asking for their own groups.
+      const memberDefault = await http.get('/map/global-ranking').set(...bearer(member.token));
+      expect(findPlace(memberDefault.body)).toBeUndefined();
+
+      const memberScoped = await http
+        .get('/map/global-ranking')
+        .set(...bearer(member.token))
+        .query({ myGroups: '1' });
+
+      expect(findPlace(memberScoped.body)).toBeDefined();
+    });
+
     it('memberVotes widens a group range to the public votes of its members only', async () => {
       const owner = await createUser(app);
       const outsider = await createUser(app);

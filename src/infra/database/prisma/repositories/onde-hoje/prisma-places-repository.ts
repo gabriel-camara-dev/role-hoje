@@ -278,6 +278,10 @@ export class PrismaPlacesRepository implements PlacesRepository {
   }
 
   async globalTopPlaces(query: GlobalTopPlacesQuery): Promise<TodayMapPlace[]> {
+    // Without this the all-time ranking counted every vote in the database,
+    // including private groups', and surfaced their voters.
+    const voteScopeWhere = await this.resolveVoteScopeWhere(null, query);
+
     const places = await this.prisma.place.findMany({
       where: {
         isActive: true,
@@ -288,6 +292,7 @@ export class PrismaPlacesRepository implements PlacesRepository {
         votes: {
           some: {
             status: 'ACTIVE',
+            ...voteScopeWhere,
           },
         },
       },
@@ -295,6 +300,7 @@ export class PrismaPlacesRepository implements PlacesRepository {
         votes: {
           where: {
             status: 'ACTIVE',
+            ...voteScopeWhere,
           },
           include: {
             user: {
