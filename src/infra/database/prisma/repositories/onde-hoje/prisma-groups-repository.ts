@@ -26,6 +26,49 @@ export class PrismaGroupsRepository implements GroupsRepository {
     };
   }
 
+  /**
+   * Public votes cast today by each group's active members, keyed by group
+   * publicId. These sit outside `Group.votes` (which only holds votes scoped to
+   * the group), but they are still the members showing up somewhere today — the
+   * same rule the "next 7 days" dialog uses. One query for every group asked
+   * about, so a listing does not fan out.
+   */
+  private async memberPublicVotesToday(groupPublicIds: string[]): Promise<Map<string, number>> {
+    if (groupPublicIds.length === 0) {
+      return new Map();
+    }
+
+    const memberships = await this.dbContext.client.groupMember.findMany({
+      where: { status: 'ACTIVE', group: { publicId: { in: groupPublicIds } } },
+      select: {
+        group: { select: { publicId: true } },
+        user: {
+          select: {
+            _count: {
+              select: {
+                placeVotes: { where: { day: todayDateOnly(), status: 'ACTIVE' as const, groupId: null } },
+              },
+            },
+          },
+        },
+      },
+    });
+
+    const counts = new Map<string, number>();
+
+    for (const membership of memberships) {
+      const current = counts.get(membership.group.publicId) ?? 0;
+      counts.set(membership.group.publicId, current + membership.user._count.placeVotes);
+    }
+
+    return counts;
+  }
+
+  /** Votes scoped to the group plus its members' public ones — the two sets are disjoint. */
+  private todayVotesCountOf(raw: { publicId: string; _count: { votes: number } }, memberVotes: Map<string, number>) {
+    return raw._count.votes + (memberVotes.get(raw.publicId) ?? 0);
+  }
+
   private membersInclude() {
     return {
       include: {
@@ -62,7 +105,13 @@ export class PrismaGroupsRepository implements GroupsRepository {
       },
     });
 
-    return group ? PrismaGroupDetailsMapper.detailsToDomain(group) : null;
+    if (!group) {
+      return null;
+    }
+
+    const memberVotes = await this.memberPublicVotesToday([group.publicId]);
+
+    return PrismaGroupDetailsMapper.detailsToDomain(group, this.todayVotesCountOf(group, memberVotes));
   }
 
   async findManyPublicSummaries(query: ListPublicGroupsQuery): Promise<GroupSummary[]> {
@@ -76,7 +125,11 @@ export class PrismaGroupsRepository implements GroupsRepository {
       include: { _count: this.countsSelect() },
     });
 
-    return groups.map((group) => PrismaGroupDetailsMapper.summaryToDomain(group));
+    const memberVotes = await this.memberPublicVotesToday(groups.map((group) => group.publicId));
+
+    return groups.map((group) =>
+      PrismaGroupDetailsMapper.summaryToDomain(group, this.todayVotesCountOf(group, memberVotes)),
+    );
   }
 
   async findManyDetailsByMemberId(memberId: string): Promise<MyGroupDetails[]> {
@@ -93,9 +146,14 @@ export class PrismaGroupsRepository implements GroupsRepository {
       },
     });
 
+    const memberVotes = await this.memberPublicVotesToday(memberships.map((membership) => membership.group.publicId));
+
     return memberships.map((membership) =>
       MyGroupDetails.create({
-        group: PrismaGroupDetailsMapper.detailsToDomain(membership.group),
+        group: PrismaGroupDetailsMapper.detailsToDomain(
+          membership.group,
+          this.todayVotesCountOf(membership.group, memberVotes),
+        ),
         myRole: membership.role,
         myStatus: membership.status,
       }),

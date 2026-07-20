@@ -45,7 +45,12 @@ export class PrismaGroupDetailsMapper {
     });
   }
 
-  static summaryToDomain(raw: RawGroupSummary): GroupSummary {
+  /**
+   * `todayVotesCount` is passed in rather than read off `_count.votes`: the card
+   * counts the members' activity, which includes the public votes they cast
+   * outside the group, and no relation count on Group can express that.
+   */
+  static summaryToDomain(raw: RawGroupSummary, todayVotesCount: number): GroupSummary {
     return GroupSummary.create({
       groupId: new UniqueEntityID(raw.publicId),
       name: raw.name,
@@ -55,11 +60,11 @@ export class PrismaGroupDetailsMapper {
       city: raw.city,
       state: raw.state,
       membersCount: raw._count.members,
-      todayVotesCount: raw._count.votes,
+      todayVotesCount,
     });
   }
 
-  static detailsToDomain(raw: RawGroupDetails): GroupDetails {
+  static detailsToDomain(raw: RawGroupDetails, todayVotesCount: number): GroupDetails {
     return GroupDetails.create({
       groupId: new UniqueEntityID(raw.publicId),
       name: raw.name,
@@ -70,7 +75,7 @@ export class PrismaGroupDetailsMapper {
       state: raw.state,
       members: raw.members.map((member) => PrismaGroupDetailsMapper.memberToDomain(member)),
       membersCount: raw._count.members,
-      todayVotesCount: raw._count.votes,
+      todayVotesCount,
     });
   }
 }
