@@ -1,6 +1,6 @@
 import { Inject, Injectable } from '@nestjs/common';
 import { compare } from 'bcryptjs';
-import { createDomainEvent } from '@/core/events/domain-event';
+import { createIntegrationEvent } from '@/core/events/integration-event';
 import { EventBus } from '@/core/events/event-bus';
 import type { Result } from '@/core/result';
 import { fail, success } from '@/core/result';
@@ -52,38 +52,37 @@ export class AuthenticateUserUseCase {
     if (!user?.passwordHash || !doesPasswordMatch) {
       await this.authenticationAuditRepository.record({
         status: user ? 'INCORRECT_PASSWORD' : 'USER_NOT_EXISTS',
-        userId: user?.id ?? null,
+        userPublicId: user?.publicId ?? null,
         ...context,
       });
 
       return fail(new InvalidCredentialsError());
     }
 
-    if (!user.emailVerifiedAt && user.role !== 'ADMIN') {
+    if (!user.isEmailVerified && !user.isAdmin) {
       return fail(new EmailNotVerifiedError());
     }
 
-    const authenticatedUser = await this.usersRepository.updateById(user.id, {
-      lastLogin: new Date(),
-    });
+    user.recordLogin();
+    await this.usersRepository.save(user);
 
     await this.authenticationAuditRepository.record({
       status: 'SUCCESS',
-      userId: authenticatedUser.id,
+      userPublicId: user.publicId,
       ...context,
     });
 
     await this.eventBus.publish(
-      createDomainEvent({
+      createIntegrationEvent({
         eventName: 'user.authenticated',
-        aggregateId: authenticatedUser.publicId,
+        aggregateId: user.publicId,
         payload: {
-          id: authenticatedUser.publicId,
+          id: user.publicId,
         },
-        recipientIds: [authenticatedUser.publicId],
+        recipientIds: [user.publicId],
       }),
     );
 
-    return success({ user: authenticatedUser });
+    return success({ user });
   }
 }

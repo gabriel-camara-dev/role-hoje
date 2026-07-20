@@ -8,7 +8,8 @@ export type AuthenticationAuditStatus =
 
 export interface RecordAuthenticationAuditData {
   status: AuthenticationAuditStatus;
-  userId?: number | null;
+  /** Null when the login attempt could not be tied to an account. */
+  userPublicId?: string | null;
   ipAddress?: string | null;
   remotePort?: string | null;
   userAgent?: string | null;

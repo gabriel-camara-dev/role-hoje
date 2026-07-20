@@ -1,26 +1,14 @@
-export interface DomainEvent<Payload = unknown> {
-  eventId: string;
-  eventName: string;
-  aggregateId?: string;
+import type { UniqueEntityID } from '../entities/unique-entity-id';
+
+/**
+ * A fact an aggregate raised in-process. Dispatched synchronously by
+ * {@link DomainEvents} after the aggregate is persisted, to whichever
+ * subscribers registered for it.
+ *
+ * Not to be confused with an IntegrationEvent, which is the serialisable
+ * message the {@link EventBus} carries across processes and to the browser.
+ */
+export interface DomainEvent {
   occurredAt: Date;
-  payload: Payload;
-  actorId?: string;
-  recipientIds?: string[];
-}
-
-export type CreateDomainEventInput<Payload> = Omit<DomainEvent<Payload>, 'eventId' | 'occurredAt'> & {
-  eventId?: string;
-  occurredAt?: Date;
-};
-
-export function createDomainEvent<Payload>(input: CreateDomainEventInput<Payload>): DomainEvent<Payload> {
-  return {
-    eventId: input.eventId ?? crypto.randomUUID(),
-    eventName: input.eventName,
-    aggregateId: input.aggregateId,
-    occurredAt: input.occurredAt ?? new Date(),
-    payload: input.payload,
-    actorId: input.actorId,
-    recipientIds: input.recipientIds,
-  };
+  getAggregateId(): UniqueEntityID;
 }

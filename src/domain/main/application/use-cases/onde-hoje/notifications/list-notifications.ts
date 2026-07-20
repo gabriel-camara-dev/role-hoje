@@ -36,8 +36,8 @@ export class ListNotificationsUseCase {
 
     const [page, unreadCount] = await Promise.all([
       // Fetch one extra row to know whether there is a next page.
-      this.notificationsRepository.listForUser(user.id, limit + 1, offset),
-      this.notificationsRepository.countUnread(user.id),
+      this.notificationsRepository.findManyByRecipientId(user.publicId, limit + 1, offset),
+      this.notificationsRepository.countUnread(user.publicId),
     ]);
 
     const hasMore = page.length > limit;

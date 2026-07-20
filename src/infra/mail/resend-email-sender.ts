@@ -56,8 +56,7 @@ export class ResendEmailSender implements EmailSender {
 
 // System font stack that renders a modern typeface on every platform
 // (SF Pro on Apple, Segoe UI on Windows, Roboto on Android/Gmail).
-const BODY_FONT =
-  "-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,'Helvetica Neue',Arial,sans-serif";
+const BODY_FONT = "-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,'Helvetica Neue',Arial,sans-serif";
 
 function confirmationEmailHtml({ confirmationUrl, name }: { confirmationUrl: string; name: string }) {
   const safeConfirmationUrl = escapeHtml(confirmationUrl);

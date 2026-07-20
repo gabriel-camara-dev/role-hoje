@@ -1,103 +1,117 @@
 import { Inject, Injectable } from '@nestjs/common';
+import { UniqueEntityID } from '@/core/entities/unique-entity-id';
 import type { Prisma } from '@/@types/prisma/client';
 import type {
-  Notification,
-  NotificationActor,
-} from '@/domain/main/enterprise/entities/onde-hoje/notifications/notification';
-import type {
-  CreateNotificationData,
   NotificationsRepository,
   UpsertAggregatedNotificationData,
 } from '@/domain/main/application/repositories/onde-hoje/notifications-repository';
-import { PrismaService } from '../../prisma.service';
+import {
+  Notification,
+  type NotificationActor,
+} from '@/domain/main/enterprise/entities/onde-hoje/notifications/notification';
+import { DatabaseContext } from '../../database-context';
 
-type NotificationWithActor = Prisma.NotificationGetPayload<{
-  include: {
-    actor: {
-      select: { publicId: true; name: true; username: true; avatarUpdatedAt: true };
-    };
-  };
-}>;
+const actorSelect = {
+  select: { publicId: true, name: true, username: true, avatarUpdatedAt: true },
+} as const;
+
+const withRelations = {
+  user: { select: { publicId: true } },
+  actor: actorSelect,
+} satisfies Prisma.NotificationInclude;
+
+type NotificationRow = Prisma.NotificationGetPayload<{ include: typeof withRelations }>;
 
 @Injectable()
 export class PrismaNotificationsRepository implements NotificationsRepository {
-  constructor(@Inject(PrismaService) private prisma: PrismaService) {}
+  constructor(@Inject(DatabaseContext) private readonly dbContext: DatabaseContext) {}
 
-  private static actorSelect = {
-    select: { publicId: true, name: true, username: true, avatarUpdatedAt: true },
-  } as const;
-
-  async create(data: CreateNotificationData): Promise<Notification> {
-    const notification = await this.prisma.notification.create({
-      data: {
-        userId: data.recipientId,
-        actorId: data.actorId ?? null,
-        type: data.type,
-        title: data.title,
-        body: data.body ?? null,
-        data: (data.data ?? undefined) as Prisma.InputJsonValue | undefined,
-      },
-      include: { actor: PrismaNotificationsRepository.actorSelect },
+  async findById(id: string): Promise<Notification | null> {
+    const notification = await this.dbContext.client.notification.findUnique({
+      where: { publicId: id },
+      include: withRelations,
     });
 
-    return PrismaNotificationsRepository.toDomain(notification);
+    return notification ? PrismaNotificationsRepository.toDomain(notification) : null;
   }
 
-  async listForUser(userId: number, limit = 30, offset = 0): Promise<Notification[]> {
-    const notifications = await this.prisma.notification.findMany({
-      where: { userId },
+  async create(notification: Notification): Promise<void> {
+    await this.dbContext.client.notification.create({
+      data: {
+        publicId: notification.id.toString(),
+        type: notification.type,
+        title: notification.title,
+        body: notification.body,
+        data: (notification.data ?? undefined) as Prisma.InputJsonValue | undefined,
+        groupKey: notification.groupKey,
+        readAt: notification.readAt,
+        createdAt: notification.createdAt,
+        user: { connect: { publicId: notification.recipientId.toString() } },
+        ...(notification.actor ? { actor: { connect: { publicId: notification.actor.publicId } } } : {}),
+      },
+    });
+  }
+
+  async save(notification: Notification): Promise<void> {
+    await this.dbContext.client.notification.update({
+      where: { publicId: notification.id.toString() },
+      data: {
+        title: notification.title,
+        body: notification.body,
+        data: (notification.data ?? undefined) as Prisma.InputJsonValue | undefined,
+        readAt: notification.readAt,
+      },
+    });
+  }
+
+  async findManyByRecipientId(recipientPublicId: string, limit = 30, offset = 0): Promise<Notification[]> {
+    const notifications = await this.dbContext.client.notification.findMany({
+      where: { user: { publicId: recipientPublicId } },
       orderBy: { createdAt: 'desc' },
       take: limit,
       skip: offset,
-      include: { actor: PrismaNotificationsRepository.actorSelect },
+      include: withRelations,
     });
 
     return notifications.map(PrismaNotificationsRepository.toDomain);
   }
 
-  async countUnread(userId: number): Promise<number> {
-    return this.prisma.notification.count({ where: { userId, readAt: null } });
-  }
-
-  async markRead(userId: number, publicId: string): Promise<boolean> {
-    const result = await this.prisma.notification.updateMany({
-      where: { userId, publicId, readAt: null },
-      data: { readAt: new Date() },
+  async countUnread(recipientPublicId: string): Promise<number> {
+    return this.dbContext.client.notification.count({
+      where: { user: { publicId: recipientPublicId }, readAt: null },
     });
-
-    return result.count > 0;
   }
 
-  async markAllRead(userId: number): Promise<number> {
-    const result = await this.prisma.notification.updateMany({
-      where: { userId, readAt: null },
+  async markAllRead(recipientPublicId: string): Promise<number> {
+    const result = await this.dbContext.client.notification.updateMany({
+      where: { user: { publicId: recipientPublicId }, readAt: null },
       data: { readAt: new Date() },
     });
 
     return result.count;
   }
 
-  async findLatestByGroupKey(userId: number, groupKey: string): Promise<Notification | null> {
-    const notification = await this.prisma.notification.findFirst({
-      where: { userId, groupKey },
+  async findLatestByGroupKey(recipientPublicId: string, groupKey: string): Promise<Notification | null> {
+    const notification = await this.dbContext.client.notification.findFirst({
+      where: { user: { publicId: recipientPublicId }, groupKey },
       orderBy: { createdAt: 'desc' },
-      include: { actor: PrismaNotificationsRepository.actorSelect },
+      include: withRelations,
     });
 
     return notification ? PrismaNotificationsRepository.toDomain(notification) : null;
   }
 
   async upsertAggregated(data: UpsertAggregatedNotificationData): Promise<Notification> {
-    const existing = await this.prisma.notification.findFirst({
-      where: { userId: data.recipientId, groupKey: data.groupKey },
+    const existing = await this.dbContext.client.notification.findFirst({
+      where: { user: { publicId: data.recipientPublicId }, groupKey: data.groupKey },
       orderBy: { createdAt: 'desc' },
       select: { id: true },
     });
 
     // Bumping createdAt + clearing readAt resurfaces the aggregated notification
-    // to the top and marks it unread again, like a Twitter "N people liked" toast.
+    // to the top and marks it unread again, like a "N people liked" toast.
     const notification = existing
-      ? await this.prisma.notification.update({
+      ? await this.dbContext.client.notification.update({
           where: { id: existing.id },
           data: {
             title: data.title,
@@ -105,41 +119,45 @@ export class PrismaNotificationsRepository implements NotificationsRepository {
             readAt: null,
             createdAt: new Date(),
           },
-          include: { actor: PrismaNotificationsRepository.actorSelect },
+          include: withRelations,
         })
-      : await this.prisma.notification.create({
+      : await this.dbContext.client.notification.create({
           data: {
-            userId: data.recipientId,
+            user: { connect: { publicId: data.recipientPublicId } },
             type: data.type,
             groupKey: data.groupKey,
             title: data.title,
             data: (data.data ?? undefined) as Prisma.InputJsonValue | undefined,
           },
-          include: { actor: PrismaNotificationsRepository.actorSelect },
+          include: withRelations,
         });
 
     return PrismaNotificationsRepository.toDomain(notification);
   }
 
-  private static toDomain(notification: NotificationWithActor): Notification {
-    const actor: NotificationActor | null = notification.actor
+  private static toDomain(row: NotificationRow): Notification {
+    const actor: NotificationActor | null = row.actor
       ? {
-          publicId: notification.actor.publicId,
-          name: notification.actor.name,
-          username: notification.actor.username,
-          avatarUrl: notification.actor.avatarUpdatedAt ? `/users/${notification.actor.publicId}/avatar` : null,
+          publicId: row.actor.publicId,
+          name: row.actor.name,
+          username: row.actor.username,
+          avatarUrl: row.actor.avatarUpdatedAt ? `/users/${row.actor.publicId}/avatar` : null,
         }
       : null;
 
-    return {
-      publicId: notification.publicId,
-      type: notification.type,
-      title: notification.title,
-      body: notification.body,
-      data: (notification.data as Record<string, unknown> | null) ?? null,
-      read: notification.readAt !== null,
-      createdAt: notification.createdAt,
-      actor,
-    };
+    return Notification.create(
+      {
+        recipientId: new UniqueEntityID(row.user.publicId),
+        actor,
+        type: row.type,
+        title: row.title,
+        body: row.body,
+        data: (row.data as Record<string, unknown> | null) ?? null,
+        groupKey: row.groupKey,
+        readAt: row.readAt,
+        createdAt: row.createdAt,
+      },
+      new UniqueEntityID(row.publicId),
+    );
   }
 }

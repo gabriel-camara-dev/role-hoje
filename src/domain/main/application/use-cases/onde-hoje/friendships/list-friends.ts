@@ -26,7 +26,7 @@ export class ListFriendsUseCase {
       return fail(new ResourceNotFoundError('Authenticated user not found'));
     }
 
-    const friends = await this.friendshipsRepository.listFriends(user.id);
+    const friends = await this.friendshipsRepository.findManyByUserId(user.publicId);
 
     return success({ friends });
   }

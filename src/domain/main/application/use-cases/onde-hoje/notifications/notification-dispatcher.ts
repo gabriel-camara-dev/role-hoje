@@ -1,9 +1,15 @@
 import { Inject, Injectable } from '@nestjs/common';
-import { createDomainEvent } from '@/core/events/domain-event';
+import { createIntegrationEvent } from '@/core/events/integration-event';
 import { EventBus } from '@/core/events/event-bus';
-import type { Notification, NotificationType } from '@/domain/main/enterprise/entities/onde-hoje/notifications/notification';
+import type {
+  Notification,
+  NotificationActor,
+  NotificationType,
+} from '@/domain/main/enterprise/entities/onde-hoje/notifications/notification';
+import type { User } from '@/domain/main/enterprise/entities/user';
 import { NotificationsRepository } from '../../../repositories/onde-hoje/notifications-repository';
 import { OndeHojeUsersRepository } from '../../../repositories/onde-hoje/onde-hoje-users-repository';
+import { SendNotificationUseCase } from './send-notification';
 
 export interface DispatchNotificationInput {
   recipientPublicId: string;
@@ -14,50 +20,42 @@ export interface DispatchNotificationInput {
   data?: Record<string, unknown> | null;
 }
 
+/**
+ * Real-time adapter around {@link SendNotificationUseCase}: resolves the actor,
+ * persists through the use case, then publishes an integration event so the SSE
+ * endpoint pushes it live. Never throws — a failure to notify must not break the
+ * action that triggered it. The aggregated path stays here for the vote fan-out.
+ */
 @Injectable()
 export class NotificationDispatcher {
   constructor(
     @Inject(NotificationsRepository) private notificationsRepository: NotificationsRepository,
     @Inject(OndeHojeUsersRepository) private usersRepository: OndeHojeUsersRepository,
     @Inject(EventBus) private eventBus: EventBus,
+    @Inject(SendNotificationUseCase) private sendNotification: SendNotificationUseCase,
   ) {}
 
-  /**
-   * Persists a notification for the recipient and pushes it in real time
-   * through the domain event bus (SSE). Never throws: a failure to notify
-   * must not break the action that triggered it.
-   */
   async dispatch(input: DispatchNotificationInput): Promise<void> {
     try {
-      const recipient = await this.usersRepository.findByPublicId(input.recipientPublicId);
-
-      if (!recipient) {
-        return;
-      }
-
       const actor =
         input.actorPublicId && input.actorPublicId !== input.recipientPublicId
           ? await this.usersRepository.findByPublicId(input.actorPublicId)
           : null;
 
-      const notification = await this.notificationsRepository.create({
-        recipientId: recipient.id,
-        actorId: actor?.id ?? null,
+      const result = await this.sendNotification.execute({
+        recipientPublicId: input.recipientPublicId,
+        actor: actor ? NotificationDispatcher.toActor(actor) : null,
         type: input.type,
         title: input.title,
         body: input.body ?? null,
         data: input.data ?? null,
       });
 
-      await this.eventBus.publish(
-        createDomainEvent({
-          eventName: 'notification.created',
-          aggregateId: notification.publicId,
-          actorId: input.actorPublicId ?? undefined,
-          payload: NotificationDispatcher.toPayload(notification),
-          recipientIds: [input.recipientPublicId],
-        }),
-      );
+      if (result.isFail()) {
+        return;
+      }
+
+      await this.publishRealtime(result.value.notification, input.actorPublicId ?? undefined, input.recipientPublicId);
     } catch {
       // Swallowing on purpose: notifications are best-effort side effects.
     }
@@ -66,10 +64,8 @@ export class NotificationDispatcher {
   /**
    * Accumulates "someone voted here" notifications into a single row per place
    * (Twitter-likes style): each new vote bumps the count and appends the voter.
-   * Works with the recipient's internal id to avoid a lookup per fan-out target.
    */
   async dispatchAggregatedVote(input: {
-    recipientId: number;
     recipientPublicId: string;
     groupKey: string;
     placeName: string;
@@ -77,7 +73,7 @@ export class NotificationDispatcher {
     actor: { publicId: string; name: string; username: string; avatarUrl: string | null } | null;
   }): Promise<void> {
     try {
-      const existing = await this.notificationsRepository.findLatestByGroupKey(input.recipientId, input.groupKey);
+      const existing = await this.notificationsRepository.findLatestByGroupKey(input.recipientPublicId, input.groupKey);
       const previous = (existing?.data ?? {}) as {
         count?: number;
         voters?: Array<{ publicId: string; name: string; username: string; avatarUrl: string | null }>;
@@ -92,43 +88,53 @@ export class NotificationDispatcher {
       const title =
         count === 1 ? `1 pessoa votou em ${input.placeName}` : `${count} pessoas votaram em ${input.placeName}`;
 
-      const data = {
-        count,
-        placeName: input.placeName,
-        placePublicId: input.placePublicId,
-        voters,
-      };
-
       const notification = await this.notificationsRepository.upsertAggregated({
-        recipientId: input.recipientId,
+        recipientPublicId: input.recipientPublicId,
         groupKey: input.groupKey,
         type: 'PLACE_VOTE',
         title,
-        data,
+        data: { count, placeName: input.placeName, placePublicId: input.placePublicId, voters },
       });
 
-      await this.eventBus.publish(
-        createDomainEvent({
-          eventName: 'notification.created',
-          aggregateId: notification.publicId,
-          actorId: input.actor?.publicId,
-          payload: NotificationDispatcher.toPayload(notification),
-          recipientIds: [input.recipientPublicId],
-        }),
-      );
+      await this.publishRealtime(notification, input.actor?.publicId, input.recipientPublicId);
     } catch {
       // Best-effort side effect.
     }
   }
 
+  private async publishRealtime(
+    notification: Notification,
+    actorPublicId: string | undefined,
+    recipientPublicId: string,
+  ) {
+    await this.eventBus.publish(
+      createIntegrationEvent({
+        eventName: 'notification.created',
+        aggregateId: notification.id.toString(),
+        actorId: actorPublicId,
+        payload: NotificationDispatcher.toPayload(notification),
+        recipientIds: [recipientPublicId],
+      }),
+    );
+  }
+
+  private static toActor(user: User): NotificationActor {
+    return {
+      publicId: user.publicId,
+      name: user.name,
+      username: user.username,
+      avatarUrl: user.avatarUpdatedAt ? `/users/${user.publicId}/avatar` : null,
+    };
+  }
+
   private static toPayload(notification: Notification) {
     return {
-      id: notification.publicId,
+      id: notification.id.toString(),
       type: notification.type,
       title: notification.title,
       body: notification.body,
       data: notification.data,
-      read: notification.read,
+      read: notification.isRead,
       createdAt: notification.createdAt.toISOString(),
       actor: notification.actor,
     };

@@ -21,7 +21,7 @@ export class GetUserProfileUseCase {
   constructor(@Inject(UsersRepository) private usersRepository: UsersRepository) {}
 
   async execute({ publicId }: GetUserProfileUseCaseRequest): Promise<GetUserProfileUseCaseResponse> {
-    const user = await this.usersRepository.findBy({ publicId });
+    const user = await this.usersRepository.findByPublicId(publicId);
 
     if (!user) {
       return fail(new ResourceNotFoundError('User not found'));

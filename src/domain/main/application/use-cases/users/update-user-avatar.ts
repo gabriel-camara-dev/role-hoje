@@ -21,21 +21,21 @@ export class UpdateUserAvatarUseCase {
   constructor(@Inject(UsersRepository) private usersRepository: UsersRepository) {}
 
   async execute(request: UpdateUserAvatarUseCaseRequest): Promise<UpdateUserAvatarUseCaseResponse> {
-    const user = await this.usersRepository.findBy({ publicId: request.currentUserPublicId });
+    const user = await this.usersRepository.findByPublicId(request.currentUserPublicId);
 
     if (!user) {
       return fail(new ResourceNotFoundError('Authenticated user not found'));
     }
 
-    const updatedUser = await this.usersRepository.updateById(user.id, {
-      avatarEncryptedPath: request.encryptedPath,
-      avatarIv: request.iv,
-      avatarAuthTag: request.authTag,
-      avatarMimeType: request.mimeType,
-      avatarOriginalName: request.originalName,
-      avatarUpdatedAt: new Date(),
+    user.updateAvatar({
+      encryptedPath: request.encryptedPath,
+      iv: request.iv,
+      authTag: request.authTag,
+      mimeType: request.mimeType,
+      originalName: request.originalName,
     });
+    await this.usersRepository.save(user);
 
-    return success({ user: updatedUser });
+    return success({ user });
   }
 }

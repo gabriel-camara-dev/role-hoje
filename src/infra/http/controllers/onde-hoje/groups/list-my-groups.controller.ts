@@ -4,6 +4,7 @@ import { ListMyGroupsUseCase } from '@/domain/main/application/use-cases/onde-ho
 import { CurrentUser } from '@/infra/auth/current-user-generator';
 import type { UserPayload } from '@/infra/auth/jwt-strategy';
 import { throwHttpError } from '@/infra/http/errors/http-error-handler';
+import { MyGroupDetailsPresenter } from '@/infra/http/presenters/onde-hoje/group-presenter';
 
 @ApiTags('Onde Hoje - Groups')
 @ApiBearerAuth()
@@ -23,11 +24,6 @@ export class ListMyGroupsController {
       throwHttpError(result.value);
     }
 
-    return result.value.groups.map((group) => ({
-      ...group,
-      id: group.publicId,
-      publicId: undefined,
-      passwordHash: undefined,
-    }));
+    return result.value.groups.map((group) => MyGroupDetailsPresenter.toHTTP(group));
   }
 }

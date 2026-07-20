@@ -2,9 +2,9 @@ import { Inject, Injectable } from '@nestjs/common';
 import type { Result } from '@/core/result';
 import { success } from '@/core/result';
 import { type ListPlacesQuery, PlacesRepository } from '../../../repositories/onde-hoje/places-repository';
-import type { Place } from '../../../../enterprise/entities/onde-hoje/places/place';
+import type { PlaceFields } from '../../../../enterprise/entities/onde-hoje/places/place';
 
-type ListPlacesUseCaseResponse = Result<never, { places: Place[] }>;
+type ListPlacesUseCaseResponse = Result<never, { places: PlaceFields[] }>;
 
 @Injectable()
 export class ListPlacesUseCase {

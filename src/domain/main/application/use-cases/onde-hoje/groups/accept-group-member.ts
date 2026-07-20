@@ -1,15 +1,16 @@
 import { Inject, Injectable } from '@nestjs/common';
-import { createDomainEvent } from '@/core/events/domain-event';
+import { UniqueEntityID } from '@/core/entities/unique-entity-id';
+import { createIntegrationEvent } from '@/core/events/integration-event';
 import { EventBus } from '@/core/events/event-bus';
 import type { Result } from '@/core/result';
 import { fail, success } from '@/core/result';
+import type { GroupMembership } from '../../../../enterprise/entities/onde-hoje/groups/group-membership';
+import { GroupMembersRepository } from '../../../repositories/onde-hoje/group-members-repository';
+import { GroupsRepository } from '../../../repositories/onde-hoje/groups-repository';
+import { OndeHojeUsersRepository } from '../../../repositories/onde-hoje/onde-hoje-users-repository';
 import { ConflictError } from '../../errors/conflict-error';
 import { ForbiddenError } from '../../errors/forbidden-error';
 import { ResourceNotFoundError } from '../../errors/resource-not-found-error';
-import type { GroupMembership } from '../../../../enterprise/entities/onde-hoje/groups/group-membership';
-import { GroupsRepository } from '../../../repositories/onde-hoje/groups-repository';
-import { OndeHojeUsersRepository } from '../../../repositories/onde-hoje/onde-hoje-users-repository';
-import { NotificationDispatcher } from '../notifications/notification-dispatcher';
 
 interface AcceptGroupMemberUseCaseRequest {
   currentUserPublicId: string;
@@ -26,9 +27,9 @@ type AcceptGroupMemberUseCaseResponse = Result<
 export class AcceptGroupMemberUseCase {
   constructor(
     @Inject(GroupsRepository) private groupsRepository: GroupsRepository,
+    @Inject(GroupMembersRepository) private groupMembersRepository: GroupMembersRepository,
     @Inject(OndeHojeUsersRepository) private usersRepository: OndeHojeUsersRepository,
     @Inject(EventBus) private eventBus: EventBus,
-    @Inject(NotificationDispatcher) private notificationDispatcher: NotificationDispatcher,
   ) {}
 
   async execute(request: AcceptGroupMemberUseCaseRequest): Promise<AcceptGroupMemberUseCaseResponse> {
@@ -38,46 +39,55 @@ export class AcceptGroupMemberUseCase {
       return fail(new ResourceNotFoundError('Authenticated user not found'));
     }
 
-    const result = await this.groupsRepository.acceptMember({
-      leaderId: leader.id,
-      groupPublicId: request.groupPublicId,
-      memberUsername: request.memberUsername,
-    });
+    const [group, memberUser] = await Promise.all([
+      this.groupsRepository.findById(request.groupPublicId),
+      this.usersRepository.findByUsername(request.memberUsername),
+    ]);
 
-    if (result.type === 'not_found') {
+    if (!group || !memberUser) {
       return fail(new ResourceNotFoundError('Group or member request not found'));
     }
 
-    if (result.type === 'forbidden') {
+    const leadership = await this.groupMembersRepository.findByGroupAndMember({
+      groupId: group.id.toString(),
+      memberId: leader.publicId,
+    });
+
+    if (!leadership?.leads) {
       return fail(new ForbiddenError('Only the group leader can accept members'));
     }
 
-    if (result.type === 'not_pending') {
+    const membership = await this.groupMembersRepository.findByGroupAndMember({
+      groupId: group.id.toString(),
+      memberId: memberUser.publicId,
+    });
+
+    if (!membership) {
+      return fail(new ResourceNotFoundError('Group or member request not found'));
+    }
+
+    if (membership.status !== 'PENDING') {
       return fail(new ConflictError('Member request is not pending'));
     }
 
+    // Raises GroupMemberAcceptedEvent; OnGroupMemberAccepted notifies the member.
+    membership.acceptRequest(new UniqueEntityID(leader.publicId));
+
+    await this.groupMembersRepository.save(membership);
+
     await this.eventBus.publish(
-      createDomainEvent({
+      createIntegrationEvent({
         eventName: 'onde-hoje.group.member-accepted',
         aggregateId: request.groupPublicId,
         actorId: request.currentUserPublicId,
         payload: {
           groupId: request.groupPublicId,
           memberUsername: request.memberUsername,
-          membershipStatus: result.membership.status,
+          membershipStatus: membership.status,
         },
       }),
     );
 
-    await this.notificationDispatcher.dispatch({
-      recipientPublicId: result.memberPublicId,
-      actorPublicId: request.currentUserPublicId,
-      type: 'GROUP_MEMBER_ACCEPTED',
-      title: `Pedido aceito em ${result.groupName}`,
-      body: `Voce agora faz parte do grupo ${result.groupName}.`,
-      data: { groupPublicId: result.membership.groupPublicId, groupName: result.groupName },
-    });
-
-    return success({ membership: result.membership });
+    return success({ membership: { groupPublicId: group.id.toString(), status: membership.status } });
   }
 }

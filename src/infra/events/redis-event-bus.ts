@@ -2,7 +2,7 @@ import { Inject, Injectable, Logger, type OnModuleInit } from '@nestjs/common';
 import { filter, Subject } from 'rxjs';
 import type { Observable } from 'rxjs';
 import type { EventBus } from '@/core/events/event-bus';
-import type { DomainEvent } from '@/core/events/domain-event';
+import type { IntegrationEvent } from '@/core/events/integration-event';
 import { RedisService } from '@/infra/cache/redis/redis.service';
 
 const domainEventsChannel = 'domain-events';
@@ -10,14 +10,14 @@ const domainEventsChannel = 'domain-events';
 @Injectable()
 export class RedisEventBus implements EventBus, OnModuleInit {
   private readonly logger = new Logger(RedisEventBus.name);
-  private readonly events = new Subject<DomainEvent>();
+  private readonly events = new Subject<IntegrationEvent>();
 
   constructor(@Inject(RedisService) private redis: RedisService) {}
 
   async onModuleInit() {
     await this.redis.subscribeToChannel(domainEventsChannel, (message) => {
       try {
-        const event = JSON.parse(message) as DomainEvent<string>;
+        const event = JSON.parse(message) as IntegrationEvent<string>;
 
         this.events.next({
           ...event,
@@ -29,7 +29,7 @@ export class RedisEventBus implements EventBus, OnModuleInit {
     });
   }
 
-  async publish(event: DomainEvent) {
+  async publish(event: IntegrationEvent) {
     this.events.next(event);
 
     try {
@@ -39,11 +39,11 @@ export class RedisEventBus implements EventBus, OnModuleInit {
     }
   }
 
-  async publishMany(events: DomainEvent[]) {
+  async publishMany(events: IntegrationEvent[]) {
     await Promise.all(events.map((event) => this.publish(event)));
   }
 
-  stream(eventName?: string): Observable<DomainEvent> {
+  stream(eventName?: string): Observable<IntegrationEvent> {
     if (!eventName) {
       return this.events.asObservable();
     }

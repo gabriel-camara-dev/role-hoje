@@ -2,6 +2,7 @@ import type { INestApplication } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { Test } from '@nestjs/testing';
 import { hash } from 'bcryptjs';
+import { DomainEvents } from '@/core/events/domain-events';
 import { AppModule } from '@/app.module';
 import { EmailSender } from '@/domain/main/application/mail/email-sender';
 import type { UserRole } from '@/domain/main/enterprise/entities/user-role';
@@ -9,6 +10,10 @@ import { PrismaService } from '@/infra/database/prisma/prisma.service';
 
 /** Boots the full Nest app with the email sender stubbed out. */
 export async function createTestApp(): Promise<INestApplication> {
+  // e2e files share one worker (singleFork). Wipe handlers a previous app's
+  // subscribers registered so only this app's subscribers stay live.
+  DomainEvents.clearHandlers();
+
   const moduleRef = await Test.createTestingModule({ imports: [AppModule] })
     .overrideProvider(EmailSender)
     .useValue({ sendEmailConfirmation: async () => undefined })
@@ -112,4 +117,3 @@ export async function createGroup(
     select: { id: true, publicId: true, name: true },
   });
 }
-

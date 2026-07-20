@@ -2,6 +2,7 @@ import type { INestApplication } from '@nestjs/common';
 import request from 'supertest';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import { createTestApp, createUser, prismaFrom } from '../utils/e2e';
+import { waitFor } from '../utils/wait-for';
 
 describe('Notification routes', () => {
   let app: INestApplication;
@@ -33,17 +34,20 @@ describe('Notification routes', () => {
     const b = await createUser(app);
 
     // a -> b friend request dispatches a FRIEND_REQUEST notification to b.
+    // The OnFriendshipRequested subscriber persists it out of band, so poll.
     await http.post(`/friends/${b.user.username}/request`).set('Authorization', `Bearer ${a.token}`);
 
-    const list = await http.get('/notifications').set('Authorization', `Bearer ${b.token}`);
-    expect(list.status).toBe(200);
-    expect(list.body.notifications.length).toBeGreaterThanOrEqual(1);
+    let list = await http.get('/notifications').set('Authorization', `Bearer ${b.token}`);
+
+    await waitFor(async () => {
+      list = await http.get('/notifications').set('Authorization', `Bearer ${b.token}`);
+      expect(list.body.notifications.length).toBeGreaterThanOrEqual(1);
+    });
+
     expect(list.body.unreadCount).toBeGreaterThanOrEqual(1);
 
     const id = list.body.notifications[0].id;
-    const read = await http
-      .post(`/notifications/${id}/read`)
-      .set('Authorization', `Bearer ${b.token}`);
+    const read = await http.post(`/notifications/${id}/read`).set('Authorization', `Bearer ${b.token}`);
     expect([200, 201, 204]).toContain(read.status);
 
     const readAll = await http.post('/notifications/read-all').set('Authorization', `Bearer ${b.token}`);

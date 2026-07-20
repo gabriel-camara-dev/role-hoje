@@ -1,20 +1,58 @@
 import { Inject, Injectable } from '@nestjs/common';
-import type { FriendListItem } from '@/domain/main/enterprise/entities/onde-hoje/friendships/friendship';
-import type {
-  AcceptFriendshipResult,
-  FriendshipsRepository,
-  RequestFriendshipResult,
-} from '@/domain/main/application/repositories/onde-hoje/friendships-repository';
-import { PrismaService } from '../../prisma.service';
+import { DomainEvents } from '@/core/events/domain-events';
+import type { FriendshipsRepository } from '@/domain/main/application/repositories/onde-hoje/friendships-repository';
+import type { FriendListItem, Friendship } from '@/domain/main/enterprise/entities/onde-hoje/friendships/friendship';
+import { DatabaseContext } from '../../database-context';
+import {
+  friendshipPairKey,
+  friendshipWithUsersInclude,
+  PrismaFriendshipMapper,
+} from '../../mappers/onde-hoje/prisma-friendship-mapper';
 
 @Injectable()
 export class PrismaFriendshipsRepository implements FriendshipsRepository {
-  constructor(@Inject(PrismaService) private prisma: PrismaService) {}
+  constructor(@Inject(DatabaseContext) private readonly dbContext: DatabaseContext) {}
 
-  async listFriends(userId: number): Promise<FriendListItem[]> {
-    const friendships = await this.prisma.friendship.findMany({
+  async findByUsers(data: { requesterId: string; addresseeId: string }): Promise<Friendship | null> {
+    const friendship = await this.dbContext.client.friendship.findUnique({
+      where: { pairKey: friendshipPairKey(data.requesterId, data.addresseeId) },
+      include: friendshipWithUsersInclude,
+    });
+
+    return friendship ? PrismaFriendshipMapper.toDomain(friendship) : null;
+  }
+
+  async create(friendship: Friendship): Promise<void> {
+    await this.dbContext.client.friendship.create({
+      data: PrismaFriendshipMapper.toPrismaCreate(friendship),
+    });
+
+    DomainEvents.dispatchEventsForAggregate(friendship.id);
+  }
+
+  async save(friendship: Friendship): Promise<void> {
+    // The pair is stable, so a re-request that flips direction still lands on the
+    // same row; update the direction along with the status.
+    await this.dbContext.client.friendship.update({
+      where: { pairKey: friendship.pairKey },
+      data: {
+        status: friendship.status,
+        requester: { connect: { publicId: friendship.requesterId.toString() } },
+        addressee: { connect: { publicId: friendship.addresseeId.toString() } },
+      },
+    });
+
+    DomainEvents.dispatchEventsForAggregate(friendship.id);
+  }
+
+  async delete(friendship: Friendship): Promise<void> {
+    await this.dbContext.client.friendship.deleteMany({ where: { pairKey: friendship.pairKey } });
+  }
+
+  async findManyByUserId(userId: string): Promise<FriendListItem[]> {
+    const friendships = await this.dbContext.client.friendship.findMany({
       where: {
-        OR: [{ requesterId: userId }, { addresseeId: userId }],
+        OR: [{ requester: { publicId: userId } }, { addressee: { publicId: userId } }],
       },
       include: {
         requester: { select: { publicId: true, name: true, username: true, avatarUpdatedAt: true } },
@@ -24,11 +62,12 @@ export class PrismaFriendshipsRepository implements FriendshipsRepository {
     });
 
     return friendships.map((friendship) => {
-      const friend = friendship.requesterId === userId ? friendship.addressee : friendship.requester;
+      const sent = friendship.requester.publicId === userId;
+      const friend = sent ? friendship.addressee : friendship.requester;
 
       return {
         status: friendship.status,
-        direction: friendship.requesterId === userId ? 'sent' : 'received',
+        direction: sent ? 'sent' : 'received',
         friend: {
           publicId: friend.publicId,
           name: friend.name,
@@ -40,110 +79,4 @@ export class PrismaFriendshipsRepository implements FriendshipsRepository {
       };
     });
   }
-
-  async requestFriendship(data: { requesterId: number; addresseeUsername: string }): Promise<RequestFriendshipResult> {
-    const friend = await this.prisma.user.findUnique({ where: { username: data.addresseeUsername } });
-
-    if (!friend || friend.id === data.requesterId) {
-      return { type: 'not_found' };
-    }
-
-    const pairKey = friendshipPairKey(data.requesterId, friend.id);
-    const existing = await this.prisma.friendship.findFirst({
-      where: {
-        OR: [{ pairKey }, { requesterId: friend.id, addresseeId: data.requesterId }],
-      },
-    });
-
-    if (existing?.status === 'ACCEPTED' || existing?.status === 'BLOCKED') {
-      return { type: 'already_exists', status: existing.status };
-    }
-
-    const friendship = await this.prisma.friendship.upsert({
-      where: {
-        pairKey,
-      },
-      update: { status: 'PENDING' },
-      create: {
-        requesterId: data.requesterId,
-        addresseeId: friend.id,
-        pairKey,
-      },
-    });
-
-    return { type: 'requested', status: friendship.status, addresseePublicId: friend.publicId };
-  }
-
-  async acceptFriendship(data: {
-    addresseeId: number;
-    requesterUsername: string;
-  }): Promise<AcceptFriendshipResult | null> {
-    const requester = await this.prisma.user.findUnique({ where: { username: data.requesterUsername } });
-
-    if (!requester) {
-      return null;
-    }
-
-    const updated = await this.prisma.friendship.updateMany({
-      where: {
-        requesterId: requester.id,
-        addresseeId: data.addresseeId,
-        status: 'PENDING',
-      },
-      data: { status: 'ACCEPTED' },
-    });
-
-    if (updated.count === 0) {
-      return null;
-    }
-
-    const friendship = await this.prisma.friendship.findFirst({
-      where: {
-        requesterId: requester.id,
-        addresseeId: data.addresseeId,
-      },
-    });
-
-    if (!friendship) {
-      return null;
-    }
-
-    return { status: friendship.status, requesterPublicId: requester.publicId };
-  }
-
-  async rejectFriendship(data: { addresseeId: number; requesterUsername: string }): Promise<boolean> {
-    const requester = await this.prisma.user.findUnique({ where: { username: data.requesterUsername } });
-
-    if (!requester) {
-      return false;
-    }
-
-    const deleted = await this.prisma.friendship.deleteMany({
-      where: {
-        requesterId: requester.id,
-        addresseeId: data.addresseeId,
-        status: 'PENDING',
-      },
-    });
-
-    return deleted.count > 0;
-  }
-
-  async removeFriendship(data: { userId: number; otherUsername: string }): Promise<boolean> {
-    const other = await this.prisma.user.findUnique({ where: { username: data.otherUsername } });
-
-    if (!other) {
-      return false;
-    }
-
-    const deleted = await this.prisma.friendship.deleteMany({
-      where: { pairKey: friendshipPairKey(data.userId, other.id) },
-    });
-
-    return deleted.count > 0;
-  }
-}
-
-function friendshipPairKey(firstUserId: number, secondUserId: number) {
-  return [firstUserId, secondUserId].sort((a, b) => a - b).join(':');
 }

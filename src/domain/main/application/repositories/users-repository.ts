@@ -1,15 +1,5 @@
 import type { PaginatedResults, PaginationParams } from '@/core/types/pagination';
-import type { CreateUserData, UpdateUserData, User } from '@/domain/main/enterprise/entities/user';
-
-export interface FindUserBy {
-  id?: number;
-  publicId?: string;
-  username?: string;
-  email?: string;
-  googleId?: string;
-  token?: string;
-  emailVerificationTokenHash?: string;
-}
+import type { User } from '@/domain/main/enterprise/entities/user';
 
 export interface FindUserConflict {
   username?: string;
@@ -26,12 +16,17 @@ export interface ListUsersQuery extends PaginationParams {
 export interface ListUsersResult extends PaginatedResults<User> {}
 
 export abstract class UsersRepository {
-  abstract create(data: CreateUserData): Promise<User>;
-  abstract findBy(findUserBy: FindUserBy): Promise<User | null>;
+  abstract findByPublicId(publicId: string): Promise<User | null>;
+  abstract findByEmail(email: string): Promise<User | null>;
+  abstract findByUsername(username: string): Promise<User | null>;
+  abstract findByGoogleId(googleId: string): Promise<User | null>;
+  abstract findByEmailVerificationTokenHash(tokenHash: string): Promise<User | null>;
+  /** Matches a username or email — the login form accepts either. */
   abstract findByLogin(login: string): Promise<User | null>;
   abstract findConflict(data: FindUserConflict): Promise<User | null>;
   abstract list(query: ListUsersQuery): Promise<ListUsersResult>;
-  abstract updateById(id: number, data: UpdateUserData): Promise<User>;
-  abstract deleteById(id: number): Promise<User>;
+  abstract create(user: User): Promise<void>;
+  abstract save(user: User): Promise<void>;
+  abstract delete(user: User): Promise<void>;
   abstract deleteExpiredUnverified(now: Date): Promise<number>;
 }

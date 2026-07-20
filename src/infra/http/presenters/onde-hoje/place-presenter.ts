@@ -1,10 +1,11 @@
 import { formatDateOnly } from '@/core/date/date-only';
 import type { PlaceAttendanceEstimate } from '@/domain/main/enterprise/entities/onde-hoje/places/place-attendance-estimate';
 import type { UserVoteHistoryItem } from '@/domain/main/enterprise/entities/onde-hoje/places/place-history';
-import type { Place } from '@/domain/main/enterprise/entities/onde-hoje/places/place';
+import type { Place, PlaceFields } from '@/domain/main/enterprise/entities/onde-hoje/places/place';
 
 export class PlacePresenter {
-  static toHTTP(place: Place) {
+  /** Read models: listings, vote history, attendance — these carry `distanceKm`. */
+  static toHTTP(place: PlaceFields) {
     return {
       id: place.publicId,
       googlePlaceId: place.googlePlaceId,
@@ -21,6 +22,26 @@ export class PlacePresenter {
       websiteUrl: place.websiteUrl,
       mapsUrl: place.mapsUrl,
       distanceKm: place.distanceKm,
+    };
+  }
+
+  /** A just-written place: no distance, since a write has no query origin. */
+  static entityToHTTP(place: Place) {
+    return {
+      id: place.publicId,
+      googlePlaceId: place.googlePlaceId,
+      name: place.name,
+      googlePlaceName: place.googlePlaceName,
+      nickname: place.nickname,
+      formattedAddress: place.formattedAddress,
+      latitude: place.latitude,
+      longitude: place.longitude,
+      city: place.city,
+      state: place.state,
+      country: place.country,
+      photoUrl: place.photoUrl,
+      websiteUrl: place.websiteUrl,
+      mapsUrl: place.mapsUrl,
     };
   }
 

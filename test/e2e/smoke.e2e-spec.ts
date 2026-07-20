@@ -27,9 +27,7 @@ describe('smoke / bootstrap', () => {
 
   it('createUser helper mints a working token', async () => {
     const { user, token } = await createUser(app);
-    const res = await request(app.getHttpServer())
-      .get('/friends')
-      .set('Authorization', `Bearer ${token}`);
+    const res = await request(app.getHttpServer()).get('/friends').set('Authorization', `Bearer ${token}`);
     expect(res.status).toBe(200);
     await prismaFrom(app).user.delete({ where: { id: user.id } });
   });

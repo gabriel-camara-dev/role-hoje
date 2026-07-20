@@ -1,11 +1,19 @@
+import { UniqueEntityID } from '@/core/entities/unique-entity-id';
+import { Place, type PlaceFields } from '@/domain/main/enterprise/entities/onde-hoje/places/place';
+import type { Prisma } from '@/@types/prisma/client';
 import type { PlaceModel } from '@/@types/prisma/models/Place';
-import type { Group } from '@/domain/main/enterprise/entities/onde-hoje/groups/group';
-import type { Place } from '@/domain/main/enterprise/entities/onde-hoje/places/place';
+
+/** A place row joined with the publicId of whoever created it — null if that account is gone. */
+export type RawPlaceWithCreator = PlaceModel & { createdBy: { publicId: string } | null };
+
+export const placeWithCreatorInclude = {
+  createdBy: { select: { publicId: true } },
+} satisfies Prisma.PlaceInclude;
 
 export class PrismaOndeHojeMapper {
-  static placeToDomain(raw: PlaceModel): Place {
+  /** The plain shape read models build on — no aggregate identity involved. */
+  static placeToFields(raw: PlaceModel): PlaceFields {
     return {
-      id: raw.id,
       publicId: raw.publicId,
       googlePlaceId: raw.googlePlaceId,
       name: raw.name,
@@ -25,33 +33,27 @@ export class PrismaOndeHojeMapper {
     };
   }
 
-  static groupToDomain(raw: {
-    id: number;
-    publicId: string;
-    name: string;
-    slug: string;
-    description: string | null;
-    privacy: 'PUBLIC' | 'PRIVATE';
-    passwordHash?: string | null;
-    city: string | null;
-    state: string | null;
-    _count?: {
-      members?: number;
-      votes?: number;
-    };
-  }): Group {
-    return {
-      id: raw.id,
-      publicId: raw.publicId,
-      name: raw.name,
-      slug: raw.slug,
-      description: raw.description,
-      privacy: raw.privacy,
-      passwordHash: raw.passwordHash,
-      city: raw.city,
-      state: raw.state,
-      membersCount: raw._count?.members,
-      todayVotesCount: raw._count?.votes,
-    };
+  static placeToDomain(raw: RawPlaceWithCreator): Place {
+    return Place.create(
+      {
+        googlePlaceId: raw.googlePlaceId,
+        name: raw.name,
+        googlePlaceName: raw.googlePlaceName,
+        nickname: raw.nickname,
+        formattedAddress: raw.formattedAddress,
+        latitude: Number(raw.latitude),
+        longitude: Number(raw.longitude),
+        city: raw.city,
+        state: raw.state,
+        country: raw.country,
+        photoUrl: raw.photoUrl,
+        websiteUrl: raw.websiteUrl,
+        mapsUrl: raw.mapsUrl,
+        createdById: raw.createdBy ? new UniqueEntityID(raw.createdBy.publicId) : null,
+        createdAt: raw.createdAt,
+        updatedAt: raw.updatedAt,
+      },
+      new UniqueEntityID(raw.publicId),
+    );
   }
 }

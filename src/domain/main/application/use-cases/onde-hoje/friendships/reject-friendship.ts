@@ -26,14 +26,23 @@ export class RejectFriendshipUseCase {
       return fail(new ResourceNotFoundError('Authenticated user not found'));
     }
 
-    const rejected = await this.friendshipsRepository.rejectFriendship({
-      addresseeId: user.id,
-      requesterUsername: request.requesterUsername,
-    });
+    const requester = await this.usersRepository.findByUsername(request.requesterUsername);
 
-    if (!rejected) {
+    if (!requester) {
       return fail(new ResourceNotFoundError('Friend request not found'));
     }
+
+    const friendship = await this.friendshipsRepository.findByUsers({
+      requesterId: requester.publicId,
+      addresseeId: user.publicId,
+    });
+
+    // Only the addressee of a still-pending request may reject it.
+    if (!friendship?.isPending || friendship.addresseeId.toString() !== user.publicId) {
+      return fail(new ResourceNotFoundError('Friend request not found'));
+    }
+
+    await this.friendshipsRepository.delete(friendship);
 
     return success({ rejected: true });
   }

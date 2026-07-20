@@ -1,4 +1,4 @@
-import type { CreatePlaceData, Place } from '../../../enterprise/entities/onde-hoje/places/place';
+import type { Place, PlaceFields } from '../../../enterprise/entities/onde-hoje/places/place';
 import type { PlaceAttendanceEstimate } from '../../../enterprise/entities/onde-hoje/places/place-attendance-estimate';
 import type { PlaceHistoryDay, UserVoteHistoryItem } from '../../../enterprise/entities/onde-hoje/places/place-history';
 import type { PlaceVote, PlaceVoteType } from '../../../enterprise/entities/onde-hoje/places/place-vote';
@@ -15,7 +15,7 @@ export interface VoteNotificationTargets {
   placePublicId: string;
   placeName: string;
   actor: VoteActorInfo;
-  recipients: Array<{ id: number; publicId: string }>;
+  recipients: Array<{ publicId: string }>;
 }
 
 export interface ListPlacesQuery {
@@ -65,6 +65,12 @@ export interface PlaceHistoryQuery {
   latitude?: number;
   longitude?: number;
   radiusKm?: number;
+  /**
+   * Widens a group query to "what the members are doing": the group's own votes
+   * plus the public votes of its active members. Their votes in *other* groups
+   * stay out — those belong to those groups. Ignored without a group.
+   */
+  includeMemberPublicVotes?: boolean;
 }
 
 export interface PlaceAttendanceEstimateQuery {
@@ -75,22 +81,23 @@ export interface PlaceAttendanceEstimateQuery {
 }
 
 export abstract class PlacesRepository {
-  abstract list(query: ListPlacesQuery): Promise<Place[]>;
-  abstract upsert(data: CreatePlaceData): Promise<Place>;
+  /** A listing read model: carries `distanceKm` when the query has an origin. */
+  abstract list(query: ListPlacesQuery): Promise<PlaceFields[]>;
+  abstract upsert(place: Place): Promise<Place>;
   abstract todayMap(query: TodayMapQuery): Promise<TodayMapPlace[] | null>;
   abstract topPlacesToday(query: TopPlacesTodayQuery): Promise<TodayMapPlace[] | null>;
   abstract globalTopPlaces(query: GlobalTopPlacesQuery): Promise<TodayMapPlace[]>;
   abstract history(query: PlaceHistoryQuery): Promise<PlaceHistoryDay[] | null>;
-  abstract userVoteHistory(userId: number, limit: number): Promise<UserVoteHistoryItem[]>;
+  abstract userVoteHistory(userPublicId: string, limit: number): Promise<UserVoteHistoryItem[]>;
   abstract attendanceEstimate(query: PlaceAttendanceEstimateQuery): Promise<PlaceAttendanceEstimate | null>;
   abstract countActiveVotesForWeekExcludingTarget(data: {
-    userId: number;
+    userPublicId: string;
     placePublicId: string;
     day: Date;
     groupPublicId?: string;
   }): Promise<number | null>;
   abstract vote(data: {
-    userId: number;
+    userPublicId: string;
     placePublicId: string;
     day: Date;
     groupPublicId?: string;
@@ -101,16 +108,12 @@ export abstract class PlacesRepository {
     voteTime?: string;
   }): Promise<PlaceVote | null>;
   abstract findVoteNotificationTargets(data: {
-    actorUserId: number;
+    actorPublicId: string;
     placePublicId: string;
     day: Date;
     groupPublicId?: string;
   }): Promise<VoteNotificationTargets | null>;
-  abstract hasActiveGoingVote(data: {
-    placePublicId: string;
-    day: Date;
-    groupPublicId?: string;
-  }): Promise<boolean>;
+  abstract hasActiveGoingVote(data: { placePublicId: string; day: Date; groupPublicId?: string }): Promise<boolean>;
   abstract mapPlaceByPublicId(data: {
     placePublicId: string;
     day?: Date;
@@ -118,7 +121,7 @@ export abstract class PlacesRepository {
     viewerPublicId?: string;
   }): Promise<TodayMapPlace | null>;
   abstract cancelVote(data: {
-    userId: number;
+    userPublicId: string;
     placePublicId: string;
     day: Date;
     groupPublicId?: string;

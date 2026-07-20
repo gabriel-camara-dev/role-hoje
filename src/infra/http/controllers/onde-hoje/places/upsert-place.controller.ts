@@ -35,6 +35,6 @@ export class UpsertPlaceController {
       throwHttpError(result.value);
     }
 
-    return PlacePresenter.toHTTP(result.value.place);
+    return PlacePresenter.entityToHTTP(result.value.place);
   }
 }

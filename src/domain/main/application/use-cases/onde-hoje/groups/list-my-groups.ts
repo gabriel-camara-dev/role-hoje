@@ -1,7 +1,7 @@
 import { Inject, Injectable } from '@nestjs/common';
 import type { Result } from '@/core/result';
 import { fail, success } from '@/core/result';
-import type { MyGroupItem } from '../../../repositories/onde-hoje/groups-repository';
+import type { MyGroupDetails } from '../../../../enterprise/entities/onde-hoje/groups/value-objects/my-group-details';
 import { GroupsRepository } from '../../../repositories/onde-hoje/groups-repository';
 import { OndeHojeUsersRepository } from '../../../repositories/onde-hoje/onde-hoje-users-repository';
 import { ResourceNotFoundError } from '../../errors/resource-not-found-error';
@@ -10,7 +10,7 @@ interface ListMyGroupsUseCaseRequest {
   currentUserPublicId: string;
 }
 
-type ListMyGroupsUseCaseResponse = Result<ResourceNotFoundError, { groups: MyGroupItem[] }>;
+type ListMyGroupsUseCaseResponse = Result<ResourceNotFoundError, { groups: MyGroupDetails[] }>;
 
 @Injectable()
 export class ListMyGroupsUseCase {
@@ -26,7 +26,7 @@ export class ListMyGroupsUseCase {
       return fail(new ResourceNotFoundError('Authenticated user not found'));
     }
 
-    const groups = await this.groupsRepository.listMine(user.id);
+    const groups = await this.groupsRepository.findManyDetailsByMemberId(user.publicId);
 
     return success({ groups });
   }

@@ -1,5 +1,5 @@
 import { Inject, Injectable } from '@nestjs/common';
-import { createDomainEvent } from '@/core/events/domain-event';
+import { createIntegrationEvent } from '@/core/events/integration-event';
 import { EventBus } from '@/core/events/event-bus';
 import type { Result } from '@/core/result';
 import { fail, success } from '@/core/result';
@@ -32,16 +32,16 @@ export class DeleteUserUseCase {
       return fail(new ForbiddenError('Only the account owner or an admin can delete this user'));
     }
 
-    const userExists = await this.usersRepository.findBy({ publicId });
+    const userExists = await this.usersRepository.findByPublicId(publicId);
 
     if (!userExists) {
       return fail(new ResourceNotFoundError('User not found'));
     }
 
-    await this.usersRepository.deleteById(userExists.id);
+    await this.usersRepository.delete(userExists);
 
     await this.eventBus.publish(
-      createDomainEvent({
+      createIntegrationEvent({
         eventName: 'user.deleted',
         aggregateId: userExists.publicId,
         payload: {

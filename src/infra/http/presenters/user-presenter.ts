@@ -39,9 +39,7 @@ export class UserPresenter {
       email: input.email,
       emailVerifiedAt: input.emailVerifiedAt,
       role: input.role,
-      avatarUrl: input.avatarUpdatedAt
-        ? `/users/${input.publicId}/avatar?v=${input.avatarUpdatedAt.getTime()}`
-        : null,
+      avatarUrl: input.avatarUpdatedAt ? `/users/${input.publicId}/avatar?v=${input.avatarUpdatedAt.getTime()}` : null,
       createdAt: input.createdAt,
       updatedAt: input.updatedAt,
     };

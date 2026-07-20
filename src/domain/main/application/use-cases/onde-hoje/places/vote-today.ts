@@ -1,6 +1,6 @@
 import { Inject, Injectable } from '@nestjs/common';
 import { todayDateOnly } from '@/core/date/date-only';
-import { createDomainEvent } from '@/core/events/domain-event';
+import { createIntegrationEvent } from '@/core/events/integration-event';
 import { EventBus } from '@/core/events/event-bus';
 import type { Result } from '@/core/result';
 import { fail, success } from '@/core/result';
@@ -50,7 +50,7 @@ export class VoteTodayUseCase {
     }
 
     const activeVotesThisWeek = await this.placesRepository.countActiveVotesForWeekExcludingTarget({
-      userId: user.id,
+      userPublicId: user.publicId,
       placePublicId: request.placePublicId,
       day,
       groupPublicId: request.groupPublicId,
@@ -79,7 +79,7 @@ export class VoteTodayUseCase {
     }
 
     const vote = await this.placesRepository.vote({
-      userId: user.id,
+      userPublicId: user.publicId,
       placePublicId: request.placePublicId,
       day,
       groupPublicId: request.groupPublicId,
@@ -97,7 +97,7 @@ export class VoteTodayUseCase {
     // A "not going" vote is a decline: it doesn't notify others.
     if (going) {
       await this.notifyOtherVoters({
-        actorUserId: user.id,
+        actorPublicId: user.publicId,
         placePublicId: request.placePublicId,
         day,
         groupPublicId: request.groupPublicId,
@@ -113,7 +113,7 @@ export class VoteTodayUseCase {
     };
 
     await this.eventBus.publish(
-      createDomainEvent({
+      createIntegrationEvent({
         eventName: 'onde-hoje.place.voted',
         aggregateId: request.placePublicId,
         actorId: request.currentUserPublicId,
@@ -122,7 +122,7 @@ export class VoteTodayUseCase {
     );
 
     await this.eventBus.publish(
-      createDomainEvent({
+      createIntegrationEvent({
         eventName: 'onde-hoje.place.voted-today',
         aggregateId: request.placePublicId,
         actorId: request.currentUserPublicId,
@@ -134,14 +134,14 @@ export class VoteTodayUseCase {
   }
 
   private async notifyOtherVoters(input: {
-    actorUserId: number;
+    actorPublicId: string;
     placePublicId: string;
     day: Date;
     groupPublicId?: string;
     showIdentity: boolean;
   }): Promise<void> {
     const targets = await this.placesRepository.findVoteNotificationTargets({
-      actorUserId: input.actorUserId,
+      actorPublicId: input.actorPublicId,
       placePublicId: input.placePublicId,
       day: input.day,
       groupPublicId: input.groupPublicId,
@@ -158,7 +158,6 @@ export class VoteTodayUseCase {
     await Promise.all(
       targets.recipients.map((recipient) =>
         this.notificationDispatcher.dispatchAggregatedVote({
-          recipientId: recipient.id,
           recipientPublicId: recipient.publicId,
           groupKey,
           placeName: targets.placeName,

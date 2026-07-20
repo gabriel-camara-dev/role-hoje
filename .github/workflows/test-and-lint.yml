@@ -53,6 +53,24 @@ jobs:
           pnpm run ci:lint
           echo "✅ Lint passed" >> $GITHUB_STEP_SUMMARY
 
+      # Typecheck covers test/ and *.spec.ts, which tsconfig.build.json excludes —
+      # without this step a broken spec only shows up locally.
+      - name: Typecheck
+        env:
+          DATABASE_URL: ${{ env.DUMMY_DATABASE_URL }}
+        run: |
+          pnpm run ci:generate
+          pnpm run typecheck
+          echo "✅ Typecheck passed" >> $GITHUB_STEP_SUMMARY
+
+      # Unit tests only: the e2e suite needs Postgres + Redis services.
+      - name: Unit tests
+        env:
+          DATABASE_URL: ${{ env.DUMMY_DATABASE_URL }}
+        run: |
+          pnpm run test
+          echo "✅ Tests passed" >> $GITHUB_STEP_SUMMARY
+
       - name: Build
         env:
           DATABASE_URL: ${{ env.DUMMY_DATABASE_URL }}

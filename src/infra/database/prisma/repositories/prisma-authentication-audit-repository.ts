@@ -3,20 +3,20 @@ import type {
   AuthenticationAuditRepository,
   RecordAuthenticationAuditData,
 } from '@/domain/main/application/repositories/authentication-audit-repository';
-import { PrismaService } from '../prisma.service';
+import { DatabaseContext } from '../database-context';
 
 @Injectable()
 export class PrismaAuthenticationAuditRepository implements AuthenticationAuditRepository {
   private readonly logger = new Logger(PrismaAuthenticationAuditRepository.name);
 
-  constructor(@Inject(PrismaService) private prisma: PrismaService) {}
+  constructor(@Inject(DatabaseContext) private readonly dbContext: DatabaseContext) {}
 
   async record(data: RecordAuthenticationAuditData): Promise<void> {
     try {
-      await this.prisma.authenticationAudit.create({
+      await this.dbContext.client.authenticationAudit.create({
         data: {
           status: data.status,
-          userId: data.userId ?? null,
+          ...(data.userPublicId ? { user: { connect: { publicId: data.userPublicId } } } : {}),
           ipAddress: data.ipAddress ?? null,
           remotePort: data.remotePort ?? null,
           userAgent: data.userAgent ?? null,

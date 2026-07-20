@@ -1,5 +1,5 @@
 import { Inject, Injectable } from '@nestjs/common';
-import { createDomainEvent } from '@/core/events/domain-event';
+import { createIntegrationEvent } from '@/core/events/integration-event';
 import { EventBus } from '@/core/events/event-bus';
 import type { Result } from '@/core/result';
 import { fail, success } from '@/core/result';
@@ -42,7 +42,7 @@ export class UpdateUserUseCase {
       return fail(new ForbiddenError('Only the account owner or an admin can update this user'));
     }
 
-    const userExists = await this.usersRepository.findBy({ publicId });
+    const userExists = await this.usersRepository.findByPublicId(publicId);
 
     if (!userExists) {
       return fail(new ResourceNotFoundError('User not found'));
@@ -57,12 +57,13 @@ export class UpdateUserUseCase {
       return fail(new UserAlreadyExistsError('username'));
     }
 
-    const user = await this.usersRepository.updateById(userExists.id, {
-      ...data,
-    });
+    userExists.updateProfile(data);
+    await this.usersRepository.save(userExists);
+
+    const user = userExists;
 
     await this.eventBus.publish(
-      createDomainEvent({
+      createIntegrationEvent({
         eventName: 'user.updated',
         aggregateId: user.publicId,
         payload: {

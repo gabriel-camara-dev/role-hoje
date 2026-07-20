@@ -1,5 +1,5 @@
 import { Inject, Injectable } from '@nestjs/common';
-import { createDomainEvent } from '@/core/events/domain-event';
+import { createIntegrationEvent } from '@/core/events/integration-event';
 import { EventBus } from '@/core/events/event-bus';
 import type { Result } from '@/core/result';
 import { fail, success } from '@/core/result';
@@ -33,7 +33,7 @@ export class CancelVoteUseCase {
     }
 
     const vote = await this.placesRepository.cancelVote({
-      userId: user.id,
+      userPublicId: user.publicId,
       placePublicId: request.placePublicId,
       day: request.day,
       groupPublicId: request.groupPublicId,
@@ -44,7 +44,7 @@ export class CancelVoteUseCase {
     }
 
     await this.eventBus.publish(
-      createDomainEvent({
+      createIntegrationEvent({
         eventName: 'onde-hoje.place.vote-cancelled',
         aggregateId: request.placePublicId,
         actorId: request.currentUserPublicId,

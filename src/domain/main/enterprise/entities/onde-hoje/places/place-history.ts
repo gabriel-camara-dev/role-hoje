@@ -1,4 +1,4 @@
-import type { Place } from './place';
+import type { PlaceFields } from './place';
 import type { PlaceVoteType } from './place-vote';
 import type { TodayMapPlace } from './today-map-place';
 
@@ -18,5 +18,5 @@ export interface UserVoteHistoryItem {
     name: string;
     slug: string;
   } | null;
-  place: Place;
+  place: PlaceFields;
 }
