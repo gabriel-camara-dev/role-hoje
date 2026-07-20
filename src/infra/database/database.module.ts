@@ -2,6 +2,7 @@ import { Module } from '@nestjs/common';
 import { AuthenticationAuditRepository } from '@/domain/main/application/repositories/authentication-audit-repository';
 import { AdminDashboardRepository } from '@/domain/main/application/repositories/onde-hoje/admin-dashboard-repository';
 import { FriendshipsRepository } from '@/domain/main/application/repositories/onde-hoje/friendships-repository';
+import { GroupMembersRepository } from '@/domain/main/application/repositories/onde-hoje/group-members-repository';
 import { GroupsRepository } from '@/domain/main/application/repositories/onde-hoje/groups-repository';
 import { NotificationsRepository } from '@/domain/main/application/repositories/onde-hoje/notifications-repository';
 import { OndeHojeUsersRepository } from '@/domain/main/application/repositories/onde-hoje/onde-hoje-users-repository';
@@ -14,6 +15,7 @@ import { PrismaTransactionRepository } from './prisma/repositories/prisma-transa
 import { PrismaAuthenticationAuditRepository } from './prisma/repositories/prisma-authentication-audit-repository';
 import { PrismaAdminDashboardRepository } from './prisma/repositories/onde-hoje/prisma-admin-dashboard-repository';
 import { PrismaFriendshipsRepository } from './prisma/repositories/onde-hoje/prisma-friendships-repository';
+import { PrismaGroupMembersRepository } from './prisma/repositories/onde-hoje/prisma-group-members-repository';
 import { PrismaGroupsRepository } from './prisma/repositories/onde-hoje/prisma-groups-repository';
 import { PrismaNotificationsRepository } from './prisma/repositories/onde-hoje/prisma-notifications-repository';
 import { PrismaOndeHojeUsersRepository } from './prisma/repositories/onde-hoje/prisma-onde-hoje-users-repository';
@@ -39,6 +41,10 @@ import { PrismaUsersRepository } from './prisma/repositories/prisma-users-reposi
     {
       provide: GroupsRepository,
       useClass: PrismaGroupsRepository,
+    },
+    {
+      provide: GroupMembersRepository,
+      useClass: PrismaGroupMembersRepository,
     },
     {
       provide: FriendshipsRepository,
@@ -68,6 +74,7 @@ import { PrismaUsersRepository } from './prisma/repositories/prisma-users-reposi
     UsersRepository,
     PlacesRepository,
     GroupsRepository,
+    GroupMembersRepository,
     FriendshipsRepository,
     AdminDashboardRepository,
     OndeHojeUsersRepository,

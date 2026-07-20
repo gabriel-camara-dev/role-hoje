@@ -27,12 +27,18 @@ export class MarkNotificationReadUseCase {
     }
 
     if (request.notificationPublicId) {
-      await this.notificationsRepository.markRead(user.id, request.notificationPublicId);
+      const notification = await this.notificationsRepository.findById(request.notificationPublicId);
+
+      // Only the owner may mark it, and only if it is still unread.
+      if (notification && notification.recipientId.toString() === user.publicId && !notification.isRead) {
+        notification.read();
+        await this.notificationsRepository.save(notification);
+      }
     } else {
-      await this.notificationsRepository.markAllRead(user.id);
+      await this.notificationsRepository.markAllRead(user.publicId);
     }
 
-    const unreadCount = await this.notificationsRepository.countUnread(user.id);
+    const unreadCount = await this.notificationsRepository.countUnread(user.publicId);
 
     return success({ unreadCount });
   }

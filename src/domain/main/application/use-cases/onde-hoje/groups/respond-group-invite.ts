@@ -1,12 +1,12 @@
 import { Inject, Injectable } from '@nestjs/common';
 import type { Result } from '@/core/result';
 import { fail, success } from '@/core/result';
-import { ConflictError } from '../../errors/conflict-error';
-import { ResourceNotFoundError } from '../../errors/resource-not-found-error';
 import type { GroupMembership } from '../../../../enterprise/entities/onde-hoje/groups/group-membership';
+import { GroupMembersRepository } from '../../../repositories/onde-hoje/group-members-repository';
 import { GroupsRepository } from '../../../repositories/onde-hoje/groups-repository';
 import { OndeHojeUsersRepository } from '../../../repositories/onde-hoje/onde-hoje-users-repository';
-import { NotificationDispatcher } from '../notifications/notification-dispatcher';
+import { ConflictError } from '../../errors/conflict-error';
+import { ResourceNotFoundError } from '../../errors/resource-not-found-error';
 
 interface RespondGroupInviteUseCaseRequest {
   currentUserPublicId: string;
@@ -23,8 +23,8 @@ type RespondGroupInviteUseCaseResponse = Result<
 export class RespondGroupInviteUseCase {
   constructor(
     @Inject(GroupsRepository) private groupsRepository: GroupsRepository,
+    @Inject(GroupMembersRepository) private groupMembersRepository: GroupMembersRepository,
     @Inject(OndeHojeUsersRepository) private usersRepository: OndeHojeUsersRepository,
-    @Inject(NotificationDispatcher) private notificationDispatcher: NotificationDispatcher,
   ) {}
 
   async execute(request: RespondGroupInviteUseCaseRequest): Promise<RespondGroupInviteUseCaseResponse> {
@@ -34,28 +34,32 @@ export class RespondGroupInviteUseCase {
       return fail(new ResourceNotFoundError('Authenticated user not found'));
     }
 
-    const result = await this.groupsRepository.respondInvite({
-      userId: user.id,
-      groupPublicId: request.groupPublicId,
-      action: request.action,
+    const group = await this.groupsRepository.findById(request.groupPublicId);
+
+    if (!group) {
+      return fail(new ResourceNotFoundError('Group not found'));
+    }
+
+    const membership = await this.groupMembersRepository.findByGroupAndMember({
+      groupId: group.id.toString(),
+      memberId: user.publicId,
     });
 
-    if (result.type === 'not_found') return fail(new ResourceNotFoundError('Group not found'));
-    if (result.type === 'not_invited') return fail(new ConflictError('There is no pending invite for this group'));
+    if (membership?.status !== 'INVITED') {
+      return fail(new ConflictError('There is no pending invite for this group'));
+    }
 
-    if (result.type === 'declined') {
+    if (request.action === 'decline') {
+      await this.groupMembersRepository.delete(membership);
+
       return success({ membership: null });
     }
 
-    await this.notificationDispatcher.dispatch({
-      recipientPublicId: result.ownerPublicId,
-      actorPublicId: request.currentUserPublicId,
-      type: 'GROUP_INVITE_ACCEPTED',
-      title: `${result.memberName} entrou no grupo`,
-      body: `${result.memberName} aceitou o convite para o grupo ${result.groupName}.`,
-      data: { groupPublicId: result.membership.groupPublicId, groupName: result.groupName },
-    });
+    // Raises GroupInviteAcceptedEvent; OnGroupInviteAccepted notifies the owner.
+    membership.acceptInvite();
 
-    return success({ membership: result.membership });
+    await this.groupMembersRepository.save(membership);
+
+    return success({ membership: { groupPublicId: group.id.toString(), status: membership.status } });
   }
 }

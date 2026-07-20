@@ -3,12 +3,12 @@ import type { Notification } from '@/domain/main/enterprise/entities/onde-hoje/n
 export class NotificationPresenter {
   static toHTTP(notification: Notification) {
     return {
-      id: notification.publicId,
+      id: notification.id.toString(),
       type: notification.type,
       title: notification.title,
       body: notification.body,
       data: notification.data,
-      read: notification.read,
+      read: notification.isRead,
       createdAt: notification.createdAt.toISOString(),
       actor: notification.actor
         ? {

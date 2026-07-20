@@ -16,7 +16,7 @@ export class PrismaAuthenticationAuditRepository implements AuthenticationAuditR
       await this.dbContext.client.authenticationAudit.create({
         data: {
           status: data.status,
-          userId: data.userId ?? null,
+          ...(data.userPublicId ? { user: { connect: { publicId: data.userPublicId } } } : {}),
           ipAddress: data.ipAddress ?? null,
           remotePort: data.remotePort ?? null,
           userAgent: data.userAgent ?? null,

@@ -21,18 +21,16 @@ export class ResendUserEmailConfirmationUseCase {
   async execute({
     email,
   }: ResendUserEmailConfirmationUseCaseRequest): Promise<ResendUserEmailConfirmationUseCaseResponse> {
-    const user = await this.usersRepository.findBy({ email });
+    const user = await this.usersRepository.findByEmail(email);
 
-    if (!user || user.emailVerifiedAt) {
+    if (!user || user.isEmailVerified) {
       return success({ resent: true });
     }
 
     const emailVerificationToken = generateEmailVerificationToken();
 
-    await this.usersRepository.updateById(user.id, {
-      emailVerificationTokenHash: emailVerificationToken.tokenHash,
-      emailVerificationTokenExpiresAt: emailVerificationToken.expiresAt,
-    });
+    user.setEmailVerificationToken(emailVerificationToken.tokenHash, emailVerificationToken.expiresAt);
+    await this.usersRepository.save(user);
 
     await this.emailSender.sendEmailConfirmation({
       email: user.email,

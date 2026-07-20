@@ -1,14 +1,14 @@
 import { Inject, Injectable } from '@nestjs/common';
-import { createDomainEvent } from '@/core/events/domain-event';
+import { UniqueEntityID } from '@/core/entities/unique-entity-id';
+import { createIntegrationEvent } from '@/core/events/integration-event';
 import { EventBus } from '@/core/events/event-bus';
 import type { Result } from '@/core/result';
 import { fail, success } from '@/core/result';
+import { Friendship, type FriendshipStatus } from '../../../../enterprise/entities/onde-hoje/friendships/friendship';
 import { FriendshipsRepository } from '../../../repositories/onde-hoje/friendships-repository';
 import { OndeHojeUsersRepository } from '../../../repositories/onde-hoje/onde-hoje-users-repository';
-import type { FriendshipStatus } from '../../../../enterprise/entities/onde-hoje/friendships/friendship';
 import { ConflictError } from '../../errors/conflict-error';
 import { ResourceNotFoundError } from '../../errors/resource-not-found-error';
-import { NotificationDispatcher } from '../notifications/notification-dispatcher';
 
 interface RequestFriendshipUseCaseRequest {
   currentUserPublicId: string;
@@ -23,7 +23,6 @@ export class RequestFriendshipUseCase {
     @Inject(FriendshipsRepository) private friendshipsRepository: FriendshipsRepository,
     @Inject(OndeHojeUsersRepository) private usersRepository: OndeHojeUsersRepository,
     @Inject(EventBus) private eventBus: EventBus,
-    @Inject(NotificationDispatcher) private notificationDispatcher: NotificationDispatcher,
   ) {}
 
   async execute(request: RequestFriendshipUseCaseRequest): Promise<RequestFriendshipUseCaseResponse> {
@@ -35,21 +34,37 @@ export class RequestFriendshipUseCase {
 
     const addressee = await this.usersRepository.findByUsername(request.addresseeUsername);
 
-    if (!addressee || addressee.id === user.id) {
+    if (!addressee || addressee.publicId === user.publicId) {
       return fail(new ResourceNotFoundError('User not found'));
     }
 
-    const friendship = await this.friendshipsRepository.requestFriendship({
-      requesterId: user.id,
-      addresseeId: addressee.id,
+    const existing = await this.friendshipsRepository.findByUsers({
+      requesterId: user.publicId,
+      addresseeId: addressee.publicId,
     });
 
-    if (friendship.type === 'already_exists') {
-      return fail(new ConflictError(`Friendship is already ${friendship.status.toLowerCase()}`));
+    if (existing?.isAccepted || existing?.isBlocked) {
+      return fail(new ConflictError(`Friendship is already ${existing.status.toLowerCase()}`));
+    }
+
+    // Rebuilt for the current direction, so the notification reaches the person
+    // being asked even when an older pending row pointed the other way.
+    const friendship = Friendship.create({
+      requesterId: new UniqueEntityID(user.publicId),
+      addresseeId: new UniqueEntityID(addressee.publicId),
+    });
+
+    // Raises FriendshipRequestedEvent; OnFriendshipRequested notifies the addressee.
+    friendship.request();
+
+    if (existing) {
+      await this.friendshipsRepository.save(friendship);
+    } else {
+      await this.friendshipsRepository.create(friendship);
     }
 
     await this.eventBus.publish(
-      createDomainEvent({
+      createIntegrationEvent({
         eventName: 'onde-hoje.friendship.requested',
         actorId: request.currentUserPublicId,
         aggregateId: `${request.currentUserPublicId}:${request.addresseeUsername}`,
@@ -60,15 +75,6 @@ export class RequestFriendshipUseCase {
         },
       }),
     );
-
-    await this.notificationDispatcher.dispatch({
-      recipientPublicId: addressee.publicId,
-      actorPublicId: request.currentUserPublicId,
-      type: 'FRIEND_REQUEST',
-      title: 'Novo pedido de amizade',
-      body: 'Voce recebeu um pedido de amizade. Toque para responder.',
-      data: {},
-    });
 
     return success({ status: friendship.status });
   }

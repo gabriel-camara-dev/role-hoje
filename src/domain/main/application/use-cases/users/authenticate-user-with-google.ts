@@ -1,11 +1,11 @@
 import { Inject, Injectable } from '@nestjs/common';
-import { createDomainEvent } from '@/core/events/domain-event';
+import { createIntegrationEvent } from '@/core/events/integration-event';
 import { EventBus } from '@/core/events/event-bus';
 import type { Result } from '@/core/result';
 import { success } from '@/core/result';
 import { AuthenticationAuditRepository } from '../../repositories/authentication-audit-repository';
 import { UsersRepository } from '../../repositories/users-repository';
-import type { User } from '../../../enterprise/entities/user';
+import { User } from '../../../enterprise/entities/user';
 import type { AuthenticationContext } from './authenticate-user';
 
 interface AuthenticateUserWithGoogleUseCaseRequest {
@@ -26,40 +26,32 @@ export class AuthenticateUserWithGoogleUseCase {
   ) {}
 
   async execute(request: AuthenticateUserWithGoogleUseCaseRequest): Promise<AuthenticateUserWithGoogleUseCaseResponse> {
-    const userByGoogleId = await this.usersRepository.findBy({ googleId: request.googleId });
+    const userByGoogleId = await this.usersRepository.findByGoogleId(request.googleId);
 
     if (userByGoogleId) {
-      const authenticatedUser = await this.usersRepository.updateById(userByGoogleId.id, {
-        emailVerifiedAt: userByGoogleId.emailVerifiedAt ?? new Date(),
-        emailVerificationTokenHash: null,
-        emailVerificationTokenExpiresAt: null,
-        lastLogin: new Date(),
-      });
+      userByGoogleId.verifyEmail();
+      userByGoogleId.recordLogin();
+      await this.usersRepository.save(userByGoogleId);
+      await this.recordSuccess(userByGoogleId, request.context);
 
-      await this.recordSuccess(authenticatedUser.id, request.context);
-
-      return success({ user: authenticatedUser });
+      return success({ user: userByGoogleId });
     }
 
-    const userByEmail = await this.usersRepository.findBy({ email: request.email });
+    const userByEmail = await this.usersRepository.findByEmail(request.email);
 
     if (userByEmail) {
-      const linkedUser = await this.usersRepository.updateById(userByEmail.id, {
-        googleId: request.googleId,
-        emailVerifiedAt: userByEmail.emailVerifiedAt ?? new Date(),
-        emailVerificationTokenHash: null,
-        emailVerificationTokenExpiresAt: null,
-        lastLogin: new Date(),
-      });
+      userByEmail.linkGoogle(request.googleId);
+      userByEmail.verifyEmail();
+      userByEmail.recordLogin();
+      await this.usersRepository.save(userByEmail);
+      await this.recordSuccess(userByEmail, request.context);
 
-      await this.recordSuccess(linkedUser.id, request.context);
-
-      return success({ user: linkedUser });
+      return success({ user: userByEmail });
     }
 
     const username = await this.generateAvailableUsername(request.email, request.name);
 
-    const user = await this.usersRepository.create({
+    const user = User.create({
       name: request.name,
       username,
       email: request.email,
@@ -69,8 +61,10 @@ export class AuthenticateUserWithGoogleUseCase {
       lastLogin: new Date(),
     });
 
+    await this.usersRepository.create(user);
+
     await this.eventBus.publish(
-      createDomainEvent({
+      createIntegrationEvent({
         eventName: 'user.created-with-google',
         aggregateId: user.publicId,
         payload: {
@@ -84,15 +78,15 @@ export class AuthenticateUserWithGoogleUseCase {
       }),
     );
 
-    await this.recordSuccess(user.id, request.context);
+    await this.recordSuccess(user, request.context);
 
     return success({ user });
   }
 
-  private async recordSuccess(userId: number, context?: AuthenticationContext) {
+  private async recordSuccess(user: User, context?: AuthenticationContext) {
     await this.authenticationAuditRepository.record({
       status: 'SUCCESS',
-      userId,
+      userPublicId: user.publicId,
       ...context,
     });
   }
@@ -102,7 +96,7 @@ export class AuthenticateUserWithGoogleUseCase {
 
     for (let index = 0; index < 100; index += 1) {
       const username = index === 0 ? baseUsername : `${baseUsername}_${index + 1}`;
-      const existingUser = await this.usersRepository.findBy({ username });
+      const existingUser = await this.usersRepository.findByUsername(username);
 
       if (!existingUser) {
         return username;
@@ -116,7 +110,7 @@ export class AuthenticateUserWithGoogleUseCase {
 function slugUsername(value: string) {
   const username = value
     .normalize('NFD')
-    .replaceAll(/[\u0300-\u036f]/g, '')
+    .replaceAll(/\p{Diacritic}/gu, '')
     .toLowerCase()
     .replaceAll(/[^a-z0-9_]/g, '_')
     .replaceAll(/_+/g, '_')

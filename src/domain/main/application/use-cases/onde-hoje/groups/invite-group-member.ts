@@ -1,13 +1,15 @@
 import { Inject, Injectable } from '@nestjs/common';
+import { UniqueEntityID } from '@/core/entities/unique-entity-id';
 import type { Result } from '@/core/result';
 import { fail, success } from '@/core/result';
+import { GroupMember } from '../../../../enterprise/entities/onde-hoje/groups/group-member';
+import type { GroupMembership } from '../../../../enterprise/entities/onde-hoje/groups/group-membership';
+import { GroupMembersRepository } from '../../../repositories/onde-hoje/group-members-repository';
+import { GroupsRepository } from '../../../repositories/onde-hoje/groups-repository';
+import { OndeHojeUsersRepository } from '../../../repositories/onde-hoje/onde-hoje-users-repository';
 import { ConflictError } from '../../errors/conflict-error';
 import { ForbiddenError } from '../../errors/forbidden-error';
 import { ResourceNotFoundError } from '../../errors/resource-not-found-error';
-import type { GroupMembership } from '../../../../enterprise/entities/onde-hoje/groups/group-membership';
-import { GroupsRepository } from '../../../repositories/onde-hoje/groups-repository';
-import { OndeHojeUsersRepository } from '../../../repositories/onde-hoje/onde-hoje-users-repository';
-import { NotificationDispatcher } from '../notifications/notification-dispatcher';
 
 interface InviteGroupMemberUseCaseRequest {
   currentUserPublicId: string;
@@ -24,36 +26,63 @@ type InviteGroupMemberUseCaseResponse = Result<
 export class InviteGroupMemberUseCase {
   constructor(
     @Inject(GroupsRepository) private groupsRepository: GroupsRepository,
+    @Inject(GroupMembersRepository) private groupMembersRepository: GroupMembersRepository,
     @Inject(OndeHojeUsersRepository) private usersRepository: OndeHojeUsersRepository,
-    @Inject(NotificationDispatcher) private notificationDispatcher: NotificationDispatcher,
   ) {}
 
   async execute(request: InviteGroupMemberUseCaseRequest): Promise<InviteGroupMemberUseCaseResponse> {
-    const leader = await this.usersRepository.findByPublicId(request.currentUserPublicId);
+    const inviter = await this.usersRepository.findByPublicId(request.currentUserPublicId);
 
-    if (!leader) {
+    if (!inviter) {
       return fail(new ResourceNotFoundError('Authenticated user not found'));
     }
 
-    const result = await this.groupsRepository.inviteMember({
-      leaderId: leader.id,
-      groupPublicId: request.groupPublicId,
-      memberUsername: request.memberUsername,
+    const [group, memberUser] = await Promise.all([
+      this.groupsRepository.findById(request.groupPublicId),
+      this.usersRepository.findByUsername(request.memberUsername),
+    ]);
+
+    if (!group || !memberUser) {
+      return fail(new ResourceNotFoundError('Group or user not found'));
+    }
+
+    // Any active member can invite friends; the invite still needs acceptance.
+    const inviterMembership = await this.groupMembersRepository.findByGroupAndMember({
+      groupId: group.id.toString(),
+      memberId: inviter.publicId,
     });
 
-    if (result.type === 'not_found') return fail(new ResourceNotFoundError('Group or user not found'));
-    if (result.type === 'forbidden') return fail(new ForbiddenError('Only active group members can invite'));
-    if (result.type === 'already_member') return fail(new ConflictError('User is already part of this group'));
+    if (!inviterMembership?.isActive) {
+      return fail(new ForbiddenError('Only active group members can invite'));
+    }
 
-    await this.notificationDispatcher.dispatch({
-      recipientPublicId: result.invitedUserPublicId,
-      actorPublicId: request.currentUserPublicId,
-      type: 'GROUP_INVITE',
-      title: `Convite para o grupo ${result.groupName}`,
-      body: 'Toque para aceitar ou recusar o convite.',
-      data: { groupPublicId: result.membership.groupPublicId, groupName: result.groupName },
+    const existing = await this.groupMembersRepository.findByGroupAndMember({
+      groupId: group.id.toString(),
+      memberId: memberUser.publicId,
     });
 
-    return success({ membership: result.membership });
+    if (existing?.status === 'ACTIVE') {
+      return fail(new ConflictError('User is already part of this group'));
+    }
+
+    if (existing?.status === 'BLOCKED') {
+      return fail(new ForbiddenError('Only active group members can invite'));
+    }
+
+    // The membership stays as INVITED until the invited person accepts.
+    // It never grants access on its own.
+    const membership =
+      existing ?? GroupMember.create({ groupId: group.id, memberId: new UniqueEntityID(memberUser.publicId) });
+
+    // Raises GroupMemberInvitedEvent; OnGroupMemberInvited notifies the invitee.
+    membership.inviteBy(new UniqueEntityID(inviter.publicId));
+
+    if (existing) {
+      await this.groupMembersRepository.save(membership);
+    } else {
+      await this.groupMembersRepository.create(membership);
+    }
+
+    return success({ membership: { groupPublicId: group.id.toString(), status: membership.status } });
   }
 }

@@ -1,8 +1,5 @@
 import { Injectable, Logger } from '@nestjs/common';
-import {
-  GeocodingGateway,
-  type ReverseGeocodeResult,
-} from '@/domain/main/application/gateways/geocoding-gateway';
+import { GeocodingGateway, type ReverseGeocodeResult } from '@/domain/main/application/gateways/geocoding-gateway';
 
 type NominatimAddress = {
   road?: string;
@@ -68,9 +65,7 @@ export class NominatimGeocodingService extends GeocodingGateway {
         country: address.country ?? null,
       };
     } catch (error) {
-      this.logger.warn(
-        `Reverse geocode error: ${error instanceof Error ? error.message : String(error)}`,
-      );
+      this.logger.warn(`Reverse geocode error: ${error instanceof Error ? error.message : String(error)}`);
       return null;
     }
   }

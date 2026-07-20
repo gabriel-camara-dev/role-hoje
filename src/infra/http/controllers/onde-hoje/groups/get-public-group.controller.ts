@@ -1,7 +1,7 @@
 import { Controller, Get, Inject, Param, Req } from '@nestjs/common';
 import { ApiBearerAuth, ApiOkResponse, ApiOperation, ApiParam, ApiTags } from '@nestjs/swagger';
 import type { Request } from 'express';
-import { GroupPresenter } from '@/infra/http/presenters/onde-hoje/group-presenter';
+import { GroupDetailsPresenter, GroupMemberInfoPresenter } from '@/infra/http/presenters/onde-hoje/group-presenter';
 import { Public } from '@/infra/auth/public';
 import { throwHttpError } from '@/infra/http/errors/http-error-handler';
 import { GetPublicGroupUseCase } from '@/domain/main/application/use-cases/onde-hoje/groups/get-public-group';
@@ -31,8 +31,10 @@ export class GetPublicGroupController {
     }
 
     return {
-      ...GroupPresenter.toHTTP(result.value.group),
-      members: viewerPublicId ? result.value.group.members : [],
+      ...GroupDetailsPresenter.toHTTP(result.value.group),
+      members: viewerPublicId
+        ? result.value.group.members.map((member) => GroupMemberInfoPresenter.toHTTP(member))
+        : [],
     };
   }
 }

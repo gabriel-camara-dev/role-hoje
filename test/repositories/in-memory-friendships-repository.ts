@@ -1,44 +1,59 @@
-import {
-  FriendshipsRepository,
-  type RequestFriendshipResult,
-} from '@/domain/main/application/repositories/onde-hoje/friendships-repository';
-import type {
-  FriendListItem,
-  FriendshipStatus,
-} from '@/domain/main/enterprise/entities/onde-hoje/friendships/friendship';
+import { DomainEvents } from '@/core/events/domain-events';
+import { FriendshipsRepository } from '@/domain/main/application/repositories/onde-hoje/friendships-repository';
+import type { FriendListItem, Friendship } from '@/domain/main/enterprise/entities/onde-hoje/friendships/friendship';
 import type { InMemoryOndeHojeUsersRepository } from './in-memory-onde-hoje-users-repository';
 
-export interface InMemoryFriendship {
-  requesterId: number;
-  addresseeId: number;
-  status: FriendshipStatus;
-}
-
 export class InMemoryFriendshipsRepository extends FriendshipsRepository {
-  public items: InMemoryFriendship[] = [];
+  public items: Friendship[] = [];
 
   constructor(private usersRepository: InMemoryOndeHojeUsersRepository) {
     super();
   }
 
-  private userById(id: number) {
-    return this.usersRepository.items.find((user) => user.id === id) ?? null;
+  private userByPublicId(publicId: string) {
+    return this.usersRepository.items.find((user) => user.publicId === publicId) ?? null;
   }
 
-  private findBetween(a: number, b: number) {
-    return this.items.find(
-      (item) =>
-        (item.requesterId === a && item.addresseeId === b) ||
-        (item.requesterId === b && item.addresseeId === a),
-    );
+  private indexOf(friendship: Friendship) {
+    return this.items.findIndex((item) => item.pairKey === friendship.pairKey);
   }
 
-  async listFriends(userId: number): Promise<FriendListItem[]> {
+  async findByUsers(data: { requesterId: string; addresseeId: string }): Promise<Friendship | null> {
+    const pairKey = [data.requesterId, data.addresseeId].sort().join(':');
+
+    return this.items.find((item) => item.pairKey === pairKey) ?? null;
+  }
+
+  async create(friendship: Friendship): Promise<void> {
+    this.items.push(friendship);
+
+    DomainEvents.dispatchEventsForAggregate(friendship.id);
+  }
+
+  async save(friendship: Friendship): Promise<void> {
+    const index = this.indexOf(friendship);
+
+    if (index >= 0) {
+      this.items[index] = friendship;
+    }
+
+    DomainEvents.dispatchEventsForAggregate(friendship.id);
+  }
+
+  async delete(friendship: Friendship): Promise<void> {
+    const index = this.indexOf(friendship);
+
+    if (index >= 0) {
+      this.items.splice(index, 1);
+    }
+  }
+
+  async findManyByUserId(userId: string): Promise<FriendListItem[]> {
     return this.items
-      .filter((item) => item.requesterId === userId || item.addresseeId === userId)
+      .filter((item) => item.requesterId.toString() === userId || item.addresseeId.toString() === userId)
       .flatMap((item) => {
-        const sent = item.requesterId === userId;
-        const friend = this.userById(sent ? item.addresseeId : item.requesterId);
+        const sent = item.requesterId.toString() === userId;
+        const friend = this.userByPublicId(sent ? item.addresseeId.toString() : item.requesterId.toString());
 
         if (!friend) {
           return [];
@@ -57,77 +72,5 @@ export class InMemoryFriendshipsRepository extends FriendshipsRepository {
           },
         ];
       });
-  }
-
-  async requestFriendship(data: {
-    requesterId: number;
-    addresseeId: number;
-  }): Promise<RequestFriendshipResult> {
-    const existing = this.findBetween(data.requesterId, data.addresseeId);
-
-    if (existing && (existing.status === 'ACCEPTED' || existing.status === 'BLOCKED')) {
-      return { type: 'already_exists', status: existing.status };
-    }
-
-    if (existing) {
-      existing.status = 'PENDING';
-    } else {
-      this.items.push({
-        requesterId: data.requesterId,
-        addresseeId: data.addresseeId,
-        status: 'PENDING',
-      });
-    }
-
-    return { type: 'requested', status: 'PENDING' };
-  }
-
-  async acceptFriendship(data: {
-    addresseeId: number;
-    requesterId: number;
-  }): Promise<FriendshipStatus | null> {
-    const friendship = this.items.find(
-      (item) =>
-        item.requesterId === data.requesterId &&
-        item.addresseeId === data.addresseeId &&
-        item.status === 'PENDING',
-    );
-
-    if (!friendship) {
-      return null;
-    }
-
-    friendship.status = 'ACCEPTED';
-
-    return friendship.status;
-  }
-
-  async rejectFriendship(data: { addresseeId: number; requesterId: number }): Promise<boolean> {
-    const index = this.items.findIndex(
-      (item) =>
-        item.requesterId === data.requesterId &&
-        item.addresseeId === data.addresseeId &&
-        item.status === 'PENDING',
-    );
-
-    if (index < 0) {
-      return false;
-    }
-
-    this.items.splice(index, 1);
-
-    return true;
-  }
-
-  async removeFriendship(data: { userId: number; otherId: number }): Promise<boolean> {
-    const friendship = this.findBetween(data.userId, data.otherId);
-
-    if (!friendship) {
-      return false;
-    }
-
-    this.items.splice(this.items.indexOf(friendship), 1);
-
-    return true;
   }
 }

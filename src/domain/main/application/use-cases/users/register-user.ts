@@ -1,11 +1,11 @@
 import { Inject, Injectable } from '@nestjs/common';
-import { createDomainEvent } from '@/core/events/domain-event';
+import { createIntegrationEvent } from '@/core/events/integration-event';
 import { EventBus } from '@/core/events/event-bus';
 import { EmailSender } from '@/domain/main/application/mail/email-sender';
 import type { Result } from '@/core/result';
 import { fail, success } from '@/core/result';
 import { UsersRepository } from '../../repositories/users-repository';
-import type { User } from '../../../enterprise/entities/user';
+import { User } from '../../../enterprise/entities/user';
 import { UserAlreadyExistsError } from './errors/user-already-exists-error';
 import { PasswordHasher } from './password-hasher';
 import { generateEmailVerificationToken } from './email-verification-token';
@@ -49,7 +49,7 @@ export class RegisterUserUseCase {
     const passwordHash = await this.passwordHasher.hash(password);
     const emailVerificationToken = generateEmailVerificationToken();
 
-    const user = await this.usersRepository.create({
+    const user = User.create({
       name,
       username,
       email,
@@ -58,6 +58,8 @@ export class RegisterUserUseCase {
       emailVerificationTokenExpiresAt: emailVerificationToken.expiresAt,
     });
 
+    await this.usersRepository.create(user);
+
     await this.emailSender.sendEmailConfirmation({
       email: user.email,
       name: user.name,
@@ -65,7 +67,7 @@ export class RegisterUserUseCase {
     });
 
     await this.eventBus.publish(
-      createDomainEvent({
+      createIntegrationEvent({
         eventName: 'user.created',
         aggregateId: user.publicId,
         payload: {

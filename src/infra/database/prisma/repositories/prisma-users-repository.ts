@@ -1,13 +1,12 @@
 import { Inject, Injectable } from '@nestjs/common';
 import type { Prisma } from '@/@types/prisma/client';
 import type {
-  FindUserBy,
   FindUserConflict,
   ListUsersQuery,
   ListUsersResult,
   UsersRepository,
 } from '@/domain/main/application/repositories/users-repository';
-import type { CreateUserData, UpdateUserData, User } from '@/domain/main/enterprise/entities/user';
+import type { User } from '@/domain/main/enterprise/entities/user';
 import { DatabaseContext } from '../database-context';
 import { PrismaUserMapper } from '../mappers/prisma-user-mapper';
 
@@ -15,17 +14,33 @@ import { PrismaUserMapper } from '../mappers/prisma-user-mapper';
 export class PrismaUsersRepository implements UsersRepository {
   constructor(@Inject(DatabaseContext) private readonly dbContext: DatabaseContext) {}
 
-  async create(data: CreateUserData): Promise<User> {
-    const user = await this.dbContext.client.user.create({
-      data: PrismaUserMapper.toPrisma(data),
-    });
+  async findByPublicId(publicId: string): Promise<User | null> {
+    const user = await this.dbContext.client.user.findUnique({ where: { publicId } });
 
-    return PrismaUserMapper.toDomain(user);
+    return user ? PrismaUserMapper.toDomain(user) : null;
   }
 
-  async findBy(findUserBy: FindUserBy): Promise<User | null> {
-    const user = await this.dbContext.client.user.findUnique({
-      where: this.mapFindUserByToWhere(findUserBy),
+  async findByEmail(email: string): Promise<User | null> {
+    const user = await this.dbContext.client.user.findUnique({ where: { email } });
+
+    return user ? PrismaUserMapper.toDomain(user) : null;
+  }
+
+  async findByUsername(username: string): Promise<User | null> {
+    const user = await this.dbContext.client.user.findUnique({ where: { username } });
+
+    return user ? PrismaUserMapper.toDomain(user) : null;
+  }
+
+  async findByGoogleId(googleId: string): Promise<User | null> {
+    const user = await this.dbContext.client.user.findUnique({ where: { googleId } });
+
+    return user ? PrismaUserMapper.toDomain(user) : null;
+  }
+
+  async findByEmailVerificationTokenHash(tokenHash: string): Promise<User | null> {
+    const user = await this.dbContext.client.user.findFirst({
+      where: { emailVerificationTokenHash: tokenHash },
     });
 
     return user ? PrismaUserMapper.toDomain(user) : null;
@@ -33,9 +48,7 @@ export class PrismaUsersRepository implements UsersRepository {
 
   async findByLogin(login: string): Promise<User | null> {
     const user = await this.dbContext.client.user.findFirst({
-      where: {
-        OR: [{ email: login }, { username: login }],
-      },
+      where: { OR: [{ email: login }, { username: login }] },
     });
 
     return user ? PrismaUserMapper.toDomain(user) : null;
@@ -80,9 +93,7 @@ export class PrismaUsersRepository implements UsersRepository {
     const [users, totalCount] = await Promise.all([
       this.dbContext.client.user.findMany({
         where,
-        orderBy: {
-          createdAt: 'desc',
-        },
+        orderBy: { createdAt: 'desc' },
         skip: (currentPage - 1) * perPage,
         take: perPage,
       }),
@@ -97,21 +108,19 @@ export class PrismaUsersRepository implements UsersRepository {
     };
   }
 
-  async updateById(id: number, data: UpdateUserData): Promise<User> {
-    const user = await this.dbContext.client.user.update({
-      where: { id },
-      data: PrismaUserMapper.toUpdatePrisma(data),
-    });
-
-    return PrismaUserMapper.toDomain(user);
+  async create(user: User): Promise<void> {
+    await this.dbContext.client.user.create({ data: PrismaUserMapper.toPrismaCreate(user) });
   }
 
-  async deleteById(id: number): Promise<User> {
-    const user = await this.dbContext.client.user.delete({
-      where: { id },
+  async save(user: User): Promise<void> {
+    await this.dbContext.client.user.update({
+      where: { publicId: user.publicId },
+      data: PrismaUserMapper.toPrismaUpdate(user),
     });
+  }
 
-    return PrismaUserMapper.toDomain(user);
+  async delete(user: User): Promise<void> {
+    await this.dbContext.client.user.delete({ where: { publicId: user.publicId } });
   }
 
   async deleteExpiredUnverified(now: Date): Promise<number> {
@@ -123,37 +132,5 @@ export class PrismaUsersRepository implements UsersRepository {
     });
 
     return count;
-  }
-
-  private mapFindUserByToWhere(findUserBy: FindUserBy): Prisma.UserWhereUniqueInput {
-    if (findUserBy.id) {
-      return { id: findUserBy.id };
-    }
-
-    if (findUserBy.publicId) {
-      return { publicId: findUserBy.publicId };
-    }
-
-    if (findUserBy.username) {
-      return { username: findUserBy.username };
-    }
-
-    if (findUserBy.email) {
-      return { email: findUserBy.email };
-    }
-
-    if (findUserBy.googleId) {
-      return { googleId: findUserBy.googleId };
-    }
-
-    if (findUserBy.token) {
-      return { token: findUserBy.token };
-    }
-
-    if (findUserBy.emailVerificationTokenHash) {
-      return { emailVerificationTokenHash: findUserBy.emailVerificationTokenHash };
-    }
-
-    throw new Error('At least one field must be provided for FindUserBy');
   }
 }

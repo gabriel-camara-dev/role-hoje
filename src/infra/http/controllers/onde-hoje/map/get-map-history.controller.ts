@@ -32,6 +32,12 @@ export class GetMapHistoryController {
   @ApiQuery({ name: 'to', required: false, type: String, example: '2026-06-30' })
   @ApiQuery({ name: 'city', required: false, type: String })
   @ApiQuery({ name: 'groupPublicId', required: false, type: String })
+  @ApiQuery({
+    name: 'memberVotes',
+    required: false,
+    type: String,
+    description: 'With a group: also return the public votes of its active members.',
+  })
   @ApiQuery({ name: 'latitude', required: false, type: Number })
   @ApiQuery({ name: 'longitude', required: false, type: Number })
   @ApiQuery({ name: 'radiusKm', required: false, type: Number })
@@ -45,6 +51,7 @@ export class GetMapHistoryController {
       ...query,
       from: parseDateOnly(query.from) ?? addDays(todayDate(), -6),
       to: parseDateOnly(query.to) ?? todayDate(),
+      includeMemberPublicVotes: query.memberVotes === '1' || query.memberVotes === 'true',
       viewerPublicId,
     });
 

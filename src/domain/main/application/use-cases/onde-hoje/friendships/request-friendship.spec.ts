@@ -1,37 +1,26 @@
 import { ConflictError } from '../../errors/conflict-error';
 import { ResourceNotFoundError } from '../../errors/resource-not-found-error';
-import { NotificationDispatcher } from '../notifications/notification-dispatcher';
 import { RequestFriendshipUseCase } from './request-friendship';
 import { FakeEventBus } from '@test/events/fake-event-bus';
+import { makeFriendship } from '@test/factories/make-friendship';
 import { makeUser } from '@test/factories/make-user';
 import { InMemoryFriendshipsRepository } from '@test/repositories/in-memory-friendships-repository';
-import { InMemoryNotificationsRepository } from '@test/repositories/in-memory-notifications-repository';
 import { InMemoryOndeHojeUsersRepository } from '@test/repositories/in-memory-onde-hoje-users-repository';
+import { UniqueEntityID } from '@/core/entities/unique-entity-id';
 
 let inMemoryUsersRepository: InMemoryOndeHojeUsersRepository;
 let inMemoryFriendshipsRepository: InMemoryFriendshipsRepository;
-let inMemoryNotificationsRepository: InMemoryNotificationsRepository;
 let fakeEventBus: FakeEventBus;
-let notificationDispatcher: NotificationDispatcher;
 let sut: RequestFriendshipUseCase;
 
 describe('Request Friendship', () => {
   beforeEach(() => {
     inMemoryUsersRepository = new InMemoryOndeHojeUsersRepository();
     inMemoryFriendshipsRepository = new InMemoryFriendshipsRepository(inMemoryUsersRepository);
-    inMemoryNotificationsRepository = new InMemoryNotificationsRepository(inMemoryUsersRepository);
     fakeEventBus = new FakeEventBus();
-    notificationDispatcher = new NotificationDispatcher(
-      inMemoryNotificationsRepository,
-      inMemoryUsersRepository,
-      fakeEventBus,
-    );
-    sut = new RequestFriendshipUseCase(
-      inMemoryFriendshipsRepository,
-      inMemoryUsersRepository,
-      fakeEventBus,
-      notificationDispatcher,
-    );
+
+    // Notifying the addressee is the OnFriendshipRequested subscriber's job (its own spec).
+    sut = new RequestFriendshipUseCase(inMemoryFriendshipsRepository, inMemoryUsersRepository, fakeEventBus);
   });
 
   it('should be able to request a friendship', async () => {
@@ -46,14 +35,15 @@ describe('Request Friendship', () => {
 
     expect(result.isSuccess()).toBe(true);
     expect(inMemoryFriendshipsRepository.items).toHaveLength(1);
-    expect(inMemoryFriendshipsRepository.items[0]).toMatchObject({
-      requesterId: requester.id,
-      addresseeId: addressee.id,
-      status: 'PENDING',
-    });
+
+    const [friendship] = inMemoryFriendshipsRepository.items;
+
+    expect(friendship.requesterId.toString()).toBe(requester.publicId);
+    expect(friendship.addresseeId.toString()).toBe(addressee.publicId);
+    expect(friendship.status).toBe('PENDING');
   });
 
-  it('should notify the addressee and publish a domain event', async () => {
+  it('should publish an integration event for the request', async () => {
     const requester = makeUser();
     const addressee = makeUser();
     inMemoryUsersRepository.items.push(requester, addressee);
@@ -66,9 +56,6 @@ describe('Request Friendship', () => {
     expect(fakeEventBus.events).toContainEqual(
       expect.objectContaining({ eventName: 'onde-hoje.friendship.requested' }),
     );
-    expect(inMemoryNotificationsRepository.items).toEqual([
-      expect.objectContaining({ recipientId: addressee.id, type: 'FRIEND_REQUEST' }),
-    ]);
   });
 
   it('should not be able to request a friendship as an unknown user', async () => {
@@ -101,11 +88,13 @@ describe('Request Friendship', () => {
     const requester = makeUser();
     const addressee = makeUser();
     inMemoryUsersRepository.items.push(requester, addressee);
-    inMemoryFriendshipsRepository.items.push({
-      requesterId: requester.id,
-      addresseeId: addressee.id,
-      status: 'ACCEPTED',
-    });
+    inMemoryFriendshipsRepository.items.push(
+      makeFriendship({
+        requesterId: new UniqueEntityID(requester.publicId),
+        addresseeId: new UniqueEntityID(addressee.publicId),
+        status: 'ACCEPTED',
+      }),
+    );
 
     const result = await sut.execute({
       currentUserPublicId: requester.publicId,

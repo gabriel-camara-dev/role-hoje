@@ -1,18 +1,15 @@
-import type { FriendListItem, FriendshipStatus } from '../../../enterprise/entities/onde-hoje/friendships/friendship';
-
-export type RequestFriendshipResult =
-  | { type: 'requested'; status: FriendshipStatus }
-  | { type: 'already_exists'; status: Extract<FriendshipStatus, 'ACCEPTED' | 'BLOCKED'> };
+import type { FriendListItem, Friendship } from '../../../enterprise/entities/onde-hoje/friendships/friendship';
 
 /**
- * Only ever touches the `friendship` model: resolving a username into a user is
- * the use case's job (via OndeHojeUsersRepository), so every method here takes
- * ids that are already known to exist.
+ * Reference-shaped core (`findByUsers`/`create`/`save`/`delete`, entity in and
+ * out) plus the friends listing read model. Resolving a username into a user is
+ * the use case's job, so methods take publicIds already known to exist.
  */
 export abstract class FriendshipsRepository {
-  abstract listFriends(userId: number): Promise<FriendListItem[]>;
-  abstract requestFriendship(data: { requesterId: number; addresseeId: number }): Promise<RequestFriendshipResult>;
-  abstract acceptFriendship(data: { addresseeId: number; requesterId: number }): Promise<FriendshipStatus | null>;
-  abstract rejectFriendship(data: { addresseeId: number; requesterId: number }): Promise<boolean>;
-  abstract removeFriendship(data: { userId: number; otherId: number }): Promise<boolean>;
+  /** The friendship between the two users, in whichever direction it exists. */
+  abstract findByUsers(data: { requesterId: string; addresseeId: string }): Promise<Friendship | null>;
+  abstract create(friendship: Friendship): Promise<void>;
+  abstract save(friendship: Friendship): Promise<void>;
+  abstract delete(friendship: Friendship): Promise<void>;
+  abstract findManyByUserId(userId: string): Promise<FriendListItem[]>;
 }

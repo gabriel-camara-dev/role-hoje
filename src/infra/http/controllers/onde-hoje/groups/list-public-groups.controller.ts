@@ -2,7 +2,7 @@ import { Controller, Get, Inject, Query } from '@nestjs/common';
 import { ApiBearerAuth, ApiOkResponse, ApiOperation, ApiQuery, ApiTags } from '@nestjs/swagger';
 import { ListPublicGroupsUseCase } from '@/domain/main/application/use-cases/onde-hoje/groups/list-public-groups';
 import { Public } from '@/infra/auth/public';
-import { GroupPresenter } from '@/infra/http/presenters/onde-hoje/group-presenter';
+import { GroupSummaryPresenter } from '@/infra/http/presenters/onde-hoje/group-presenter';
 import { GroupResponseDto } from '@/infra/http/swagger/presenter-schemas/onde-hoje/group-presenter-schema';
 
 @ApiTags('Onde Hoje - Groups')
@@ -19,6 +19,6 @@ export class ListPublicGroupsController {
   async handle(@Query('city') city?: string) {
     const result = await this.listPublicGroupsUseCase.execute({ city });
 
-    return result.value.groups.map((group) => GroupPresenter.toHTTP(group));
+    return result.value.groups.map((group) => GroupSummaryPresenter.toHTTP(group));
   }
 }

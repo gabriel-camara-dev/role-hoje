@@ -50,6 +50,7 @@ export const historyQuerySchema = z
     to: dateOnlySchema.optional(),
     city: z.string().min(1).optional(),
     groupPublicId: z.string().uuid().optional(),
+    memberVotes: z.string().optional(),
     latitude: z.coerce.number().min(-90).max(90).optional(),
     longitude: z.coerce.number().min(-180).max(180).optional(),
     radiusKm: z.coerce.number().positive().max(100).optional(),

@@ -27,7 +27,7 @@ export class ListMyVoteHistoryUseCase {
       return fail(new ResourceNotFoundError('Authenticated user not found'));
     }
 
-    const votes = await this.placesRepository.userVoteHistory(user.id, request.limit ?? 30);
+    const votes = await this.placesRepository.userVoteHistory(user.publicId, request.limit ?? 30);
 
     return success({ votes });
   }

@@ -32,14 +32,16 @@ export class RemoveFriendshipUseCase {
       return fail(new ResourceNotFoundError('Friendship not found'));
     }
 
-    const removed = await this.friendshipsRepository.removeFriendship({
-      userId: user.id,
-      otherId: friend.id,
+    const friendship = await this.friendshipsRepository.findByUsers({
+      requesterId: user.publicId,
+      addresseeId: friend.publicId,
     });
 
-    if (!removed) {
+    if (!friendship) {
       return fail(new ResourceNotFoundError('Friendship not found'));
     }
+
+    await this.friendshipsRepository.delete(friendship);
 
     return success({ removed: true });
   }

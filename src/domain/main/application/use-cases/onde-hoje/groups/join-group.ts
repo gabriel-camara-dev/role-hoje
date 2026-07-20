@@ -1,14 +1,18 @@
 import { Inject, Injectable } from '@nestjs/common';
-import { createDomainEvent } from '@/core/events/domain-event';
+import { UniqueEntityID } from '@/core/entities/unique-entity-id';
+import { createIntegrationEvent } from '@/core/events/integration-event';
 import { EventBus } from '@/core/events/event-bus';
 import type { Result } from '@/core/result';
 import { fail, success } from '@/core/result';
+import { PasswordHasher } from '@/domain/main/application/use-cases/users/password-hasher';
+import type { Group } from '../../../../enterprise/entities/onde-hoje/groups/group';
+import { GroupMember } from '../../../../enterprise/entities/onde-hoje/groups/group-member';
+import type { GroupMembership } from '../../../../enterprise/entities/onde-hoje/groups/group-membership';
+import { GroupMembersRepository } from '../../../repositories/onde-hoje/group-members-repository';
 import { GroupsRepository } from '../../../repositories/onde-hoje/groups-repository';
 import { OndeHojeUsersRepository } from '../../../repositories/onde-hoje/onde-hoje-users-repository';
-import type { GroupMembership } from '../../../../enterprise/entities/onde-hoje/groups/group-membership';
 import { ConflictError } from '../../errors/conflict-error';
 import { ResourceNotFoundError } from '../../errors/resource-not-found-error';
-import { NotificationDispatcher } from '../notifications/notification-dispatcher';
 
 interface JoinGroupUseCaseRequest {
   currentUserPublicId: string;
@@ -23,9 +27,10 @@ type JoinGroupUseCaseResponse = Result<ResourceNotFoundError | ConflictError, { 
 export class JoinGroupUseCase {
   constructor(
     @Inject(GroupsRepository) private groupsRepository: GroupsRepository,
+    @Inject(GroupMembersRepository) private groupMembersRepository: GroupMembersRepository,
     @Inject(OndeHojeUsersRepository) private usersRepository: OndeHojeUsersRepository,
+    @Inject(PasswordHasher) private passwordHasher: PasswordHasher,
     @Inject(EventBus) private eventBus: EventBus,
-    @Inject(NotificationDispatcher) private notificationDispatcher: NotificationDispatcher,
   ) {}
 
   async execute(request: JoinGroupUseCaseRequest): Promise<JoinGroupUseCaseResponse> {
@@ -35,30 +40,48 @@ export class JoinGroupUseCase {
       return fail(new ResourceNotFoundError('Authenticated user not found'));
     }
 
-    const joinResult = await this.groupsRepository.join({
-      userId: user.id,
-      groupPublicId: request.groupPublicId,
-      name: request.name,
-      password: request.password,
-    });
+    const group = await this.findGroup(request);
 
-    if (joinResult.type === 'not_found') {
+    if (!group) {
       return fail(new ResourceNotFoundError('Group not found'));
     }
 
-    if (joinResult.type === 'blocked') {
+    const existing = await this.groupMembersRepository.findByGroupAndMember({
+      groupId: group.id.toString(),
+      memberId: user.publicId,
+    });
+
+    if (existing?.status === 'BLOCKED') {
       return fail(new ConflictError('Blocked members cannot rejoin without moderator action'));
     }
 
-    const { membership } = joinResult;
+    // Public groups let anyone in; a private group only does so on the right
+    // password, otherwise the request waits for the owner's approval.
+    const admitted = await this.canEnterRightAway(group, request.password);
+    const membership =
+      existing ?? GroupMember.create({ groupId: group.id, memberId: new UniqueEntityID(user.publicId) });
+
+    // A pending request raises GroupJoinRequestedEvent; OnGroupJoinRequested
+    // notifies the owner. Admitting straight away carries no notification.
+    if (admitted) {
+      membership.activate();
+    } else {
+      membership.requestToJoin();
+    }
+
+    if (existing) {
+      await this.groupMembersRepository.save(membership);
+    } else {
+      await this.groupMembersRepository.create(membership);
+    }
 
     await this.eventBus.publish(
-      createDomainEvent({
+      createIntegrationEvent({
         eventName: 'onde-hoje.group.member-joined',
         aggregateId: request.groupPublicId ?? request.name ?? 'unknown-group',
         actorId: request.currentUserPublicId,
         payload: {
-          groupId: membership.groupPublicId,
+          groupId: group.id.toString(),
           userId: request.currentUserPublicId,
           membershipStatus: membership.status,
         },
@@ -66,18 +89,30 @@ export class JoinGroupUseCase {
       }),
     );
 
-    // Private-group join requests wait for the owner's approval: notify them.
-    if (membership.status === 'PENDING' && joinResult.ownerPublicId) {
-      await this.notificationDispatcher.dispatch({
-        recipientPublicId: joinResult.ownerPublicId,
-        actorPublicId: request.currentUserPublicId,
-        type: 'GROUP_JOIN_REQUEST',
-        title: `Novo pedido de entrada em ${joinResult.groupName}`,
-        body: 'Alguem pediu para entrar no seu grupo. Toque para revisar.',
-        data: { groupPublicId: membership.groupPublicId, groupName: joinResult.groupName },
-      });
+    return success({ membership: { groupPublicId: group.id.toString(), status: membership.status } });
+  }
+
+  private async findGroup(request: JoinGroupUseCaseRequest): Promise<Group | null> {
+    if (request.groupPublicId) {
+      return this.groupsRepository.findById(request.groupPublicId);
     }
 
-    return success({ membership });
+    if (request.name) {
+      return this.groupsRepository.findByName(request.name);
+    }
+
+    return null;
+  }
+
+  private async canEnterRightAway(group: Group, password?: string): Promise<boolean> {
+    if (group.isPublic) {
+      return true;
+    }
+
+    if (!group.passwordHash || !password) {
+      return false;
+    }
+
+    return this.passwordHasher.compare(password, group.passwordHash);
   }
 }

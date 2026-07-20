@@ -342,8 +342,12 @@ export class PrismaAdminDashboardRepository implements AdminDashboardRepository 
       recentAttempts,
     ] = await Promise.all([
       this.dbContext.client.authenticationAudit.count({ where: { status: 'SUCCESS', createdAt: { gte: today } } }),
-      this.dbContext.client.authenticationAudit.count({ where: { status: 'INCORRECT_PASSWORD', createdAt: { gte: today } } }),
-      this.dbContext.client.authenticationAudit.count({ where: { status: 'USER_NOT_EXISTS', createdAt: { gte: today } } }),
+      this.dbContext.client.authenticationAudit.count({
+        where: { status: 'INCORRECT_PASSWORD', createdAt: { gte: today } },
+      }),
+      this.dbContext.client.authenticationAudit.count({
+        where: { status: 'USER_NOT_EXISTS', createdAt: { gte: today } },
+      }),
       this.dbContext.client.authenticationAudit.count({ where: { status: 'BLOCKED', createdAt: { gte: today } } }),
       this.dbContext.client.authenticationAudit.findMany({
         where: { status: 'SUCCESS', createdAt: { gte: today }, userId: { not: null } },

@@ -10,6 +10,7 @@ export default defineConfig({
     globals: true,
     root: './',
     environment: 'node',
+    setupFiles: ['./test/setup-unit.ts'],
   },
   plugins: [swcPlugin],
 });

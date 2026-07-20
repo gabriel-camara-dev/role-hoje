@@ -1,140 +1,95 @@
-import { randomUUID } from 'node:crypto';
+import { UniqueEntityID } from '@/core/entities/unique-entity-id';
 import {
-  type CreateNotificationData,
   NotificationsRepository,
   type UpsertAggregatedNotificationData,
 } from '@/domain/main/application/repositories/onde-hoje/notifications-repository';
-import type { Notification } from '@/domain/main/enterprise/entities/onde-hoje/notifications/notification';
-import type { InMemoryOndeHojeUsersRepository } from './in-memory-onde-hoje-users-repository';
-
-interface StoredNotification extends Notification {
-  recipientId: number;
-  groupKey: string | null;
-}
+import { Notification } from '@/domain/main/enterprise/entities/onde-hoje/notifications/notification';
 
 export class InMemoryNotificationsRepository extends NotificationsRepository {
-  public items: StoredNotification[] = [];
+  public items: Notification[] = [];
 
-  constructor(private usersRepository: InMemoryOndeHojeUsersRepository) {
-    super();
+  private byRecipient(recipientPublicId: string) {
+    return this.items.filter((item) => item.recipientId.toString() === recipientPublicId);
   }
 
-  private actorFor(actorId?: number | null) {
-    if (!actorId) {
-      return null;
+  async findById(id: string): Promise<Notification | null> {
+    return this.items.find((item) => item.id.toString() === id) ?? null;
+  }
+
+  async create(notification: Notification): Promise<void> {
+    this.items.push(notification);
+  }
+
+  async save(notification: Notification): Promise<void> {
+    const index = this.items.findIndex((item) => item.id.equals(notification.id));
+
+    if (index >= 0) {
+      this.items[index] = notification;
     }
-
-    const actor = this.usersRepository.items.find((user) => user.id === actorId);
-
-    if (!actor) {
-      return null;
-    }
-
-    return {
-      publicId: actor.publicId,
-      name: actor.name,
-      username: actor.username,
-      avatarUrl: null,
-    };
   }
 
-  private toNotification(stored: StoredNotification): Notification {
-    const { recipientId: _recipientId, groupKey: _groupKey, ...notification } = stored;
-    return notification;
-  }
-
-  async create(data: CreateNotificationData): Promise<Notification> {
-    const stored: StoredNotification = {
-      recipientId: data.recipientId,
-      groupKey: null,
-      publicId: randomUUID(),
-      type: data.type,
-      title: data.title,
-      body: data.body ?? null,
-      data: data.data ?? null,
-      read: false,
-      createdAt: new Date(),
-      actor: this.actorFor(data.actorId),
-    };
-
-    this.items.push(stored);
-
-    return this.toNotification(stored);
-  }
-
-  async listForUser(userId: number, limit = 20, offset = 0): Promise<Notification[]> {
-    return this.items
-      .filter((item) => item.recipientId === userId)
+  async findManyByRecipientId(recipientPublicId: string, limit = 30, offset = 0): Promise<Notification[]> {
+    return this.byRecipient(recipientPublicId)
       .sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime())
-      .slice(offset, offset + limit)
-      .map((item) => this.toNotification(item));
+      .slice(offset, offset + limit);
   }
 
-  async countUnread(userId: number): Promise<number> {
-    return this.items.filter((item) => item.recipientId === userId && !item.read).length;
+  async countUnread(recipientPublicId: string): Promise<number> {
+    return this.byRecipient(recipientPublicId).filter((item) => !item.isRead).length;
   }
 
-  async markRead(userId: number, publicId: string): Promise<boolean> {
-    const notification = this.items.find(
-      (item) => item.recipientId === userId && item.publicId === publicId,
-    );
-
-    if (!notification || notification.read) {
-      return false;
-    }
-
-    notification.read = true;
-
-    return true;
-  }
-
-  async markAllRead(userId: number): Promise<number> {
-    const unread = this.items.filter((item) => item.recipientId === userId && !item.read);
+  async markAllRead(recipientPublicId: string): Promise<number> {
+    const unread = this.byRecipient(recipientPublicId).filter((item) => !item.isRead);
 
     for (const notification of unread) {
-      notification.read = true;
+      notification.read();
     }
 
     return unread.length;
   }
 
-  async findLatestByGroupKey(userId: number, groupKey: string): Promise<Notification | null> {
-    const found = this.items
-      .filter((item) => item.recipientId === userId && item.groupKey === groupKey)
-      .sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime())[0];
-
-    return found ? this.toNotification(found) : null;
+  async findLatestByGroupKey(recipientPublicId: string, groupKey: string): Promise<Notification | null> {
+    return (
+      this.byRecipient(recipientPublicId)
+        .filter((item) => item.groupKey === groupKey)
+        .sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime())[0] ?? null
+    );
   }
 
   async upsertAggregated(data: UpsertAggregatedNotificationData): Promise<Notification> {
-    const existing = this.items.find(
-      (item) => item.recipientId === data.recipientId && item.groupKey === data.groupKey,
-    );
+    const existing = this.byRecipient(data.recipientPublicId).find((item) => item.groupKey === data.groupKey);
 
     if (existing) {
-      existing.title = data.title;
-      existing.data = data.data ?? null;
-      existing.read = false;
-      existing.createdAt = new Date();
+      const refreshed = Notification.create(
+        {
+          recipientId: existing.recipientId,
+          actor: existing.actor,
+          type: existing.type,
+          title: data.title,
+          body: existing.body,
+          data: data.data ?? null,
+          groupKey: data.groupKey,
+          readAt: null,
+          createdAt: new Date(),
+        },
+        existing.id,
+      );
 
-      return this.toNotification(existing);
+      await this.save(refreshed);
+
+      return refreshed;
     }
 
-    const stored: StoredNotification = {
-      recipientId: data.recipientId,
-      groupKey: data.groupKey,
-      publicId: randomUUID(),
+    const notification = Notification.create({
+      recipientId: new UniqueEntityID(data.recipientPublicId),
       type: data.type,
       title: data.title,
-      body: null,
+      groupKey: data.groupKey,
       data: data.data ?? null,
-      read: false,
-      createdAt: new Date(),
-      actor: null,
-    };
+    });
 
-    this.items.push(stored);
+    this.items.push(notification);
 
-    return this.toNotification(stored);
+    return notification;
   }
 }

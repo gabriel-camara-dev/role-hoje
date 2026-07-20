@@ -24,9 +24,7 @@ describe('Friendship routes', () => {
     const a = await createUser(app);
     const b = await createUser(app);
 
-    const req = await http
-      .post(`/friends/${b.user.username}/request`)
-      .set('Authorization', `Bearer ${a.token}`);
+    const req = await http.post(`/friends/${b.user.username}/request`).set('Authorization', `Bearer ${a.token}`);
     expect([200, 201]).toContain(req.status);
 
     // b sees a as a received pending request
@@ -34,9 +32,7 @@ describe('Friendship routes', () => {
     expect(received.status).toBe(200);
     expect(received.body.some((f: { status: string }) => f.status === 'PENDING')).toBe(true);
 
-    const accept = await http
-      .post(`/friends/${a.user.username}/accept`)
-      .set('Authorization', `Bearer ${b.token}`);
+    const accept = await http.post(`/friends/${a.user.username}/accept`).set('Authorization', `Bearer ${b.token}`);
     expect([200, 201]).toContain(accept.status);
 
     const friends = await http.get('/friends').set('Authorization', `Bearer ${a.token}`);

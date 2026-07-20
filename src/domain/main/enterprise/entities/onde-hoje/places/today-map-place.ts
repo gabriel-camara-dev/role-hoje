@@ -1,7 +1,7 @@
-import type { Place } from './place';
+import type { PlaceFields } from './place';
 import type { PlaceVoteType } from './place-vote';
 
-export interface TodayMapPlace extends Place {
+export interface TodayMapPlace extends PlaceFields {
   voteCount: number;
   dominantVoteType: PlaceVoteType;
   voters: Array<{

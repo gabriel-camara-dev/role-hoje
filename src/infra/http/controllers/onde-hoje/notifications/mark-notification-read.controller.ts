@@ -24,10 +24,7 @@ export class MarkNotificationReadController {
   @ApiOperation({ summary: 'Mark a single notification as read.' })
   @ApiParam({ name: 'notificationPublicId', type: String })
   @ApiOkResponse({ description: 'Notification marked as read.' })
-  async markOne(
-    @CurrentUser() currentUser: UserPayload,
-    @Param('notificationPublicId') notificationPublicId: string,
-  ) {
+  async markOne(@CurrentUser() currentUser: UserPayload, @Param('notificationPublicId') notificationPublicId: string) {
     return this.mark(currentUser.sub, notificationPublicId);
   }
 

@@ -32,14 +32,17 @@ export class RejectFriendshipUseCase {
       return fail(new ResourceNotFoundError('Friend request not found'));
     }
 
-    const rejected = await this.friendshipsRepository.rejectFriendship({
-      addresseeId: user.id,
-      requesterId: requester.id,
+    const friendship = await this.friendshipsRepository.findByUsers({
+      requesterId: requester.publicId,
+      addresseeId: user.publicId,
     });
 
-    if (!rejected) {
+    // Only the addressee of a still-pending request may reject it.
+    if (!friendship?.isPending || friendship.addresseeId.toString() !== user.publicId) {
       return fail(new ResourceNotFoundError('Friend request not found'));
     }
+
+    await this.friendshipsRepository.delete(friendship);
 
     return success({ rejected: true });
   }

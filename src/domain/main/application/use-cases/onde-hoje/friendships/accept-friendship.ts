@@ -1,13 +1,12 @@
 import { Inject, Injectable } from '@nestjs/common';
-import { createDomainEvent } from '@/core/events/domain-event';
+import { createIntegrationEvent } from '@/core/events/integration-event';
 import { EventBus } from '@/core/events/event-bus';
 import type { Result } from '@/core/result';
 import { fail, success } from '@/core/result';
+import type { FriendshipStatus } from '../../../../enterprise/entities/onde-hoje/friendships/friendship';
 import { FriendshipsRepository } from '../../../repositories/onde-hoje/friendships-repository';
 import { OndeHojeUsersRepository } from '../../../repositories/onde-hoje/onde-hoje-users-repository';
-import type { FriendshipStatus } from '../../../../enterprise/entities/onde-hoje/friendships/friendship';
 import { ResourceNotFoundError } from '../../errors/resource-not-found-error';
-import { NotificationDispatcher } from '../notifications/notification-dispatcher';
 
 interface AcceptFriendshipUseCaseRequest {
   currentUserPublicId: string;
@@ -22,7 +21,6 @@ export class AcceptFriendshipUseCase {
     @Inject(FriendshipsRepository) private friendshipsRepository: FriendshipsRepository,
     @Inject(OndeHojeUsersRepository) private usersRepository: OndeHojeUsersRepository,
     @Inject(EventBus) private eventBus: EventBus,
-    @Inject(NotificationDispatcher) private notificationDispatcher: NotificationDispatcher,
   ) {}
 
   async execute(request: AcceptFriendshipUseCaseRequest): Promise<AcceptFriendshipUseCaseResponse> {
@@ -38,38 +36,35 @@ export class AcceptFriendshipUseCase {
       return fail(new ResourceNotFoundError('Friend request not found'));
     }
 
-    const status = await this.friendshipsRepository.acceptFriendship({
-      addresseeId: user.id,
-      requesterId: requester.id,
+    const friendship = await this.friendshipsRepository.findByUsers({
+      requesterId: requester.publicId,
+      addresseeId: user.publicId,
     });
 
-    if (!status) {
+    // Only the addressee of a still-pending request may accept it.
+    if (!friendship?.isPending || friendship.addresseeId.toString() !== user.publicId) {
       return fail(new ResourceNotFoundError('Friend request not found'));
     }
 
+    // Raises FriendshipAcceptedEvent; OnFriendshipAccepted notifies the requester.
+    friendship.accept();
+
+    await this.friendshipsRepository.save(friendship);
+
     await this.eventBus.publish(
-      createDomainEvent({
+      createIntegrationEvent({
         eventName: 'onde-hoje.friendship.accepted',
         actorId: request.currentUserPublicId,
         aggregateId: `${request.requesterUsername}:${request.currentUserPublicId}`,
         payload: {
           requesterUsername: request.requesterUsername,
           addresseeId: request.currentUserPublicId,
-          status,
+          status: friendship.status,
         },
         recipientIds: [request.currentUserPublicId],
       }),
     );
 
-    await this.notificationDispatcher.dispatch({
-      recipientPublicId: requester.publicId,
-      actorPublicId: request.currentUserPublicId,
-      type: 'FRIEND_ACCEPTED',
-      title: 'Pedido de amizade aceito',
-      body: 'Voces agora sao amigos.',
-      data: {},
-    });
-
-    return success({ status });
+    return success({ status: friendship.status });
   }
 }

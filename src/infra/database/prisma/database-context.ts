@@ -1,5 +1,5 @@
 import { AsyncLocalStorage } from 'node:async_hooks';
-import { Injectable } from '@nestjs/common';
+import { Inject, Injectable } from '@nestjs/common';
 import type { Prisma } from '@/@types/prisma/client';
 import { PrismaService } from './prisma.service';
 
@@ -18,7 +18,9 @@ const asyncLocalStorage = new AsyncLocalStorage<DatabaseContextStore>();
  */
 @Injectable()
 export class DatabaseContext {
-  constructor(private readonly prisma: PrismaService) {}
+  // The @Inject() decorator is what keeps PrismaService imported as a value:
+  // without it `useImportType` rewrites the import and Nest loses the token.
+  constructor(@Inject(PrismaService) private readonly prisma: PrismaService) {}
 
   get client(): PrismaService | Prisma.TransactionClient {
     return asyncLocalStorage.getStore()?.prismaTransaction ?? this.prisma;
@@ -32,8 +34,6 @@ export class DatabaseContext {
       return work();
     }
 
-    return this.prisma.$transaction((tx) =>
-      asyncLocalStorage.run({ prismaTransaction: tx }, work),
-    );
+    return this.prisma.$transaction((tx) => asyncLocalStorage.run({ prismaTransaction: tx }, work));
   }
 }

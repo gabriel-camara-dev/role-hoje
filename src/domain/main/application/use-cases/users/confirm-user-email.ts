@@ -18,24 +18,21 @@ export class ConfirmUserEmailUseCase {
 
   async execute({ token }: ConfirmUserEmailUseCaseRequest): Promise<ConfirmUserEmailUseCaseResponse> {
     const tokenHash = emailVerificationTokenHash(token);
-    const user = await this.usersRepository.findBy({ emailVerificationTokenHash: tokenHash });
+    const user = await this.usersRepository.findByEmailVerificationTokenHash(tokenHash);
 
     if (!user?.emailVerificationTokenExpiresAt) {
       return fail(new ResourceNotFoundError('Email confirmation link not found or expired'));
     }
 
     if (user.emailVerificationTokenExpiresAt < new Date()) {
-      await this.usersRepository.deleteById(user.id);
+      await this.usersRepository.delete(user);
 
       return fail(new ResourceNotFoundError('Email confirmation link not found or expired'));
     }
 
-    const verifiedUser = await this.usersRepository.updateById(user.id, {
-      emailVerifiedAt: new Date(),
-      emailVerificationTokenHash: null,
-      emailVerificationTokenExpiresAt: null,
-    });
+    user.verifyEmail();
+    await this.usersRepository.save(user);
 
-    return success({ user: verifiedUser });
+    return success({ user });
   }
 }

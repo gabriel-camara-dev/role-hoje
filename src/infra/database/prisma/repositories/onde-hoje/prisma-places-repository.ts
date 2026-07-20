@@ -16,10 +16,10 @@ import type {
   TopPlacesTodayQuery,
   VoteNotificationTargets,
 } from '@/domain/main/application/repositories/onde-hoje/places-repository';
-import type { CreatePlaceData, Place } from '@/domain/main/enterprise/entities/onde-hoje/places/place';
+import type { Place, PlaceFields } from '@/domain/main/enterprise/entities/onde-hoje/places/place';
 import type { Prisma } from '@/@types/prisma/client';
 import { addDaysToDateOnly, toDateOnly } from '@/core/date/date-only';
-import { PrismaOndeHojeMapper } from '../../mappers/prisma-onde-hoje-mapper';
+import { placeWithCreatorInclude, PrismaOndeHojeMapper } from '../../mappers/prisma-onde-hoje-mapper';
 import { PrismaService } from '../../prisma.service';
 import { getCoordinateBounds, getDistanceKm, todayDate, toDateKey } from './onde-hoje-prisma-utils';
 
@@ -27,7 +27,7 @@ import { getCoordinateBounds, getDistanceKm, todayDate, toDateKey } from './onde
 export class PrismaPlacesRepository implements PlacesRepository {
   constructor(@Inject(PrismaService) private prisma: PrismaService) {}
 
-  async list(query: ListPlacesQuery): Promise<Place[]> {
+  async list(query: ListPlacesQuery): Promise<PlaceFields[]> {
     const radiusKm = query.radiusKm;
     const bounds =
       query.latitude !== undefined && query.longitude !== undefined && radiusKm !== undefined
@@ -60,7 +60,7 @@ export class PrismaPlacesRepository implements PlacesRepository {
     });
 
     const mappedPlaces = places.map((place) =>
-      this.withDistance(PrismaOndeHojeMapper.placeToDomain(place), query.latitude, query.longitude),
+      this.withDistance(PrismaOndeHojeMapper.placeToFields(place), query.latitude, query.longitude),
     );
 
     return radiusKm === undefined
@@ -70,26 +70,29 @@ export class PrismaPlacesRepository implements PlacesRepository {
           .sort((a, b) => (a.distanceKm ?? 0) - (b.distanceKm ?? 0));
   }
 
-  async upsert(data: CreatePlaceData): Promise<Place> {
+  async upsert(place: Place): Promise<Place> {
+    // Naming/trimming is settled by Place.create, so the row mirrors the entity.
     const placeData = {
-      googlePlaceId: data.googlePlaceId,
-      googlePlaceName: cleanOptionalText(data.googlePlaceName) ?? data.name,
-      nickname: cleanOptionalText(data.nickname),
-      name: displayPlaceName(data),
-      formattedAddress: data.formattedAddress,
-      latitude: data.latitude,
-      longitude: data.longitude,
-      city: data.city,
-      state: data.state,
-      country: data.country,
-      photoUrl: data.photoUrl,
-      websiteUrl: data.websiteUrl,
-      mapsUrl: data.mapsUrl,
-      createdById: data.createdById,
+      publicId: place.publicId,
+      googlePlaceId: place.googlePlaceId,
+      googlePlaceName: place.googlePlaceName,
+      nickname: place.nickname,
+      name: place.name,
+      formattedAddress: place.formattedAddress,
+      latitude: place.latitude,
+      longitude: place.longitude,
+      city: place.city,
+      state: place.state,
+      country: place.country,
+      photoUrl: place.photoUrl,
+      websiteUrl: place.websiteUrl,
+      mapsUrl: place.mapsUrl,
+      // Left unset for a creatorless place, so the row keeps its null FK.
+      ...(place.createdById ? { createdBy: { connect: { publicId: place.createdById.toString() } } } : {}),
     };
 
-    const place = await this.prisma.place.upsert({
-      where: { googlePlaceId: data.googlePlaceId },
+    const upserted = await this.prisma.place.upsert({
+      where: { googlePlaceId: place.googlePlaceId },
       update: {
         name: placeData.name,
         googlePlaceName: placeData.googlePlaceName,
@@ -106,14 +109,14 @@ export class PrismaPlacesRepository implements PlacesRepository {
         isActive: true,
       },
       create: placeData,
+      include: placeWithCreatorInclude,
     });
 
-    return PrismaOndeHojeMapper.placeToDomain(place);
+    return PrismaOndeHojeMapper.placeToDomain(upserted);
   }
 
   async todayMap(query: TodayMapQuery): Promise<TodayMapPlace[] | null> {
-    const day =
-      query.from && query.to ? { gte: query.from, lte: query.to } : (query.day ?? todayDate());
+    const day = query.from && query.to ? { gte: query.from, lte: query.to } : (query.day ?? todayDate());
     const group = query.groupPublicId
       ? await this.prisma.group.findUnique({ where: { publicId: query.groupPublicId } })
       : null;
@@ -169,7 +172,7 @@ export class PrismaPlacesRepository implements PlacesRepository {
 
     const mappedPlaces = places
       .map((place) => ({
-        ...PrismaOndeHojeMapper.placeToDomain(place),
+        ...PrismaOndeHojeMapper.placeToFields(place),
         voteCount: place.votes.filter((vote) => vote.going).length,
         dominantVoteType: dominantVoteType(place.votes),
         voters: place.votes
@@ -192,8 +195,7 @@ export class PrismaPlacesRepository implements PlacesRepository {
   }
 
   async topPlacesToday(query: TopPlacesTodayQuery): Promise<TodayMapPlace[] | null> {
-    const day =
-      query.from && query.to ? { gte: query.from, lte: query.to } : (query.day ?? todayDate());
+    const day = query.from && query.to ? { gte: query.from, lte: query.to } : (query.day ?? todayDate());
     const group = query.groupPublicId
       ? await this.prisma.group.findUnique({ where: { publicId: query.groupPublicId } })
       : null;
@@ -252,7 +254,7 @@ export class PrismaPlacesRepository implements PlacesRepository {
 
     const mappedPlaces = places
       .map((place) => ({
-        ...PrismaOndeHojeMapper.placeToDomain(place),
+        ...PrismaOndeHojeMapper.placeToFields(place),
         voteCount: place.votes.filter((vote) => vote.going).length,
         dominantVoteType: dominantVoteType(place.votes),
         voters: place.votes
@@ -311,7 +313,7 @@ export class PrismaPlacesRepository implements PlacesRepository {
 
     return places
       .map((place) => ({
-        ...PrismaOndeHojeMapper.placeToDomain(place),
+        ...PrismaOndeHojeMapper.placeToFields(place),
         voteCount: place.votes.filter((vote) => vote.going).length,
         dominantVoteType: dominantVoteType(place.votes),
         voters: place.votes
@@ -361,7 +363,7 @@ export class PrismaPlacesRepository implements PlacesRepository {
           lte: query.to,
         },
         status: 'ACTIVE',
-        ...(group ? { groupId: group.id } : { groupId: null }),
+        ...this.historyScopeWhere(group, query.includeMemberPublicVotes),
         place: {
           isActive: true,
           ...(query.city ? { city: { equals: query.city, mode: 'insensitive' } } : {}),
@@ -391,7 +393,7 @@ export class PrismaPlacesRepository implements PlacesRepository {
     const historyByDay = new Map<string, PlaceHistoryDay>();
 
     for (const vote of votes) {
-      const place = this.withDistance(PrismaOndeHojeMapper.placeToDomain(vote.place), query.latitude, query.longitude);
+      const place = this.withDistance(PrismaOndeHojeMapper.placeToFields(vote.place), query.latitude, query.longitude);
 
       if (query.radiusKm !== undefined && (place.distanceKm === undefined || place.distanceKm > query.radiusKm)) {
         continue;
@@ -448,10 +450,10 @@ export class PrismaPlacesRepository implements PlacesRepository {
     }));
   }
 
-  async userVoteHistory(userId: number, limit: number): Promise<UserVoteHistoryItem[]> {
+  async userVoteHistory(userPublicId: string, limit: number): Promise<UserVoteHistoryItem[]> {
     const votes = await this.prisma.placeVote.findMany({
       where: {
-        userId,
+        user: { publicId: userPublicId },
         status: 'ACTIVE',
       },
       include: {
@@ -475,7 +477,7 @@ export class PrismaPlacesRepository implements PlacesRepository {
       voteType: vote.voteType,
       scopeKey: vote.scopeKey,
       group: vote.group,
-      place: PrismaOndeHojeMapper.placeToDomain(vote.place),
+      place: PrismaOndeHojeMapper.placeToFields(vote.place),
     }));
   }
 
@@ -489,7 +491,7 @@ export class PrismaPlacesRepository implements PlacesRepository {
       return null;
     }
 
-    const placeDomain = PrismaOndeHojeMapper.placeToDomain(place);
+    const placeDomain = PrismaOndeHojeMapper.placeToFields(place);
     const bounds = getCoordinateBounds(placeDomain.latitude, placeDomain.longitude, query.radiusKm);
     const day = toDateOnly(query.scheduledAt);
 
@@ -521,7 +523,7 @@ export class PrismaPlacesRepository implements PlacesRepository {
       .map((vote) => ({
         vote,
         place: this.withDistance(
-          PrismaOndeHojeMapper.placeToDomain(vote.place),
+          PrismaOndeHojeMapper.placeToFields(vote.place),
           placeDomain.latitude,
           placeDomain.longitude,
         ),
@@ -551,17 +553,18 @@ export class PrismaPlacesRepository implements PlacesRepository {
   }
 
   async countActiveVotesForWeekExcludingTarget(data: {
-    userId: number;
+    userPublicId: string;
     placePublicId: string;
     day: Date;
     groupPublicId?: string;
   }): Promise<number | null> {
-    const [place, group] = await Promise.all([
+    const [place, group, user] = await Promise.all([
       this.prisma.place.findUnique({ where: { publicId: data.placePublicId } }),
       data.groupPublicId ? this.prisma.group.findUnique({ where: { publicId: data.groupPublicId } }) : null,
+      this.prisma.user.findUnique({ where: { publicId: data.userPublicId }, select: { id: true } }),
     ]);
 
-    if (!place || (data.groupPublicId && !group)) {
+    if (!place || !user || (data.groupPublicId && !group)) {
       return null;
     }
 
@@ -570,7 +573,7 @@ export class PrismaPlacesRepository implements PlacesRepository {
         where: {
           uq_group_member: {
             groupId: group.id,
-            userId: data.userId,
+            userId: user.id,
           },
         },
       });
@@ -589,7 +592,7 @@ export class PrismaPlacesRepository implements PlacesRepository {
 
     return this.prisma.placeVote.count({
       where: {
-        userId: data.userId,
+        userId: user.id,
         status: 'ACTIVE',
         going: true,
         day: { gte: weekStart, lte: weekEnd },
@@ -603,7 +606,7 @@ export class PrismaPlacesRepository implements PlacesRepository {
   }
 
   async vote(data: {
-    userId: number;
+    userPublicId: string;
     placePublicId: string;
     day: Date;
     groupPublicId?: string;
@@ -613,12 +616,13 @@ export class PrismaPlacesRepository implements PlacesRepository {
     going?: boolean;
     voteTime?: string;
   }): Promise<PlaceVote | null> {
-    const [place, group] = await Promise.all([
+    const [place, group, user] = await Promise.all([
       this.prisma.place.findUnique({ where: { publicId: data.placePublicId } }),
       data.groupPublicId ? this.prisma.group.findUnique({ where: { publicId: data.groupPublicId } }) : null,
+      this.prisma.user.findUnique({ where: { publicId: data.userPublicId }, select: { id: true } }),
     ]);
 
-    if (!place || (data.groupPublicId && !group)) {
+    if (!place || !user || (data.groupPublicId && !group)) {
       return null;
     }
 
@@ -627,7 +631,7 @@ export class PrismaPlacesRepository implements PlacesRepository {
         where: {
           uq_group_member: {
             groupId: group.id,
-            userId: data.userId,
+            userId: user.id,
           },
         },
       });
@@ -651,7 +655,7 @@ export class PrismaPlacesRepository implements PlacesRepository {
     const vote = await this.prisma.placeVote.upsert({
       where: {
         uq_vote_user_place_scope_day: {
-          userId: data.userId,
+          userId: user.id,
           placeId: place.id,
           scopeKey: group?.publicId ?? 'global',
           day: data.day,
@@ -666,7 +670,7 @@ export class PrismaPlacesRepository implements PlacesRepository {
         voteTime: data.voteTime ?? null,
       },
       create: {
-        userId: data.userId,
+        userId: user.id,
         placeId: place.id,
         groupId: group?.id,
         scopeKey: group?.publicId ?? 'global',
@@ -688,7 +692,7 @@ export class PrismaPlacesRepository implements PlacesRepository {
   }
 
   async findVoteNotificationTargets(data: {
-    actorUserId: number;
+    actorPublicId: string;
     placePublicId: string;
     day: Date;
     groupPublicId?: string;
@@ -697,8 +701,8 @@ export class PrismaPlacesRepository implements PlacesRepository {
       this.prisma.place.findUnique({ where: { publicId: data.placePublicId } }),
       data.groupPublicId ? this.prisma.group.findUnique({ where: { publicId: data.groupPublicId } }) : null,
       this.prisma.user.findUnique({
-        where: { id: data.actorUserId },
-        select: { publicId: true, name: true, username: true, avatarUpdatedAt: true },
+        where: { publicId: data.actorPublicId },
+        select: { id: true, publicId: true, name: true, username: true, avatarUpdatedAt: true },
       }),
     ]);
 
@@ -712,9 +716,9 @@ export class PrismaPlacesRepository implements PlacesRepository {
         scopeKey: group?.publicId ?? 'global',
         day: data.day,
         status: 'ACTIVE',
-        userId: { not: data.actorUserId },
+        userId: { not: actor.id },
       },
-      select: { user: { select: { id: true, publicId: true } } },
+      select: { user: { select: { publicId: true } } },
       distinct: ['userId'],
     });
 
@@ -727,15 +731,11 @@ export class PrismaPlacesRepository implements PlacesRepository {
         username: actor.username,
         avatarUrl: this.avatarUrl(actor),
       },
-      recipients: otherVotes.map((vote) => ({ id: vote.user.id, publicId: vote.user.publicId })),
+      recipients: otherVotes.map((vote) => ({ publicId: vote.user.publicId })),
     };
   }
 
-  async hasActiveGoingVote(data: {
-    placePublicId: string;
-    day: Date;
-    groupPublicId?: string;
-  }): Promise<boolean> {
+  async hasActiveGoingVote(data: { placePublicId: string; day: Date; groupPublicId?: string }): Promise<boolean> {
     const [place, group] = await Promise.all([
       this.prisma.place.findUnique({ where: { publicId: data.placePublicId } }),
       data.groupPublicId ? this.prisma.group.findUnique({ where: { publicId: data.groupPublicId } }) : null,
@@ -803,7 +803,7 @@ export class PrismaPlacesRepository implements PlacesRepository {
     }
 
     const mapped = {
-      ...PrismaOndeHojeMapper.placeToDomain(place),
+      ...PrismaOndeHojeMapper.placeToFields(place),
       voteCount: place.votes.length,
       dominantVoteType: dominantVoteType(place.votes),
       voters: place.votes
@@ -826,24 +826,25 @@ export class PrismaPlacesRepository implements PlacesRepository {
   }
 
   async cancelVote(data: {
-    userId: number;
+    userPublicId: string;
     placePublicId: string;
     day: Date;
     groupPublicId?: string;
   }): Promise<PlaceVote | null> {
-    const [place, group] = await Promise.all([
+    const [place, group, user] = await Promise.all([
       this.prisma.place.findUnique({ where: { publicId: data.placePublicId } }),
       data.groupPublicId ? this.prisma.group.findUnique({ where: { publicId: data.groupPublicId } }) : null,
+      this.prisma.user.findUnique({ where: { publicId: data.userPublicId }, select: { id: true } }),
     ]);
 
-    if (!place || (data.groupPublicId && !group)) {
+    if (!place || !user || (data.groupPublicId && !group)) {
       return null;
     }
 
     const existingVote = await this.prisma.placeVote.findUnique({
       where: {
         uq_vote_user_place_scope_day: {
-          userId: data.userId,
+          userId: user.id,
           placeId: place.id,
           scopeKey: group?.publicId ?? 'global',
           day: data.day,
@@ -868,7 +869,7 @@ export class PrismaPlacesRepository implements PlacesRepository {
     };
   }
 
-  private withDistance(place: Place, latitude?: number, longitude?: number): Place {
+  private withDistance(place: PlaceFields, latitude?: number, longitude?: number): PlaceFields {
     if (latitude === undefined || longitude === undefined) {
       return place;
     }
@@ -907,6 +908,32 @@ export class PrismaPlacesRepository implements PlacesRepository {
     }
 
     return { groupId: null };
+  }
+
+  /**
+   * History is scoped by *where* the vote was cast, not by the viewer's groups —
+   * hence its own resolver instead of {@link resolveVoteScopeWhere}.
+   */
+  private historyScopeWhere(group: { id: number } | null, includeMemberPublicVotes?: boolean) {
+    if (!group) {
+      return { groupId: null };
+    }
+
+    if (!includeMemberPublicVotes) {
+      return { groupId: group.id };
+    }
+
+    return {
+      OR: [
+        { groupId: group.id },
+        // A member's public vote counts as group activity; their votes in other
+        // groups do not, so this stays pinned to `groupId: null`.
+        {
+          groupId: null,
+          user: { groupMembers: { some: { groupId: group.id, status: 'ACTIVE' as const } } },
+        },
+      ],
+    };
   }
 
   private async isActiveGroupMember(groupId: number, viewerPublicId?: string) {
@@ -1027,16 +1054,6 @@ function cityOrFreeMapPointWhere(city: string) {
       },
     ],
   };
-}
-
-function cleanOptionalText(value?: string | null) {
-  const trimmed = value?.trim();
-
-  return trimmed || null;
-}
-
-function displayPlaceName(data: CreatePlaceData) {
-  return cleanOptionalText(data.nickname) ?? cleanOptionalText(data.googlePlaceName) ?? data.name;
 }
 
 const BRAZILIAN_STATE_NAMES: Record<string, string> = {

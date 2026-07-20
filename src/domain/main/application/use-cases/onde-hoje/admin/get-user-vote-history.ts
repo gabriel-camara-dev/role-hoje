@@ -53,7 +53,7 @@ export class GetUserVoteHistoryUseCase {
       return fail(new ResourceNotFoundError('User not found'));
     }
 
-    const votes = await this.placesRepository.userVoteHistory(targetUser.id, request.limit ?? 100);
+    const votes = await this.placesRepository.userVoteHistory(targetUser.publicId, request.limit ?? 100);
 
     return success({
       user: {
